@@ -128,6 +128,25 @@ export default function CartDrawer({
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                   Monto total: <strong>${createdOrder.total_amount.toLocaleString('es-AR')}</strong>
                 </p>
+
+                {/* Raffle Tickets Assigned Card */}
+                {createdOrder.raffle_tickets && createdOrder.raffle_tickets.length > 0 && (
+                  <div style={{ 
+                    marginTop: '12px', 
+                    backgroundColor: 'var(--accent-gold-light)', 
+                    color: 'var(--accent-gold-hover)', 
+                    padding: '12px', 
+                    borderRadius: 'var(--radius-md)', 
+                    border: '1px dashed var(--accent-gold)' 
+                  }}>
+                    <div style={{ fontWeight: 800, fontSize: '0.9rem', marginBottom: '4px' }}>
+                      🎟️ ¡Ganaste {createdOrder.raffle_tickets.length} cupón(es) para el Gran Sorteo!
+                    </div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>
+                      Tu(s) Boleto(s): <strong>{createdOrder.raffle_tickets.join(', ')}</strong>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Upload Receipt Section */}

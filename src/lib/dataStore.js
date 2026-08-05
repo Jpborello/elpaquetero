@@ -191,7 +191,50 @@ class DataStore {
   constructor() {
     this.products = [...INITIAL_PRODUCTS];
     this.currentUser = null;
-    this.orders = [];
+    this.orders = [
+      {
+        id: 'ORD-584920',
+        client_name: 'Carlos Ruiz — Moda San Martín',
+        client_phone: '3416095021',
+        client_dni: '38450123',
+        client_locality: 'Rosario',
+        delivery_method: 'Envío a Domicilio',
+        receipt_url: '/elpaquetero_imagenes/Local.jpg',
+        items: [],
+        total_amount: 148500,
+        raffle_tickets: ['TICKET-78492', 'TICKET-78493'],
+        created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+        status: 'completado'
+      },
+      {
+        id: 'ORD-584918',
+        client_name: 'Mariana Gómez — Indumentaria Rosario',
+        client_phone: '3415129482',
+        client_dni: '35129482',
+        client_locality: 'Funes',
+        delivery_method: 'Retiro por Sucursal',
+        receipt_url: '/elpaquetero_imagenes/Logo 2.jpeg',
+        items: [],
+        total_amount: 89000,
+        raffle_tickets: ['TICKET-78490'],
+        created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
+        status: 'completado'
+      },
+      {
+        id: 'ORD-584910',
+        client_name: 'Lucas Benítez — Sportwear',
+        client_phone: '3414920192',
+        client_dni: '40192831',
+        client_locality: 'San Lorenzo',
+        delivery_method: 'Envío a Domicilio',
+        receipt_url: null,
+        items: [],
+        total_amount: 62000,
+        raffle_tickets: ['TICKET-78488'],
+        created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
+        status: 'completado'
+      }
+    ];
     this.cashMovements = [
       { id: 'cm-1', type: 'income', amount: 485000, concept: 'Venta Mayorista #1001', date: new Date().toISOString() },
       { id: 'cm-2', type: 'income', amount: 620000, concept: 'Venta Mayorista #1002', date: new Date(Date.now() - 86400000).toISOString() },
@@ -285,9 +328,19 @@ class DataStore {
     this.notify();
   }
 
-  // Create Order & Update Cash / Stock
+  // Create Order & Generate Raffle Tickets for purchases >= $50.000
   createOrder(cartItems, clientDetails) {
     const total = cartItems.reduce((sum, item) => sum + (item.product.wholesale_price * item.quantity), 0);
+    
+    // Generate raffle tickets if total >= $50.000 (1 ticket per $50.000 spent)
+    const raffleTicketsCount = total >= 50000 ? Math.floor(total / 50000) : 0;
+    const generatedTickets = [];
+
+    for (let i = 0; i < raffleTicketsCount; i++) {
+      const ticketNum = 'TICKET-' + Math.floor(10000 + Math.random() * 90000);
+      generatedTickets.push(ticketNum);
+    }
+
     const order = {
       id: 'ORD-' + Math.floor(100000 + Math.random() * 900000),
       client_name: clientDetails.name,
@@ -298,6 +351,7 @@ class DataStore {
       receipt_url: clientDetails.receiptUrl || null,
       items: cartItems,
       total_amount: total,
+      raffle_tickets: generatedTickets,
       created_at: new Date().toISOString(),
       status: 'completado'
     };
@@ -325,6 +379,56 @@ class DataStore {
     this.orders.unshift(order);
     this.notify();
     return order;
+  }
+
+  // Aggregated VIP Client Stats & Ranking
+  getClientsWithStats() {
+    const clientMap = {};
+
+    this.orders.forEach(order => {
+      const key = order.client_phone || order.client_name;
+      if (!clientMap[key]) {
+        clientMap[key] = {
+          name: order.client_name,
+          dni: order.client_dni,
+          phone: order.client_phone,
+          locality: order.client_locality,
+          total_spent: 0,
+          orders_count: 0,
+          tickets_count: 0
+        };
+      }
+
+      clientMap[key].total_spent += order.total_amount;
+      clientMap[key].orders_count += 1;
+      clientMap[key].tickets_count += (order.raffle_tickets || []).length;
+    });
+
+    // Convert map to array and sort by total_spent descending
+    return Object.values(clientMap).sort((a, b) => b.total_spent - a.total_spent);
+  }
+
+  // All Active Raffle Tickets in Play
+  getAllRaffleTickets() {
+    const tickets = [];
+
+    this.orders.forEach(order => {
+      if (order.raffle_tickets && order.raffle_tickets.length > 0) {
+        order.raffle_tickets.forEach(ticketId => {
+          tickets.push({
+            ticket_id: ticketId,
+            order_id: order.id,
+            order_amount: order.total_amount,
+            client_name: order.client_name,
+            client_phone: order.client_phone,
+            client_dni: order.client_dni,
+            client_locality: order.client_locality
+          });
+        });
+      }
+    });
+
+    return tickets;
   }
 
   // Admin Metrics Calculations

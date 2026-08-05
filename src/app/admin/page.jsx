@@ -9,11 +9,15 @@ import StockTab from '@/components/admin/StockTab';
 import PricesTab from '@/components/admin/PricesTab';
 import ImagesTab from '@/components/admin/ImagesTab';
 import OrdersTab from '@/components/admin/OrdersTab';
+import ClientsTab from '@/components/admin/ClientsTab';
+import RaffleTab from '@/components/admin/RaffleTab';
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState('metrics'); // 'metrics', 'stock', 'prices', 'images', 'orders'
+  const [activeTab, setActiveTab] = useState('metrics'); // 'metrics', 'stock', 'prices', 'images', 'orders', 'clients', 'raffle'
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [tickets, setTickets] = useState([]);
   const [metrics, setMetrics] = useState({});
   const [searchFilter, setSearchFilter] = useState('');
   const [editSuccessMsg, setEditSuccessMsg] = useState('');
@@ -43,6 +47,8 @@ export default function AdminPage() {
     const updateState = () => {
       setProducts(dataStore.getProducts());
       setOrders(dataStore.orders);
+      setClients(dataStore.getClientsWithStats());
+      setTickets(dataStore.getAllRaffleTickets());
       setMetrics(dataStore.getMetrics());
     };
 
@@ -130,6 +136,14 @@ export default function AdminPage() {
           mpLoading={mpLoading}
           onFetchMpTransfers={fetchMpTransfers}
         />
+      )}
+
+      {activeTab === 'clients' && (
+        <ClientsTab clients={clients} />
+      )}
+
+      {activeTab === 'raffle' && (
+        <RaffleTab tickets={tickets} />
       )}
     </div>
   );
