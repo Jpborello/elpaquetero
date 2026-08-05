@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Lock, Phone, User, LogIn, UserPlus } from 'lucide-react';
+import { X, Lock, Phone, User, LogIn, UserPlus, FileText, MapPin } from 'lucide-react';
 
 export default function AuthModal({ isOpen, onClose, onLogin, onRegister }) {
   const [isRegistering, setIsRegistering] = useState(true);
   const [name, setName] = useState('');
+  const [dni, setDni] = useState('');
   const [phone, setPhone] = useState('');
+  const [locality, setLocality] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -17,30 +19,32 @@ export default function AuthModal({ isOpen, onClose, onLogin, onRegister }) {
     setErrorMsg('');
 
     if (!phone || !password) {
-      setErrorMsg('Por favor completa todos los campos requeridos.');
+      setErrorMsg('Por favor completá teléfono y contraseña.');
       return;
     }
 
-    if (isRegistering && !name) {
-      setErrorMsg('Por favor ingresá tu nombre completo o razón social.');
+    if (isRegistering && (!name || !dni || !locality)) {
+      setErrorMsg('Por favor completá Nombre, DNI y Localidad.');
       return;
     }
 
     if (isRegistering) {
-      onRegister(name, phone, password);
+      onRegister({ name, dni, phone, locality, password });
     } else {
       onLogin(phone, password);
     }
 
     setName('');
+    setDni('');
     setPhone('');
+    setLocality('');
     setPassword('');
     onClose();
   };
 
   return (
     <div className="modal-backdrop active">
-      <div className="modal-box">
+      <div className="modal-box" style={{ maxWidth: '480px' }}>
         <button 
           onClick={onClose} 
           className="qty-btn" 
@@ -49,12 +53,12 @@ export default function AuthModal({ isOpen, onClose, onLogin, onRegister }) {
           <X size={18} />
         </button>
 
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '6px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '6px' }}>
             {isRegistering ? 'Registro de Cliente Mayorista' : 'Iniciar Sesión'}
           </h2>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-            {isRegistering ? 'Ingresá tus datos para realizar tus compras' : 'Accedé a tu cuenta mayorista'}
+            {isRegistering ? 'Ingresá tus datos personales para armar tu pedido' : 'Accedé a tu cuenta mayorista'}
           </p>
         </div>
 
@@ -74,27 +78,57 @@ export default function AuthModal({ isOpen, onClose, onLogin, onRegister }) {
 
         <form onSubmit={handleSubmit}>
           {isRegistering && (
-            <div className="form-group">
-              <label className="form-label">
-                <User size={14} style={{ display: 'inline', marginRight: '4px' }} /> Nombre Completo / Razón Social
-              </label>
-              <input 
-                type="text" 
-                placeholder="Ej: Indumentaria San Martín" 
-                value={name} 
-                onChange={(e) => setName(e.target.value)} 
-                className="form-input" 
-              />
-            </div>
+            <>
+              <div className="form-group">
+                <label className="form-label">
+                  <User size={14} style={{ display: 'inline', marginRight: '4px' }} /> Nombre Completo / Razón Social *
+                </label>
+                <input 
+                  type="text" 
+                  placeholder="Ej: Carlos Pérez / Moda San Martín" 
+                  value={name} 
+                  onChange={(e) => setName(e.target.value)} 
+                  className="form-input" 
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">
+                    <FileText size={14} style={{ display: 'inline', marginRight: '4px' }} /> DNI / CUIT *
+                  </label>
+                  <input 
+                    type="text" 
+                    placeholder="Ej: 38450123" 
+                    value={dni} 
+                    onChange={(e) => setDni(e.target.value)} 
+                    className="form-input" 
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">
+                    <MapPin size={14} style={{ display: 'inline', marginRight: '4px' }} /> Localidad *
+                  </label>
+                  <input 
+                    type="text" 
+                    placeholder="Ej: Rosario / Funes" 
+                    value={locality} 
+                    onChange={(e) => setLocality(e.target.value)} 
+                    className="form-input" 
+                  />
+                </div>
+              </div>
+            </>
           )}
 
           <div className="form-group">
             <label className="form-label">
-              <Phone size={14} style={{ display: 'inline', marginRight: '4px' }} /> Número de Teléfono
+              <Phone size={14} style={{ display: 'inline', marginRight: '4px' }} /> Número de Teléfono (WhatsApp) *
             </label>
             <input 
               type="text" 
-              placeholder="Ej: 1122334455" 
+              placeholder="Ej: 3416095021" 
               value={phone} 
               onChange={(e) => setPhone(e.target.value)} 
               className="form-input" 
@@ -103,7 +137,7 @@ export default function AuthModal({ isOpen, onClose, onLogin, onRegister }) {
 
           <div className="form-group">
             <label className="form-label">
-              <Lock size={14} style={{ display: 'inline', marginRight: '4px' }} /> Contraseña
+              <Lock size={14} style={{ display: 'inline', marginRight: '4px' }} /> Contraseña *
             </label>
             <input 
               type="password" 
@@ -114,13 +148,13 @@ export default function AuthModal({ isOpen, onClose, onLogin, onRegister }) {
             />
           </div>
 
-          <button type="submit" className="btn-primary" style={{ width: '100%', padding: '12px', justifyContent: 'center' }}>
+          <button type="submit" className="btn-primary" style={{ width: '100%', padding: '12px', justifyContent: 'center', marginTop: '10px' }}>
             {isRegistering ? <UserPlus size={18} /> : <LogIn size={18} />}
             {isRegistering ? 'Crear Cuenta Mayorista' : 'Acceder'}
           </button>
         </form>
 
-        <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.85rem' }}>
+        <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '0.85rem' }}>
           <span style={{ color: 'var(--text-muted)' }}>
             {isRegistering ? '¿Ya tenés cuenta?' : '¿Sos cliente nuevo?'}
           </span>{' '}

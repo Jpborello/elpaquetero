@@ -17,8 +17,9 @@ import {
 } from 'lucide-react';
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState('metrics'); // 'metrics', 'stock', 'prices', 'images'
+  const [activeTab, setActiveTab] = useState('metrics'); // 'metrics', 'stock', 'prices', 'images', 'orders'
   const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [metrics, setMetrics] = useState({});
   const [searchFilter, setSearchFilter] = useState('');
   const [editSuccessMsg, setEditSuccessMsg] = useState('');
@@ -26,6 +27,7 @@ export default function AdminPage() {
   useEffect(() => {
     const updateState = () => {
       setProducts(dataStore.getProducts());
+      setOrders(dataStore.orders);
       setMetrics(dataStore.getMetrics());
     };
 
@@ -108,6 +110,12 @@ export default function AdminPage() {
           className={`admin-tab-btn ${activeTab === 'images' ? 'active' : ''}`}
         >
           <ImageIcon size={16} style={{ display: 'inline', marginRight: '6px' }} /> Gestión de Imágenes
+        </button>
+        <button 
+          onClick={() => setActiveTab('orders')} 
+          className={`admin-tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
+        >
+          <Layers size={16} style={{ display: 'inline', marginRight: '6px' }} /> Órdenes & Comprobantes
         </button>
       </div>
 
@@ -349,10 +357,71 @@ export default function AdminPage() {
                   style={{ width: '100%', fontSize: '0.8rem' }}
                 >
                   <Save size={14} /> Cambiar Imagen
-                </button>
-              </div>
-            ))}
-          </div>
+      {/* TAB 5: ORDERS & RECEIPT VERIFICATION */}
+      {activeTab === 'orders' && (
+        <div>
+          <h2 style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: '16px' }}>
+            Registro de Órdenes Mayoristas & Comprobantes de Pago
+          </h2>
+
+          {orders.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px', background: 'var(--bg-card)', borderRadius: 'var(--radius-md)' }}>
+              <p style={{ color: 'var(--text-muted)', fontWeight: 600 }}>No hay órdenes registradas aún.</p>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginTop: '4px' }}>
+                Las compras realizadas por los clientes aparecerán aquí con sus datos y comprobantes adjuntos.
+              </p>
+            </div>
+          ) : (
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>N° Orden</th>
+                  <th>Cliente</th>
+                  <th>DNI / CUIT</th>
+                  <th>Teléfono</th>
+                  <th>Localidad</th>
+                  <th>Entrega</th>
+                  <th>Monto Total</th>
+                  <th>Comprobante de Pago</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map((ord) => (
+                  <tr key={ord.id}>
+                    <td style={{ fontWeight: 800 }}>{ord.id}</td>
+                    <td style={{ fontWeight: 700 }}>{ord.client_name}</td>
+                    <td>{ord.client_dni || 'No provisto'}</td>
+                    <td>{ord.client_phone}</td>
+                    <td>{ord.client_locality || 'No provista'}</td>
+                    <td>
+                      <span style={{ 
+                        fontSize: '0.78rem', 
+                        fontWeight: 700, 
+                        padding: '4px 8px', 
+                        borderRadius: 'var(--radius-sm)',
+                        backgroundColor: ord.delivery_method === 'retiro' ? 'var(--accent-gold-light)' : 'var(--bg-surface-elevated)',
+                        color: ord.delivery_method === 'retiro' ? 'var(--accent-gold-hover)' : 'var(--text-main)'
+                      }}>
+                        {ord.delivery_method || 'Envío a Domicilio'}
+                      </span>
+                    </td>
+                    <td style={{ fontWeight: 800, color: 'var(--accent-emerald)' }}>
+                      ${ord.total_amount?.toLocaleString('es-AR')}
+                    </td>
+                    <td>
+                      {ord.receipt_url ? (
+                        <a href={ord.receipt_url} target="_blank" rel="noreferrer" className="btn-secondary" style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <ImageIcon size={14} /> Ver Comprobante
+                        </a>
+                      ) : (
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-light)' }}>Sin comprobante</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       )}
     </div>

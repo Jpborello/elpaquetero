@@ -251,12 +251,14 @@ class DataStore {
   }
 
   // User Authentication
-  registerUser(name, phone, password) {
+  registerUser(userData) {
     const user = {
       id: 'u-' + Date.now(),
-      name,
-      phone,
-      password,
+      name: userData.name,
+      dni: userData.dni,
+      phone: userData.phone,
+      locality: userData.locality,
+      password: userData.password,
       role: 'client'
     };
     this.currentUser = user;
@@ -290,6 +292,10 @@ class DataStore {
       id: 'ORD-' + Math.floor(100000 + Math.random() * 900000),
       client_name: clientDetails.name,
       client_phone: clientDetails.phone,
+      client_dni: clientDetails.dni,
+      client_locality: clientDetails.locality,
+      delivery_method: clientDetails.deliveryMethod,
+      receipt_url: clientDetails.receiptUrl || null,
       items: cartItems,
       total_amount: total,
       created_at: new Date().toISOString(),

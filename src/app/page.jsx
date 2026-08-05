@@ -62,10 +62,14 @@ export default function Home() {
     setCartItems((prev) => prev.filter(item => item.product.id !== productId));
   };
 
-  const handleCheckout = (cart) => {
+  const handleCheckout = (cart, clientDetails) => {
     const order = dataStore.createOrder(cart, {
-      name: currentUser?.name || 'Cliente Mayorista',
-      phone: currentUser?.phone || 'Sin especificar'
+      name: clientDetails?.name || currentUser?.name || 'Cliente Mayorista',
+      phone: clientDetails?.phone || currentUser?.phone || 'Sin especificar',
+      dni: clientDetails?.dni || currentUser?.dni || 'Sin especificar',
+      locality: clientDetails?.locality || currentUser?.locality || 'Sin especificar',
+      deliveryMethod: clientDetails?.deliveryMethod || 'Envío a Domicilio',
+      receiptUrl: clientDetails?.receiptUrl || null
     });
     setCartItems([]);
     return order;
@@ -76,8 +80,8 @@ export default function Home() {
     dataStore.loginUser(phone, password);
   };
 
-  const handleRegister = (name, phone, password) => {
-    dataStore.registerUser(name, phone, password);
+  const handleRegister = (userData) => {
+    dataStore.registerUser(userData);
   };
 
   const handleLogout = () => {
