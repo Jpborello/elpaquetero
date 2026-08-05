@@ -379,6 +379,13 @@ export default function AdminPage() {
                   style={{ width: '100%', fontSize: '0.8rem' }}
                 >
                   <Save size={14} /> Cambiar Imagen
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* TAB 5: ORDERS & RECEIPT VERIFICATION */}
       {activeTab === 'orders' && (
         <div>
