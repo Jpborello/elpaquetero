@@ -36,13 +36,6 @@ export default function ProductGrid({ products, onAddToCart, isWholesaleQualifie
                 alt={product.name} 
                 className="product-img"
                 onError={(e) => {
-                  if (e.target.src.includes('supabase.co')) {
-                    const parts = e.target.src.split('/Productos/');
-                    if (parts[1]) {
-                      e.target.src = `/elpaquetero_imagenes/${decodeURIComponent(parts[1])}`;
-                      return;
-                    }
-                  }
                   e.target.src = '/elpaquetero_imagenes/Logo 2.jpeg';
                 }}
               />
