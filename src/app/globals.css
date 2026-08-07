@@ -1086,8 +1086,11 @@ button {
     padding: 16px;
   }
 
+  /* Forzamos 1 sola columna literal (no minmax/auto-fill) para que no
+     dependa de como cada navegador calcule el ancho disponible: asi
+     queda garantizado sin importar el dispositivo. */
   .products-grid {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: 1fr;
     gap: 16px;
   }
 
