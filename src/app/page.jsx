@@ -16,6 +16,7 @@ import { dataStore, CATEGORIES } from '@/lib/dataStore';
 import { Store, Phone, MapPin, Instagram } from 'lucide-react';
 
 const CART_STORAGE_KEY = 'elpaquetero_cart';
+const PRODUCTS_PER_PAGE = 24;
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -23,6 +24,7 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [visibleCount, setVisibleCount] = useState(PRODUCTS_PER_PAGE);
 
   // Cart & Auth state
   const [cartItems, setCartItems] = useState([]);
@@ -66,6 +68,12 @@ export default function Home() {
     }
     setCartHydrated(true);
   }, [products, cartHydrated]);
+
+  // Volver a mostrar solo el primer lote cada vez que cambian los filtros,
+  // para no arrancar una nueva búsqueda con la paginación ya "gastada".
+  useEffect(() => {
+    setVisibleCount(PRODUCTS_PER_PAGE);
+  }, [selectedCategory, selectedSubcategory, searchQuery]);
 
   // Persistir el carrito en cada cambio (recien despues de hidratar, para
   // no pisar lo guardado con el estado inicial vacio)
@@ -224,11 +232,27 @@ export default function Home() {
         />
 
         <ProductGrid
-          products={filteredProducts}
+          products={filteredProducts.slice(0, visibleCount)}
           onAddToCart={handleAddToCart}
           isWholesaleQualified={isWholesaleQualified}
           onOpenDetail={setDetailProduct}
         />
+
+        {filteredProducts.length > 0 && (
+          <div className="catalog-footer-controls">
+            <span className="catalog-count-label">
+              Mostrando {Math.min(visibleCount, filteredProducts.length)} de {filteredProducts.length} productos
+            </span>
+            {visibleCount < filteredProducts.length && (
+              <button
+                onClick={() => setVisibleCount((prev) => prev + PRODUCTS_PER_PAGE)}
+                className="btn-load-more"
+              >
+                Ver más productos
+              </button>
+            )}
+          </div>
+        )}
       </main>
 
       {/* Product Detail Modal */}

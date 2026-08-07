@@ -190,9 +190,9 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
               ⚡ Sincronización Mercado Pago & Alertas Sonora de Pedidos
             </h3>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-              {mpConfigured 
-                ? '🟢 Conectado con Mercado Pago API — Acreditaciones en tiempo real' 
-                : '🟡 Modo Demostración — Notificaciones activas en tiempo real'}
+              {mpConfigured
+                ? '🟢 Conectado con Mercado Pago API — Acreditaciones en tiempo real'
+                : '⚪ Mercado Pago no está conectado todavía — este panel no muestra transferencias hasta que se configure'}
             </p>
           </div>
 

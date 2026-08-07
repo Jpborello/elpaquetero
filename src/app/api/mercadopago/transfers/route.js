@@ -3,32 +3,14 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   const mpAccessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
 
-  // Fallback demo transfers if access token is not set yet
+  // Sin token configurado: no hay integracion activa, no se muestran datos
+  // de prueba (para no confundirlos con transferencias reales).
   if (!mpAccessToken) {
     return NextResponse.json({
       success: true,
       configured: false,
-      message: 'Mercado Pago Access Token no configurado aún. Mostrando transferencias de prueba.',
-      transfers: [
-        {
-          id: 'mp-tx-99481029',
-          payer_name: 'Carlos Ruiz',
-          payer_dni: '38450123',
-          amount: 48500,
-          status: 'approved',
-          date: new Date().toISOString(),
-          payment_method: 'Transferencia Alias (CVU)'
-        },
-        {
-          id: 'mp-tx-99480112',
-          payer_name: 'Mariana Gómez',
-          payer_dni: '35129482',
-          amount: 29900,
-          status: 'approved',
-          date: new Date(Date.now() - 3600000).toISOString(),
-          payment_method: 'Transferencia CVU'
-        }
-      ]
+      message: 'Mercado Pago no está conectado todavía.',
+      transfers: []
     });
   }
 

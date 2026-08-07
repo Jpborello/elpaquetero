@@ -2,6 +2,16 @@ import './globals.css';
 
 const SITE_URL = 'https://www.elpaquetero.com.ar';
 
+// Sin esto, algunos navegadores de celular renderizan la pagina con un
+// ancho "de escritorio" y despues la recortan — causaba que en mobile se
+// viera una sola columna de productos con la siguiente cortada, sin poder
+// desplazarse para el costado.
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5
+};
+
 export const metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
