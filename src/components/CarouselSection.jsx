@@ -64,7 +64,7 @@ export default function CarouselSection({ offers, topSeller, onAddToCart }) {
               <h3 className="carousel-title">{currentSlide.name}</h3>
               <p className="carousel-desc">{currentSlide.description}</p>
               
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                 <span className="price-wholesale-label">
                   ${currentSlide.wholesale_price?.toLocaleString('es-AR')}
                 </span>

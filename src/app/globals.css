@@ -372,6 +372,7 @@ button {
    Carousel & Top Seller Section
    ========================================================================== */
 .carousel-section-container {
+  width: 100%;
   max-width: 1320px;
   margin: -40px auto 40px auto;
   padding: 0 24px;
@@ -414,6 +415,7 @@ button {
 
 .carousel-info {
   flex: 1;
+  min-width: 0;
 }
 
 .carousel-tag {
@@ -521,6 +523,7 @@ button {
    Category Nav & Filters
    ========================================================================== */
 .main-catalog-layout {
+  width: 100%;
   max-width: 1320px;
   margin: 0 auto 60px auto;
   padding: 0 24px;
@@ -829,6 +832,7 @@ button {
   justify-content: flex-end;
   opacity: 0;
   pointer-events: none;
+  overflow: hidden;
   transition: var(--transition-fast);
 }
 
@@ -1262,6 +1266,7 @@ button {
    Trust Bar
    ========================================================================== */
 .trust-bar {
+  width: 100%;
   max-width: 1320px;
   margin: 0 auto 40px auto;
   padding: 0 24px;
