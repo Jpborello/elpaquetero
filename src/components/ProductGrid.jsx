@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { ShoppingCart, Sparkles } from 'lucide-react';
 
-export default function ProductGrid({ products, onAddToCart, isWholesaleQualified = false }) {
+export default function ProductGrid({ products, onAddToCart, isWholesaleQualified = false, onOpenDetail }) {
   // Store selected size per product id: { [productId]: string }
   const [selectedSizes, setSelectedSizes] = useState({});
 
@@ -30,10 +30,14 @@ export default function ProductGrid({ products, onAddToCart, isWholesaleQualifie
 
         return (
           <div key={product.id} className="product-card">
-            <div className="product-img-wrapper">
-              <img 
-                src={product.image_url} 
-                alt={product.name} 
+            <div
+              className="product-img-wrapper"
+              onClick={() => onOpenDetail && onOpenDetail(product)}
+              title="Ver detalle del producto"
+            >
+              <img
+                src={product.image_url}
+                alt={product.name}
                 className="product-img"
                 onError={(e) => {
                   e.target.src = '/elpaquetero_imagenes/Logo 2.jpeg';
@@ -77,7 +81,13 @@ export default function ProductGrid({ products, onAddToCart, isWholesaleQualifie
               <div className="product-category-name">
                 {product.category} {product.subcategory ? `• ${product.subcategory}` : ''}
               </div>
-              <h3 className="product-title">{product.name}</h3>
+              <h3
+                className="product-title"
+                onClick={() => onOpenDetail && onOpenDetail(product)}
+                title="Ver detalle del producto"
+              >
+                {product.name}
+              </h3>
 
               <div className="product-stock-status">
                 <span className={`stock-dot ${isStockOk ? 'stock-in' : 'stock-low'}`}></span>

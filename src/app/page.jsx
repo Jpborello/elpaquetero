@@ -8,8 +8,14 @@ import CategoryNav from '@/components/CategoryNav';
 import ProductGrid from '@/components/ProductGrid';
 import CartDrawer from '@/components/CartDrawer';
 import AuthModal from '@/components/AuthModal';
+import WhatsAppButton from '@/components/WhatsAppButton';
+import WholesaleBanner from '@/components/WholesaleBanner';
+import TrustBar from '@/components/TrustBar';
+import ProductDetailModal from '@/components/ProductDetailModal';
 import { dataStore, CATEGORIES } from '@/lib/dataStore';
 import { Store, Phone, MapPin, Instagram, Facebook } from 'lucide-react';
+
+const CART_STORAGE_KEY = 'elpaquetero_cart';
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -17,12 +23,14 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   // Cart & Auth state
   const [cartItems, setCartItems] = useState([]);
+  const [cartHydrated, setCartHydrated] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [detailProduct, setDetailProduct] = useState(null);
 
   useEffect(() => {
     const updateStoreData = () => {
@@ -35,6 +43,45 @@ export default function Home() {
     const unsubscribe = dataStore.subscribe(updateStoreData);
     return () => unsubscribe();
   }, []);
+
+  // Restaurar el carrito guardado (una vez que ya tenemos productos para
+  // validar contra precio/stock actual) para que no se pierda al refrescar.
+  useEffect(() => {
+    if (cartHydrated || products.length === 0) return;
+    try {
+      const raw = window.localStorage.getItem(CART_STORAGE_KEY);
+      if (raw) {
+        const savedTuples = JSON.parse(raw);
+        const restored = (Array.isArray(savedTuples) ? savedTuples : [])
+          .map((t) => {
+            const product = products.find((p) => p.id === t.id);
+            if (!product) return null;
+            return { product: { ...product, selectedSize: t.selectedSize || null }, quantity: t.quantity || 1 };
+          })
+          .filter(Boolean);
+        if (restored.length > 0) setCartItems(restored);
+      }
+    } catch (e) {
+      console.warn('No se pudo restaurar el carrito guardado:', e);
+    }
+    setCartHydrated(true);
+  }, [products, cartHydrated]);
+
+  // Persistir el carrito en cada cambio (recien despues de hidratar, para
+  // no pisar lo guardado con el estado inicial vacio)
+  useEffect(() => {
+    if (!cartHydrated) return;
+    try {
+      const tuples = cartItems.map((item) => ({
+        id: item.product.id,
+        quantity: item.quantity,
+        selectedSize: item.product.selectedSize || null
+      }));
+      window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(tuples));
+    } catch (e) {
+      console.warn('No se pudo guardar el carrito:', e);
+    }
+  }, [cartItems, cartHydrated]);
 
   // Cart operations
   const handleAddToCart = (product) => {
@@ -145,8 +192,11 @@ export default function Home() {
         setSearchQuery={setSearchQuery}
       />
 
+      {/* Wholesale Threshold Banner */}
+      <WholesaleBanner />
+
       {/* Hero Section */}
-      <HeroSection 
+      <HeroSection
         onExploreCatalog={() => {
           const el = document.getElementById('catalogo');
           if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -160,9 +210,12 @@ export default function Home() {
         onAddToCart={handleAddToCart}
       />
 
+      {/* Trust Bar */}
+      <TrustBar />
+
       {/* Main Catalog Area */}
       <main className="main-catalog-layout">
-        <CategoryNav 
+        <CategoryNav
           categories={categories}
           selectedCategory={selectedCategory}
           onSelectCategory={setSelectedCategory}
@@ -170,15 +223,28 @@ export default function Home() {
           onSelectSubcategory={setSelectedSubcategory}
         />
 
-        <ProductGrid 
+        <ProductGrid
           products={filteredProducts}
           onAddToCart={handleAddToCart}
           isWholesaleQualified={isWholesaleQualified}
+          onOpenDetail={setDetailProduct}
         />
       </main>
 
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        product={detailProduct}
+        isOpen={!!detailProduct}
+        onClose={() => setDetailProduct(null)}
+        onAddToCart={handleAddToCart}
+        isWholesaleQualified={isWholesaleQualified}
+      />
+
+      {/* Floating WhatsApp Contact Button */}
+      <WhatsAppButton />
+
       {/* Shopping Cart Drawer */}
-      <CartDrawer 
+      <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         cartItems={cartItems}
