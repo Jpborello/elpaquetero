@@ -4,17 +4,19 @@ import { useState } from 'react';
 import { X, Trash2, Plus, Minus, Send, ShoppingBag, Truck, Store, Upload, CheckCircle2, UserCheck, Sparkles, Tag } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { dataStore } from '@/lib/dataStore';
+import useCloseOnBack from '@/lib/useCloseOnBack';
 
-export default function CartDrawer({ 
-  isOpen, 
-  onClose, 
+export default function CartDrawer({
+  isOpen,
+  onClose,
   cartItems, 
   onUpdateQuantity, 
   onRemoveItem, 
   onCheckout, 
   currentUser,
-  onOpenAuth 
+  onOpenAuth
 }) {
+  const handleClose = useCloseOnBack(isOpen, onClose);
   const [deliveryMethod, setDeliveryMethod] = useState('envio'); // 'envio' or 'retiro'
   const [clientDni, setClientDni] = useState('');
   const [clientPhone, setClientPhone] = useState('');
@@ -141,7 +143,7 @@ export default function CartDrawer({
     setCreatedOrder(null);
     setReceiptImage(null);
     setReceiptUploaded(false);
-    onClose();
+    handleClose();
   };
 
   return (
@@ -154,7 +156,7 @@ export default function CartDrawer({
               {createdOrder ? 'Confirmación de Pedido' : 'Tu Carrito de Compras'}
             </h3>
           </div>
-          <button onClick={onClose} className="qty-btn">
+          <button onClick={handleClose} className="qty-btn">
             <X size={18} />
           </button>
         </div>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { X, Lock, Phone, User, LogIn, UserPlus, FileText, MapPin } from 'lucide-react';
+import useCloseOnBack from '@/lib/useCloseOnBack';
 
 export default function AuthModal({ isOpen, onClose, onLogin, onRegister }) {
   const [isRegistering, setIsRegistering] = useState(true);
@@ -11,6 +12,7 @@ export default function AuthModal({ isOpen, onClose, onLogin, onRegister }) {
   const [locality, setLocality] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const handleClose = useCloseOnBack(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -39,14 +41,14 @@ export default function AuthModal({ isOpen, onClose, onLogin, onRegister }) {
     setPhone('');
     setLocality('');
     setPassword('');
-    onClose();
+    handleClose();
   };
 
   return (
     <div className="modal-backdrop active">
       <div className="modal-box" style={{ maxWidth: '480px' }}>
-        <button 
-          onClick={onClose} 
+        <button
+          onClick={handleClose}
           className="qty-btn" 
           style={{ position: 'absolute', top: '16px', right: '16px' }}
         >

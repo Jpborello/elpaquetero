@@ -1264,7 +1264,16 @@ button {
 .product-detail-box {
   max-width: 820px !important;
   padding: 0 !important;
+  max-height: 90vh;
   overflow: hidden;
+}
+
+/* Contenido con scroll propio, separado del boton de cerrar, para que
+   la X se pueda tocar siempre aunque el detalle no entre en pantalla. */
+.product-detail-scroll {
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .product-detail-grid {
@@ -1393,7 +1402,7 @@ button {
     grid-template-columns: 1fr;
   }
   .product-detail-img-wrapper {
-    min-height: 240px;
+    min-height: 200px;
   }
 }
 

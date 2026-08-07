@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { X, ShoppingCart, Tag } from 'lucide-react';
+import useCloseOnBack from '@/lib/useCloseOnBack';
 
 export default function ProductDetailModal({ product, isOpen, onClose, onAddToCart, isWholesaleQualified = false }) {
   const [selectedSize, setSelectedSize] = useState(null);
+  const handleClose = useCloseOnBack(isOpen, onClose);
 
   useEffect(() => {
     if (product) {
@@ -20,20 +22,21 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
 
   const handleAdd = () => {
     onAddToCart({ ...product, selectedSize });
-    onClose();
+    handleClose();
   };
 
   return (
-    <div className="modal-backdrop active" onClick={onClose}>
+    <div className="modal-backdrop active" onClick={handleClose}>
       <div className="modal-box product-detail-box" onClick={(e) => e.stopPropagation()}>
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="qty-btn"
           style={{ position: 'absolute', top: '14px', right: '14px', zIndex: 2, backgroundColor: 'rgba(255,255,255,0.9)' }}
         >
           <X size={18} />
         </button>
 
+        <div className="product-detail-scroll">
         <div className="product-detail-grid">
           <div className="product-detail-img-wrapper">
             <img
@@ -116,6 +119,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
               {product.stock > 0 ? (selectedSize ? `Agregar (Talle ${selectedSize})` : 'Agregar al Carrito') : 'Sin Stock'}
             </button>
           </div>
+        </div>
         </div>
       </div>
     </div>
