@@ -29,7 +29,6 @@ class DataStore {
       console.warn('Supabase orders fetch warning:', err);
     }
   }
-  }
 
   async syncCleanCatalogWithSupabase() {
     if (!supabase) return;
