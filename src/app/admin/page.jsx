@@ -21,8 +21,8 @@ export default function AdminPage() {
   // Admin Authentication State with Supabase Auth
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [adminUser, setAdminUser] = useState(null);
-  const [loginEmail, setLoginEmail] = useState('elpaqueteroadm@gmail.com');
-  const [loginPassword, setLoginPassword] = useState('Elpaquetero2026@');
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
@@ -59,10 +59,6 @@ export default function AdminPage() {
         }
       }
 
-      if (typeof window !== 'undefined' && sessionStorage.getItem('elpaquetero_admin_auth') === 'true') {
-        if (isMounted) setIsAuthenticated(true);
-      }
-
       if (isMounted) setCheckingSession(false);
     }
 
@@ -73,11 +69,9 @@ export default function AdminPage() {
         if (session && session.user) {
           setIsAuthenticated(true);
           setAdminUser(session.user);
-          if (typeof window !== 'undefined') sessionStorage.setItem('elpaquetero_admin_auth', 'true');
         } else {
           setIsAuthenticated(false);
           setAdminUser(null);
-          if (typeof window !== 'undefined') sessionStorage.removeItem('elpaquetero_admin_auth');
         }
       });
 
@@ -96,50 +90,22 @@ export default function AdminPage() {
     const email = loginEmail.trim().toLowerCase();
     const password = loginPassword;
 
-    const isMasterAdmin = (email === 'elpaqueteroadm@gmail.com' && password === 'Elpaquetero2026@');
-
     try {
-      if (supabase) {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
+      if (!supabase) {
+        setLoginError('Supabase no está configurado. Contactá al desarrollador.');
+        return;
+      }
 
-        if (!error && data?.session) {
-          setIsAuthenticated(true);
-          setAdminUser(data.user);
-          if (typeof window !== 'undefined') sessionStorage.setItem('elpaquetero_admin_auth', 'true');
-          setIsLoggingIn(false);
-          return;
-        }
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-        // If master admin credentials match, grant access cleanly bypassing email rate limits
-        if (isMasterAdmin) {
-          setIsAuthenticated(true);
-          setAdminUser({ email, role: 'admin' });
-          if (typeof window !== 'undefined') sessionStorage.setItem('elpaquetero_admin_auth', 'true');
-          setIsLoggingIn(false);
-          return;
-        }
-
-        if (error) {
-          setLoginError('Error de autenticación: ' + error.message);
-        }
+      if (!error && data?.session) {
+        setIsAuthenticated(true);
+        setAdminUser(data.user);
       } else {
-        if (isMasterAdmin) {
-          setIsAuthenticated(true);
-          if (typeof window !== 'undefined') sessionStorage.setItem('elpaquetero_admin_auth', 'true');
-        } else {
-          setLoginError('Credenciales incorrectas.');
-        }
+        setLoginError('Credenciales incorrectas.');
       }
     } catch (err) {
-      if (isMasterAdmin) {
-        setIsAuthenticated(true);
-        if (typeof window !== 'undefined') sessionStorage.setItem('elpaquetero_admin_auth', 'true');
-      } else {
-        setLoginError('Error de autenticación: ' + err.message);
-      }
+      setLoginError('Error de autenticación: ' + err.message);
     } finally {
       setIsLoggingIn(false);
     }
@@ -151,9 +117,6 @@ export default function AdminPage() {
     }
     setIsAuthenticated(false);
     setAdminUser(null);
-    if (typeof window !== 'undefined') {
-      sessionStorage.removeItem('elpaquetero_admin_auth');
-    }
   };
 
   const fetchMpTransfers = async () => {
