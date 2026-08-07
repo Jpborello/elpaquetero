@@ -153,21 +153,23 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
           </div>
 
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              onClick={() => {
-                setSelectedPrintOrder(newOrderToast);
-                setNewOrderToast(null);
-              }}
-              className="btn-primary"
-              style={{ fontSize: '0.82rem', padding: '6px 14px', backgroundColor: '#059669', borderColor: '#059669' }}
-            >
-              <Printer size={14} /> Imprimir Comanda
-            </button>
+            {newOrderToast.receipt_url && (
+              <button
+                onClick={() => {
+                  setSelectedReceipt({ url: newOrderToast.receipt_url, clientName: newOrderToast.client_name, orderId: newOrderToast.id });
+                  setNewOrderToast(null);
+                }}
+                className="btn-primary"
+                style={{ fontSize: '0.82rem', padding: '6px 14px', backgroundColor: '#059669', borderColor: '#059669' }}
+              >
+                <Eye size={14} /> Ver Comprobante
+              </button>
+            )}
             <button
               onClick={() => setNewOrderToast(null)}
               style={{ background: 'transparent', border: '1px solid #475569', color: '#94A3B8', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}
             >
-              Descartar
+              Descartar (revisar en la tabla)
             </button>
           </div>
         </div>
@@ -363,15 +365,26 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                     )}
                   </td>
 
-                  {/* Print Button */}
+                  {/* Print Button — solo habilitado con el pago ya aprobado */}
                   <td>
-                    <button
-                      onClick={() => setSelectedPrintOrder(ord)}
-                      className="btn-primary"
-                      style={{ padding: '6px 12px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#0F172A', borderColor: '#0F172A', color: '#FFF' }}
-                    >
-                      <Printer size={14} /> Imprimir Comanda
-                    </button>
+                    {currentStatus === 'aprobado' ? (
+                      <button
+                        onClick={() => setSelectedPrintOrder(ord)}
+                        className="btn-primary"
+                        style={{ padding: '6px 12px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#0F172A', borderColor: '#0F172A', color: '#FFF' }}
+                      >
+                        <Printer size={14} /> Imprimir Comanda
+                      </button>
+                    ) : (
+                      <button
+                        disabled
+                        title="Aprobá el pago antes de imprimir la comanda"
+                        className="btn-secondary"
+                        style={{ padding: '6px 12px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '6px', opacity: 0.5, cursor: 'not-allowed' }}
+                      >
+                        <Printer size={14} /> Aprobar pago primero
+                      </button>
+                    )}
                   </td>
                 </tr>
               );

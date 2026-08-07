@@ -7,14 +7,25 @@ export const CATEGORIES = CATALOG_CATEGORIES;
 // In-Memory / LocalStorage State Manager with Supabase Mirror
 class DataStore {
   constructor() {
-    this.products = [...INITIAL_PRODUCTS];
+    this.products = [...INITIAL_PRODUCTS].map(p => ({ sales_count: 0, ...p }));
     this.currentUser = null;
     this.orders = [];
     this.cashMovements = [];
     this.categories = CATALOG_CATEGORIES.filter(c => c.id !== 'all');
     this.listeners = [];
-    this.syncCleanCatalogWithSupabase();
-    this.fetchOrdersFromSupabase();
+    this.initFromSupabase();
+  }
+
+  // Seed any missing catalog rows once (never overwrites existing data),
+  // then pull the real, current state from Supabase so admin edits
+  // (precio, stock, categorías nuevas, etc.) siempre prevalecen.
+  async initFromSupabase() {
+    await this.seedMissingCatalogInSupabase();
+    await Promise.all([
+      this.fetchProductsFromSupabase(),
+      this.fetchCategoriesFromSupabase(),
+      this.fetchOrdersFromSupabase()
+    ]);
   }
 
   async fetchOrdersFromSupabase() {
@@ -30,30 +41,52 @@ class DataStore {
     }
   }
 
-  async syncCleanCatalogWithSupabase() {
+  // Inserta en Supabase los productos/categorías del catálogo de código que
+  // todavía no existan en la base. Usa ignoreDuplicates para que NUNCA
+  // pise precios, stock o categorías que ya haya editado el admin.
+  async seedMissingCatalogInSupabase() {
     if (!supabase) return;
     try {
-      const categoriesToUpsert = CATALOG_CATEGORIES.filter(c => c.id !== 'all').map(c => ({
+      const categoriesToSeed = CATALOG_CATEGORIES.filter(c => c.id !== 'all').map(c => ({
         id: c.id,
         name: c.name,
         subcategories: c.subcategories
       }));
-      
-      await supabase.from('categories').upsert(categoriesToUpsert);
 
-      const validCatIds = new Set(CATALOG_CATEGORIES.map(c => c.id));
-      const { data: existingSupabaseCats } = await supabase.from('categories').select('id');
-      if (existingSupabaseCats && existingSupabaseCats.length > 0) {
-        for (const cat of existingSupabaseCats) {
-          if (!validCatIds.has(cat.id) && cat.id !== 'all') {
-            await supabase.from('categories').delete().eq('id', cat.id);
-          }
-        }
-      }
+      await supabase.from('categories').upsert(categoriesToSeed, { onConflict: 'id', ignoreDuplicates: true });
 
-      await supabase.from('products').upsert(CATALOG_PRODUCTS);
+      const productsToSeed = CATALOG_PRODUCTS.map(({ sizes, stock_per_size, code, ...dbFields }) => dbFields);
+      await supabase.from('products').upsert(productsToSeed, { onConflict: 'id', ignoreDuplicates: true });
     } catch (err) {
-      console.warn('Supabase catalog sync warning:', err);
+      console.warn('Supabase catalog seed warning:', err);
+    }
+  }
+
+  // Trae el estado real de productos desde Supabase (precio, stock,
+  // ventas, etc.) y lo combina con los campos que solo existen en el
+  // código (talles, stock por talle) para no romper el selector de talles.
+  async fetchProductsFromSupabase() {
+    if (!supabase) return;
+    try {
+      const { data, error } = await supabase.from('products').select('*');
+      if (!data || error) return;
+
+      const dbById = new Map(data.map(p => [p.id, p]));
+      const merged = this.products.map(localP => {
+        const dbP = dbById.get(localP.id);
+        if (!dbP) return localP;
+        return { ...localP, ...dbP, sales_count: dbP.sales_count ?? 0 };
+      });
+
+      const localIds = new Set(this.products.map(p => p.id));
+      const extraFromDb = data
+        .filter(p => !localIds.has(p.id))
+        .map(p => ({ ...p, sales_count: p.sales_count ?? 0 }));
+
+      this.products = [...merged, ...extraFromDb];
+      this.notify();
+    } catch (err) {
+      console.warn('Supabase products fetch warning:', err);
     }
   }
 
@@ -62,21 +95,16 @@ class DataStore {
     try {
       const { data, error } = await supabase.from('categories').select('*');
       if (data && data.length > 0 && !error) {
-        const validCatIds = new Set(CATALOG_CATEGORIES.map(c => c.id));
-        const cleanCats = data
-          .filter(item => validCatIds.has(item.id))
-          .map(item => ({
-            id: item.id,
-            name: item.name,
-            subcategories: Array.isArray(item.subcategories) 
-              ? item.subcategories 
-              : (typeof item.subcategories === 'string' ? JSON.parse(item.subcategories) : [])
-          }));
-        
-        if (cleanCats.length > 0) {
-          this.categories = cleanCats;
-          this.notify();
-        }
+        const cleanCats = data.map(item => ({
+          id: item.id,
+          name: item.name,
+          subcategories: Array.isArray(item.subcategories)
+            ? item.subcategories
+            : (typeof item.subcategories === 'string' ? JSON.parse(item.subcategories) : [])
+        }));
+
+        this.categories = cleanCats;
+        this.notify();
       }
     } catch (err) {
       console.warn('Supabase categories fetch warning:', err);
@@ -231,6 +259,28 @@ class DataStore {
     this.updateProduct(id, { stock: parseInt(newStock, 10) || 0 });
   }
 
+  // Usado en el checkout (cliente anonimo). Actualiza el estado local al
+  // instante para la UI, y persiste el descuento real en la base via una
+  // funcion SQL atomica (evita vender de mas con compras simultaneas y no
+  // requiere que el cliente tenga permiso de UPDATE directo sobre products).
+  decrementStockAfterSale(id, qty) {
+    if (!qty || qty <= 0) return;
+
+    this.products = this.products.map(p => {
+      if (p.id !== id) return p;
+      return {
+        ...p,
+        stock: Math.max(0, (p.stock || 0) - qty),
+        sales_count: (p.sales_count || 0) + qty
+      };
+    });
+    this.notify();
+
+    if (supabase) {
+      supabase.rpc('decrement_product_stock', { p_product_id: id, p_qty: qty }).then(() => {}).catch(() => {});
+    }
+  }
+
   updatePrice(id, newPrice, newWholesalePrice) {
     this.updateProduct(id, { 
       price: parseFloat(newPrice) || 0, 
@@ -376,18 +426,15 @@ class DataStore {
       discount_applied: isWholesaleQualified ? Math.round(retailSubtotal * 0.40) : 0,
       raffle_tickets: generatedTickets,
       created_at: new Date().toISOString(),
-      status: 'completado'
+      // Arranca como 'pendiente' hasta que el admin verifique el comprobante
+      // y lo pase a 'aprobado'. Recién ahí se habilita imprimir la comanda.
+      status: 'pendiente'
     };
 
-    // Update sales_count and stock for products
+    // Update sales_count and stock for products (descuento atomico en DB
+    // via RPC, para que compras simultaneas no vendan de mas el mismo stock)
     cartItems.forEach(item => {
-      const prod = this.getProductById(item.product.id);
-      if (prod) {
-        this.updateProduct(prod.id, {
-          stock: Math.max(0, prod.stock - item.quantity),
-          sales_count: prod.sales_count + item.quantity
-        });
-      }
+      this.decrementStockAfterSale(item.product.id, item.quantity);
     });
 
     // Add cash movement
@@ -526,24 +573,24 @@ class DataStore {
     return tickets;
   }
 
-  // Admin Metrics Calculations
+  // Admin Metrics Calculations — el arqueo se calcula a partir de las
+  // ordenes reales persistidas en Supabase (solo pagos ya aprobados),
+  // no de un registro de caja en memoria que se perdia al refrescar.
   getMetrics() {
     const now = new Date();
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     const startOfWeek = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000)).getTime();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
 
-    const dailyCash = this.cashMovements
-      .filter(m => new Date(m.date).getTime() >= startOfDay)
-      .reduce((sum, m) => sum + (m.type === 'income' ? m.amount : -m.amount), 0);
+    const paidOrders = this.orders.filter(o => o.status === 'aprobado' || o.status === 'enviado');
 
-    const weeklyCash = this.cashMovements
-      .filter(m => new Date(m.date).getTime() >= startOfWeek)
-      .reduce((sum, m) => sum + (m.type === 'income' ? m.amount : -m.amount), 0);
+    const sumOrdersSince = (sinceTs) => paidOrders
+      .filter(o => new Date(o.created_at).getTime() >= sinceTs)
+      .reduce((sum, o) => sum + (o.total_amount || 0), 0);
 
-    const monthlyCash = this.cashMovements
-      .filter(m => new Date(m.date).getTime() >= startOfMonth)
-      .reduce((sum, m) => sum + (m.type === 'income' ? m.amount : -m.amount), 0);
+    const dailyCash = sumOrdersSince(startOfDay);
+    const weeklyCash = sumOrdersSince(startOfWeek);
+    const monthlyCash = sumOrdersSince(startOfMonth);
 
     const topRotationProducts = [...this.products]
       .sort((a, b) => b.sales_count - a.sales_count)
@@ -552,9 +599,9 @@ class DataStore {
     const totalStockCount = this.products.reduce((sum, p) => sum + p.stock, 0);
 
     return {
-      dailyCash: dailyCash || 485000,
-      weeklyCash: weeklyCash || 1995000,
-      monthlyCash: monthlyCash || 4280000,
+      dailyCash,
+      weeklyCash,
+      monthlyCash,
       topRotationProducts,
       totalStockCount,
       totalOrders: this.orders.length
