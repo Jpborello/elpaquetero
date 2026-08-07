@@ -1,19 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Cream Color Palette Tokens */
+  /* Vibrant Color Palette Tokens */
   --bg-page: #FAF7F2;
   --bg-card: #FFFFFF;
   --bg-surface-elevated: #F5EFE6;
-  --bg-surface-dark: #231E1B;
-  
-  --accent-gold: #C89D54;
-  --accent-gold-light: #F4E8D3;
-  --accent-gold-hover: #B0863F;
-  --accent-emerald: #2E7D32;
-  --accent-crimson: #C62828;
+  --bg-surface-dark: #201A2E;
 
-  --text-main: #2C2825;
+  --accent-gold: #FF5A1F;
+  --accent-gold-light: #FFE3D1;
+  --accent-gold-hover: #E8460A;
+  --accent-secondary: #2A4BFF;
+  --accent-secondary-light: #E3E9FF;
+  --accent-emerald: #16A34A;
+  --accent-crimson: #E11D2E;
+
+  --text-main: #1D1815;
   --text-muted: #6E665E;
   --text-light: #9E948A;
   --text-on-dark: #FAF7F2;
@@ -21,10 +23,11 @@
   --border-color: #E8DFD3;
   --border-color-strong: #D6C8B5;
 
-  --shadow-sm: 0 2px 8px rgba(44, 40, 37, 0.04);
-  --shadow-md: 0 8px 24px rgba(44, 40, 37, 0.08);
-  --shadow-lg: 0 16px 40px rgba(44, 40, 37, 0.12);
-  --shadow-gold: 0 8px 25px rgba(200, 157, 84, 0.25);
+  --shadow-sm: 0 2px 8px rgba(29, 24, 21, 0.05);
+  --shadow-md: 0 8px 24px rgba(29, 24, 21, 0.09);
+  --shadow-lg: 0 18px 44px rgba(29, 24, 21, 0.16);
+  --shadow-gold: 0 10px 28px rgba(255, 90, 31, 0.35);
+  --gradient-brand: linear-gradient(90deg, var(--accent-gold) 0%, var(--accent-secondary) 100%);
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -85,12 +88,12 @@ button {
 }
 
 .header-top {
-  background-color: var(--bg-surface-dark);
-  color: var(--accent-gold-light);
+  background: var(--gradient-brand);
+  color: #FFFFFF;
   font-size: 0.8rem;
-  font-weight: 500;
+  font-weight: 700;
   text-align: center;
-  padding: 6px 16px;
+  padding: 7px 16px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -250,7 +253,7 @@ button {
   justify-content: center;
   padding: 60px 24px;
   overflow: hidden;
-  background: linear-gradient(135deg, rgba(35, 30, 27, 0.82) 0%, rgba(44, 40, 37, 0.65) 50%, rgba(200, 157, 84, 0.4) 100%),
+  background: linear-gradient(135deg, rgba(24, 18, 30, 0.85) 0%, rgba(32, 26, 46, 0.6) 45%, rgba(255, 90, 31, 0.45) 100%),
               url('/elpaquetero_imagenes/Local.jpg') center/cover no-repeat;
   box-shadow: inset 0 -40px 60px var(--bg-page);
 }
@@ -274,8 +277,8 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(200, 157, 84, 0.25);
-  border: 1px solid rgba(200, 157, 84, 0.6);
+  background: rgba(255, 90, 31, 0.28);
+  border: 1px solid rgba(255, 90, 31, 0.65);
   backdrop-filter: blur(8px);
   color: var(--accent-gold-light);
   padding: 6px 18px;
@@ -288,9 +291,10 @@ button {
 }
 
 .hero-title {
-  font-size: clamp(2.2rem, 5vw, 3.8rem);
-  font-weight: 800;
-  line-height: 1.1;
+  font-size: clamp(2.4rem, 5.5vw, 4.2rem);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
   color: #FFFFFF;
   margin-bottom: 20px;
   text-shadow: 0 4px 20px rgba(0,0,0,0.5);
@@ -298,7 +302,7 @@ button {
 
 .hero-title span {
   color: var(--accent-gold-light);
-  background: linear-gradient(90deg, #F4E8D3 0%, #C89D54 100%);
+  background: linear-gradient(90deg, #FFB088 0%, var(--accent-gold) 45%, var(--accent-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -320,35 +324,36 @@ button {
 }
 
 .btn-hero-primary {
-  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-hover) 100%);
+  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-secondary) 100%);
   color: #FFF;
-  padding: 14px 32px;
+  padding: 15px 34px;
   border-radius: var(--radius-full);
   font-size: 1.05rem;
-  font-weight: 700;
+  font-weight: 800;
   box-shadow: var(--shadow-gold);
   transition: var(--transition-fast);
 }
 
 .btn-hero-primary:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 12px 35px rgba(200, 157, 84, 0.4);
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 14px 38px rgba(255, 90, 31, 0.45);
 }
 
 .btn-hero-glass {
   background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
   backdrop-filter: blur(12px);
   color: #FFF;
   padding: 14px 32px;
   border-radius: var(--radius-full);
   font-size: 1.05rem;
-  font-weight: 600;
+  font-weight: 700;
   transition: var(--transition-fast);
 }
 
 .btn-hero-glass:hover {
   background: rgba(255, 255, 255, 0.25);
+  border-color: var(--accent-gold);
   transform: translateY(-3px);
 }
 
@@ -471,7 +476,7 @@ button {
   position: absolute;
   top: 16px;
   right: 16px;
-  background: var(--accent-gold);
+  background: var(--gradient-brand);
   color: #FFF;
   font-size: 0.7rem;
   font-weight: 800;
@@ -534,10 +539,17 @@ button {
 
 }
 
-.category-chip:hover, .category-chip.active {
+.category-chip:hover {
   background-color: var(--text-main);
   color: #FFF;
   border-color: var(--text-main);
+}
+
+.category-chip.active {
+  background: var(--gradient-brand);
+  color: #FFF;
+  border-color: transparent;
+  box-shadow: var(--shadow-gold);
 }
 
 /* Subcategories Sub-bar */
@@ -628,12 +640,13 @@ button {
   position: absolute;
   top: 10px;
   right: 10px;
-  background-color: var(--accent-gold);
+  background: var(--gradient-brand);
   color: #FFF;
   font-size: 0.7rem;
   font-weight: 800;
-  padding: 3px 8px;
+  padding: 4px 9px;
   border-radius: var(--radius-sm);
+  box-shadow: 0 4px 10px rgba(29, 24, 21, 0.25);
 }
 
 .product-category-name {
@@ -706,9 +719,10 @@ button {
 }
 
 .btn-add-cart:hover {
-  background-color: var(--text-main);
+  background: var(--gradient-brand);
   color: #FFF;
-  border-color: var(--text-main);
+  border-color: transparent;
+  box-shadow: var(--shadow-gold);
 }
 
 /* ==========================================================================
@@ -876,7 +890,7 @@ button {
 
 .form-input:focus {
   border-color: var(--accent-gold);
-  box-shadow: 0 0 0 3px rgba(200, 157, 84, 0.15);
+  box-shadow: 0 0 0 3px rgba(255, 90, 31, 0.15);
 }
 
 /* ==========================================================================

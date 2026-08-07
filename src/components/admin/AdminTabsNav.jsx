@@ -1,12 +1,14 @@
 'use client';
 
-import { BarChart3, Package, DollarSign, Image as ImageIcon, Layers, Users, Sparkles } from 'lucide-react';
+import { BarChart3, Package, DollarSign, Image as ImageIcon, Layers, Users, Sparkles, FolderPlus, FileSpreadsheet } from 'lucide-react';
 
 export default function AdminTabsNav({ activeTab, onTabChange }) {
   const tabs = [
     { id: 'metrics', label: 'Métricas & Arqueo de Caja', icon: BarChart3 },
     { id: 'stock', label: 'Control de Stock', icon: Package },
     { id: 'prices', label: 'Cambio de Precios', icon: DollarSign },
+    { id: 'bulk', label: 'Carga Masiva (CSV)', icon: FileSpreadsheet },
+    { id: 'categories', label: 'Categorías & Subcategorías', icon: FolderPlus },
     { id: 'images', label: 'Gestión de Imágenes', icon: ImageIcon },
     { id: 'orders', label: 'Órdenes & Comprobantes', icon: Layers },
     { id: 'clients', label: 'Clientes & VIP', icon: Users },

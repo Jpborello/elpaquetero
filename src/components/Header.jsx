@@ -54,9 +54,6 @@ export default function Header({
           <a href="#catalogo" className="nav-link">Catálogo</a>
           <a href="#ofertas" className="nav-link">Ofertas</a>
           <a href="#destacados" className="nav-link">Más Vendidos</a>
-          <Link href="/admin" className="nav-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-            <Shield size={16} /> Panel Admin
-          </Link>
         </nav>
 
         {/* Actions (Auth & Cart) */}
@@ -104,7 +101,6 @@ export default function Header({
           <a href="#catalogo" onClick={() => setMobileMenuOpen(false)} className="nav-link">Catálogo Completo</a>
           <a href="#ofertas" onClick={() => setMobileMenuOpen(false)} className="nav-link">Ofertas Especiales</a>
           <a href="#destacados" onClick={() => setMobileMenuOpen(false)} className="nav-link">Productos de Alta Rotación</a>
-          <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className="nav-link">Panel de Administración</Link>
         </div>
       )}
     </header>

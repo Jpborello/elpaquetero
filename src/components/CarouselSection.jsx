@@ -32,12 +32,32 @@ export default function CarouselSection({ offers, topSeller, onAddToCart }) {
         
         {/* Left Side: Offers & News Auto-Carousel */}
         <div className="carousel-box">
-          <div className="carousel-slide-content">
-            <img 
-              src={currentSlide.image_url} 
-              alt={currentSlide.name} 
-              className="carousel-img"
-            />
+            <div style={{ position: 'relative' }}>
+              <img 
+                src={currentSlide.image_url} 
+                alt={currentSlide.name} 
+                className="carousel-img"
+              />
+              <span style={{
+                position: 'absolute',
+                bottom: '12px',
+                left: '12px',
+                fontSize: '0.65rem',
+                fontWeight: 800,
+                letterSpacing: '1px',
+                color: 'rgba(255, 255, 255, 0.8)',
+                backgroundColor: 'rgba(15, 23, 42, 0.5)',
+                backdropFilter: 'blur(3px)',
+                padding: '4px 8px',
+                borderRadius: '4px',
+                pointerEvents: 'none',
+                textTransform: 'uppercase',
+                userSelect: 'none',
+                zIndex: 2
+              }}>
+                El Paquetero
+              </span>
+            </div>
             <div className="carousel-info">
               <span className="carousel-tag">
                 <Tag size={12} style={{ marginRight: '4px' }} /> Novedad & Oferta Especial

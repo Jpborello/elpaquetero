@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, LogOut, ShieldCheck } from 'lucide-react';
 
-export default function AdminHeader() {
+export default function AdminHeader({ onLogout }) {
   return (
     <div className="admin-header-row">
       <div>
@@ -17,9 +17,18 @@ export default function AdminHeader() {
       </div>
 
       <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-        <span style={{ background: 'var(--accent-gold-light)', color: 'var(--accent-gold-hover)', padding: '6px 14px', borderRadius: 'var(--radius-full)', fontWeight: 700, fontSize: '0.85rem' }}>
-          Admin Conectado
+        <span style={{ background: '#ECFDF5', color: '#047857', padding: '6px 14px', borderRadius: 'var(--radius-full)', fontWeight: 700, fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <ShieldCheck size={16} /> Admin Autenticado
         </span>
+        {onLogout && (
+          <button 
+            onClick={onLogout}
+            className="btn-secondary"
+            style={{ fontSize: '0.82rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+          >
+            <LogOut size={16} /> Cerrar Sesión
+          </button>
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Trash2, Plus, Minus, Send, ShoppingBag, Truck, Store, Upload, CheckCircle2, UserCheck } from 'lucide-react';
+import { X, Trash2, Plus, Minus, Send, ShoppingBag, Truck, Store, Upload, CheckCircle2, UserCheck, Sparkles, Tag } from 'lucide-react';
+import { supabase } from '@/lib/supabaseClient';
+import { dataStore } from '@/lib/dataStore';
 
 export default function CartDrawer({ 
   isOpen, 
@@ -19,22 +21,31 @@ export default function CartDrawer({
   const [clientName, setClientName] = useState('');
   const [clientLocality, setClientLocality] = useState('');
   
+  const [clientAddress, setClientAddress] = useState('');
+  
   // Checkout & Receipt state
   const [createdOrder, setCreatedOrder] = useState(null);
   const [receiptImage, setReceiptImage] = useState(null);
   const [receiptUploaded, setReceiptUploaded] = useState(false);
 
-  const totalAmount = cartItems.reduce((sum, item) => sum + (item.product.wholesale_price * item.quantity), 0);
+  // 40% OFF Wholesale Discount calculations (threshold: $50.000)
+  const retailSubtotal = cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+  const WHOLESALE_THRESHOLD = 50000;
+  const isWholesaleQualified = retailSubtotal >= WHOLESALE_THRESHOLD;
+  const discountAmount = isWholesaleQualified ? Math.round(retailSubtotal * 0.40) : 0;
+  const finalTotal = retailSubtotal - discountAmount;
+  const amountNeeded = Math.max(0, WHOLESALE_THRESHOLD - retailSubtotal);
+  const progressPercent = Math.min(100, Math.round((retailSubtotal / WHOLESALE_THRESHOLD) * 100));
 
   const handleCreateOrder = (e) => {
     e.preventDefault();
     if (cartItems.length === 0) return;
 
-    // Use current logged-in user or input form values
     const name = currentUser?.name || clientName;
     const phone = currentUser?.phone || clientPhone;
     const dni = currentUser?.dni || clientDni;
     const locality = currentUser?.locality || clientLocality;
+    const address = clientAddress || currentUser?.address || '';
 
     if (!name || !phone || !dni || !locality) {
       alert('Por favor completá todos los datos personales requeridos (DNI, Teléfono, Nombre y Localidad).');
@@ -46,6 +57,7 @@ export default function CartDrawer({
       phone,
       dni,
       locality,
+      address,
       deliveryMethod: deliveryMethod === 'envio' ? 'Envío a Domicilio / Transporte' : 'Retiro por Sucursal (Camilo Aldao 2715)'
     });
 
@@ -55,39 +67,69 @@ export default function CartDrawer({
       client_phone: phone,
       client_dni: dni,
       client_locality: locality,
+      client_address: address,
       delivery_method: deliveryMethod
     });
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setReceiptImage(reader.result);
-        setReceiptUploaded(true);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setReceiptImage(reader.result);
+      setReceiptUploaded(true);
+    };
+    reader.readAsDataURL(file);
+
+    if (supabase && createdOrder) {
+      try {
+        const ext = file.name.split('.').pop() || 'png';
+        const filePath = `comprobantes/comprobante_${createdOrder.id}_${Date.now()}.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from('Productos').upload(filePath, file, { upsert: true });
+
+        if (!uploadErr) {
+          const { data: urlData } = supabase.storage.from('Productos').getPublicUrl(filePath);
+          const receiptPublicUrl = urlData.publicUrl;
+          dataStore.updateOrderReceipt(createdOrder.id, receiptPublicUrl);
+        }
+      } catch (err) {
+        console.warn('Error subiendo comprobante a Supabase Storage:', err);
+      }
     }
   };
 
   const handleSendToWhatsApp = () => {
     if (!createdOrder) return;
 
-    let message = `*NUEVO PEDIDO MAYORISTA - EL PAQUETERO*\n`;
+    let message = `*NUEVO PEDIDO - EL PAQUETERO*\n`;
     message += `*Orden N°:* ${createdOrder.id}\n`;
     message += `*Cliente:* ${createdOrder.client_name}\n`;
     message += `*DNI/CUIT:* ${createdOrder.client_dni}\n`;
     message += `*Teléfono:* ${createdOrder.client_phone}\n`;
     message += `*Localidad:* ${createdOrder.client_locality}\n`;
     message += `*Entrega:* ${createdOrder.delivery_method === 'envio' ? '🚚 Envío a Domicilio' : '🏬 Retiro por Sucursal'}\n\n`;
+    
+    if (createdOrder.is_wholesale) {
+      message += `🎉 *¡DESCUENTO MAYORISTA APLICADO: 40% OFF!*\n\n`;
+    }
+
     message += `*DETALLE DEL PEDIDO:*\n`;
 
     createdOrder.items.forEach((item, idx) => {
-      message += `${idx + 1}. ${item.product.name} (x${item.quantity}) - $${(item.product.wholesale_price * item.quantity).toLocaleString('es-AR')}\n`;
+      const itemUnitPrice = createdOrder.is_wholesale ? Math.round(item.product.price * 0.60) : item.product.price;
+      const itemTotal = itemUnitPrice * item.quantity;
+      message += `${idx + 1}. ${item.product.name} (x${item.quantity}) - $${itemTotal.toLocaleString('es-AR')}\n`;
     });
 
-    message += `\n*TOTAL A PAGAR:* $${createdOrder.total_amount.toLocaleString('es-AR')}\n`;
+    if (createdOrder.is_wholesale && createdOrder.discount_applied) {
+      message += `\n*Subtotal Minorista:* $${(createdOrder.total_amount + createdOrder.discount_applied).toLocaleString('es-AR')}`;
+      message += `\n*Descuento 40% Mayorista:* -$${createdOrder.discount_applied.toLocaleString('es-AR')}`;
+    }
+
+    message += `\n*TOTAL FINAL A PAGAR:* $${createdOrder.total_amount.toLocaleString('es-AR')}\n`;
+    
     if (receiptUploaded) {
       message += `📌 *Comprobante de pago adjuntado en sistema.*\n`;
     }
@@ -96,7 +138,6 @@ export default function CartDrawer({
     const whatsappUrl = `https://wa.me/5493416095021?text=${encodedMsg}`;
     window.open(whatsappUrl, '_blank');
     
-    // Reset order flow
     setCreatedOrder(null);
     setReceiptImage(null);
     setReceiptUploaded(false);
@@ -110,7 +151,7 @@ export default function CartDrawer({
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <ShoppingBag size={22} className="text-accent-gold" />
             <h3 className="drawer-title">
-              {createdOrder ? 'Confirmación de Pedido' : 'Carrito Mayorista'}
+              {createdOrder ? 'Confirmación de Pedido' : 'Tu Carrito de Compras'}
             </h3>
           </div>
           <button onClick={onClose} className="qty-btn">
@@ -128,6 +169,21 @@ export default function CartDrawer({
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                   Monto total: <strong>${createdOrder.total_amount.toLocaleString('es-AR')}</strong>
                 </p>
+
+                {createdOrder.is_wholesale && (
+                  <div style={{
+                    backgroundColor: '#ECFDF5',
+                    color: '#047857',
+                    border: '1px solid #A7F3D0',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    marginTop: '10px'
+                  }}>
+                    🎉 40% OFF Mayorista Aplicado (-${createdOrder.discount_applied?.toLocaleString('es-AR')})
+                  </div>
+                )}
 
                 {/* Raffle Tickets Assigned Card */}
                 {createdOrder.raffle_tickets && createdOrder.raffle_tickets.length > 0 && (
@@ -207,42 +263,117 @@ export default function CartDrawer({
             </div>
           ) : (
             <>
+              {/* WHOLESALE 40% DISCOUNT PROGRESS BANNER */}
+              <div style={{
+                backgroundColor: isWholesaleQualified ? '#ECFDF5' : '#FEF3C7',
+                border: `1px solid ${isWholesaleQualified ? '#6EE7B7' : '#FDE68A'}`,
+                borderRadius: '10px',
+                padding: '12px 14px',
+                marginBottom: '16px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span style={{ 
+                    fontSize: '0.82rem', 
+                    fontWeight: 800, 
+                    color: isWholesaleQualified ? '#047857' : '#B45309',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}>
+                    {isWholesaleQualified ? (
+                      <>🎉 ¡40% OFF MAYORISTA ACTIVADO!</>
+                    ) : (
+                      <><Sparkles size={15} /> ¡Sumá ${amountNeeded.toLocaleString('es-AR')} más para 40% OFF!</>
+                    )}
+                  </span>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: isWholesaleQualified ? '#047857' : '#92400E' }}>
+                    {progressPercent}%
+                  </span>
+                </div>
+
+                {/* Progress bar */}
+                <div style={{ width: '100%', height: '7px', backgroundColor: isWholesaleQualified ? '#A7F3D0' : '#FDE68A', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ 
+                    width: `${progressPercent}%`, 
+                    height: '100%', 
+                    backgroundColor: isWholesaleQualified ? '#059669' : '#D97706',
+                    borderRadius: '4px',
+                    transition: 'width 0.3s ease'
+                  }} />
+                </div>
+
+                {!isWholesaleQualified && (
+                  <p style={{ fontSize: '0.73rem', color: '#92400E', marginTop: '6px', margin: 0 }}>
+                    Al superar los $50.000 se aplica automáticamente un <strong>40% de descuento mayorista</strong>.
+                  </p>
+                )}
+              </div>
+
               {/* STEP 1: CART ITEMS & REGISTRATION INPUTS */}
               <div style={{ marginBottom: '20px' }}>
                 <h4 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '12px', textTransform: 'uppercase', color: 'var(--accent-gold)' }}>
                   Prendas en el pedido
                 </h4>
-                {cartItems.map((item) => (
-                  <div key={item.product.id} className="cart-item-row">
-                    <img 
-                      src={item.product.image_url} 
-                      alt={item.product.name} 
-                      className="cart-item-img"
-                    />
-                    <div className="cart-item-info">
-                      <div className="cart-item-title">{item.product.name}</div>
-                      <div className="cart-item-price">
-                        ${(item.product.wholesale_price * item.quantity).toLocaleString('es-AR')}
-                      </div>
+                {cartItems.map((item) => {
+                  const unitPrice = item.product.price;
+                  const itemWholesaleUnitPrice = Math.round(unitPrice * 0.60);
+                  const itemRetailTotal = unitPrice * item.quantity;
+                  const itemWholesaleTotal = itemWholesaleUnitPrice * item.quantity;
 
-                      <div className="qty-controls">
-                        <button onClick={() => onUpdateQuantity(item.product.id, item.quantity - 1)} className="qty-btn">
-                          <Minus size={14} />
-                        </button>
-                        <span style={{ fontWeight: 700, fontSize: '0.9rem', minWidth: '24px', textAlign: 'center' }}>
-                          {item.quantity}
-                        </span>
-                        <button onClick={() => onUpdateQuantity(item.product.id, item.quantity + 1)} className="qty-btn">
-                          <Plus size={14} />
-                        </button>
+                  return (
+                    <div key={item.product.id} className="cart-item-row">
+                      <img 
+                        src={item.product.image_url} 
+                        alt={item.product.name} 
+                        className="cart-item-img"
+                      />
+                      <div className="cart-item-info">
+                        <div className="cart-item-title">
+                          {item.product.name}
+                          {(item.product.selectedSize || item.selectedSize) && (
+                            <span style={{ marginLeft: '6px', fontSize: '0.75rem', backgroundColor: '#EFF6FF', color: '#1D4ED8', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                              Talle: {item.product.selectedSize || item.selectedSize}
+                            </span>
+                          )}
+                        </div>
+                        
+                        <div className="cart-item-price" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {isWholesaleQualified ? (
+                            <>
+                              <span style={{ fontWeight: 800, color: '#059669', fontSize: '0.95rem' }}>
+                                ${itemWholesaleTotal.toLocaleString('es-AR')}
+                              </span>
+                              <span style={{ textDecoration: 'line-through', color: '#94A3B8', fontSize: '0.8rem' }}>
+                                ${itemRetailTotal.toLocaleString('es-AR')}
+                              </span>
+                              <span style={{ backgroundColor: '#D1FAE5', color: '#047857', fontSize: '0.68rem', fontWeight: 800, padding: '2px 5px', borderRadius: '4px' }}>
+                                -40%
+                              </span>
+                            </>
+                          ) : (
+                            <span>${itemRetailTotal.toLocaleString('es-AR')}</span>
+                          )}
+                        </div>
 
-                        <button onClick={() => onRemoveItem(item.product.id)} style={{ marginLeft: 'auto', color: 'var(--accent-crimson)', padding: '4px' }}>
-                          <Trash2 size={16} />
-                        </button>
+                        <div className="qty-controls">
+                          <button onClick={() => onUpdateQuantity(item.product.id, item.quantity - 1)} className="qty-btn">
+                            <Minus size={14} />
+                          </button>
+                          <span style={{ fontWeight: 700, fontSize: '0.9rem', minWidth: '24px', textAlign: 'center' }}>
+                            {item.quantity}
+                          </span>
+                          <button onClick={() => onUpdateQuantity(item.product.id, item.quantity + 1)} className="qty-btn">
+                            <Plus size={14} />
+                          </button>
+
+                          <button onClick={() => onRemoveItem(item.product.id)} style={{ marginLeft: 'auto', color: 'var(--accent-crimson)', padding: '4px' }}>
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Delivery Option */}
@@ -338,14 +469,24 @@ export default function CartDrawer({
                       />
                     </div>
 
-                    <input 
-                      type="text" 
-                      placeholder="Localidad / Ciudad *" 
-                      value={clientLocality}
-                      onChange={(e) => setClientLocality(e.target.value)}
-                      className="form-input" 
-                      style={{ fontSize: '0.85rem', padding: '8px 10px' }}
-                    />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <input 
+                        type="text" 
+                        placeholder="Localidad / Ciudad *" 
+                        value={clientLocality}
+                        onChange={(e) => setClientLocality(e.target.value)}
+                        className="form-input" 
+                        style={{ fontSize: '0.85rem', padding: '8px 10px' }}
+                      />
+                      <input 
+                        type="text" 
+                        placeholder="Dirección / Calle *" 
+                        value={clientAddress}
+                        onChange={(e) => setClientAddress(e.target.value)}
+                        className="form-input" 
+                        style={{ fontSize: '0.85rem', padding: '8px 10px' }}
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -355,9 +496,25 @@ export default function CartDrawer({
 
         {cartItems.length > 0 && !createdOrder && (
           <div className="drawer-footer">
-            <div className="total-summary-row">
-              <span>Total Mayorista:</span>
-              <span>${totalAmount.toLocaleString('es-AR')}</span>
+            <div style={{ marginBottom: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#64748B', marginBottom: '4px' }}>
+                <span>Subtotal Minorista:</span>
+                <span>${retailSubtotal.toLocaleString('es-AR')}</span>
+              </div>
+
+              {isWholesaleQualified && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#059669', fontWeight: 700, marginBottom: '4px' }}>
+                  <span>Descuento 40% Mayorista:</span>
+                  <span>-${discountAmount.toLocaleString('es-AR')}</span>
+                </div>
+              )}
+
+              <div className="total-summary-row" style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid #E2E8F0' }}>
+                <span style={{ fontSize: '1.05rem', fontWeight: 800 }}>Total Final:</span>
+                <span style={{ fontSize: '1.2rem', fontWeight: 900, color: isWholesaleQualified ? '#059669' : 'var(--text-main)' }}>
+                  ${finalTotal.toLocaleString('es-AR')}
+                </span>
+              </div>
             </div>
 
             <button onClick={handleCreateOrder} className="btn-hero-primary" style={{ width: '100%' }}>

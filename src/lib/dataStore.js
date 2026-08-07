@@ -1,247 +1,193 @@
 import { supabase } from './supabaseClient';
+import { CATALOG_PRODUCTS, CATALOG_CATEGORIES } from './catalogData';
 
-export const INITIAL_PRODUCTS = [
-  {
-    id: 'p-1',
-    name: 'Campera de AFA Selección Oficial',
-    category: 'Camperas',
-    subcategory: 'Deportivas',
-    price: 35000,
-    wholesale_price: 29900,
-    stock: 85,
-    sales_count: 340,
-    image_url: '/elpaquetero_imagenes/Camperas/campera de Afa.jpg',
-    description: 'Campera oficial de la Selección Argentina con tecnología frizada, escudo bordado y cierres reforzados.',
-    is_offer: true,
-    is_top_seller: true
-  },
-  {
-    id: 'p-2',
-    name: 'Buzo The North Face Hooded',
-    category: 'Buzos',
-    subcategory: 'Urbano',
-    price: 22000,
-    wholesale_price: 18500,
-    stock: 45,
-    sales_count: 210,
-    image_url: '/elpaquetero_imagenes/Buzos/buzo the north Face N.jpg',
-    description: 'Buzo frizado canguro marca The North Face con capucha ajustables y estampa frontal HD.',
-    is_offer: false,
-    is_top_seller: false
-  },
-  {
-    id: 'p-3',
-    name: 'Buzo The North Face Classic Black',
-    category: 'Buzos',
-    subcategory: 'Urbano',
-    price: 21000,
-    wholesale_price: 17900,
-    stock: 60,
-    sales_count: 185,
-    image_url: '/elpaquetero_imagenes/Buzos/buzo the north Face.jpg',
-    description: 'Buzo básico de friza pesada premium con puños elastizados.',
-    is_offer: true,
-    is_top_seller: false
-  },
-  {
-    id: 'p-4',
-    name: 'Campera de Abrigo Térmica Premium',
-    category: 'Camperas',
-    subcategory: 'Térmicas',
-    price: 42000,
-    wholesale_price: 34000,
-    stock: 30,
-    sales_count: 145,
-    image_url: '/elpaquetero_imagenes/Camperas/Campera de abrigo.jpg',
-    description: 'Campera inflable de abrigo ultra liviana con relleno térmico de guata siliconada.',
-    is_offer: false,
-    is_top_seller: false
-  },
-  {
-    id: 'p-5',
-    name: 'Campera Urbana de Buzo',
-    category: 'Camperas',
-    subcategory: 'Urbana',
-    price: 27000,
-    wholesale_price: 22500,
-    stock: 50,
-    sales_count: 175,
-    image_url: '/elpaquetero_imagenes/Camperas/Campera de buzo Urbana.jpg',
-    description: 'Campera combinada en rústico con mangas frizadas y cierre completo.',
-    is_offer: true,
-    is_top_seller: false
-  },
-  {
-    id: 'p-6',
-    name: 'Camperas Deportivas Nike Line',
-    category: 'Camperas',
-    subcategory: 'Deportivas',
-    price: 33000,
-    wholesale_price: 28000,
-    stock: 40,
-    sales_count: 260,
-    image_url: '/elpaquetero_imagenes/Camperas/Camperas deportivas nike.jpg',
-    description: 'Campera rompeviento microfibra esmerilada con recortes combinados.',
-    is_offer: false,
-    is_top_seller: true
-  },
-  {
-    id: 'p-7',
-    name: 'Campera Deportiva Urban Style',
-    category: 'Camperas',
-    subcategory: 'Deportivas',
-    price: 31000,
-    wholesale_price: 26000,
-    stock: 35,
-    sales_count: 130,
-    image_url: '/elpaquetero_imagenes/Camperas/Camperas deportivas urban.jpg',
-    description: 'Campera deportiva liviana ideal para entrenamiento o tiempo libre.',
-    is_offer: false,
-    is_top_seller: false
-  },
-  {
-    id: 'p-8',
-    name: 'Campera de Buzo Canguro Rústica',
-    category: 'Camperas',
-    subcategory: 'Urbana',
-    price: 23500,
-    wholesale_price: 19500,
-    stock: 55,
-    sales_count: 160,
-    image_url: '/elpaquetero_imagenes/Camperas/camperas de buzo.jpg',
-    description: 'Campera rústica de algodón con capucha y bolsillos laterales.',
-    is_offer: true,
-    is_top_seller: false
-  },
-  {
-    id: 'p-9',
-    name: 'Gorra Urbana Curva Varios Colores',
-    category: 'Gorras',
-    subcategory: 'Accesorios',
-    price: 7500,
-    wholesale_price: 5500,
-    stock: 130,
-    sales_count: 410,
-    image_url: '/elpaquetero_imagenes/Gorras.jpg',
-    description: 'Gorra gabardina de algodón con hebilla metálica de ajuste trasera.',
-    is_offer: true,
-    is_top_seller: true
-  },
-  {
-    id: 'p-10',
-    name: 'Calza Deportiva Supplex Fit High Waist',
-    category: 'Calzas',
-    subcategory: 'Deportivas',
-    price: 11000,
-    wholesale_price: 8500,
-    stock: 120,
-    sales_count: 290,
-    image_url: '/elpaquetero_imagenes/Logo 2.jpeg',
-    description: 'Calza chupín tiro alto en supplex de poliamida con efecto moldeador.',
-    is_offer: false,
-    is_top_seller: false
-  },
-  {
-    id: 'p-11',
-    name: 'Pantalón Jogging Algodón Frizado',
-    category: 'Pantalon de Yoguin',
-    subcategory: 'Pantalones',
-    price: 16800,
-    wholesale_price: 13800,
-    stock: 90,
-    sales_count: 230,
-    image_url: '/elpaquetero_imagenes/Logo 2.jpeg',
-    description: 'Pantalón babucha de jogging friza invisible con puños en rectilíneo.',
-    is_offer: false,
-    is_top_seller: false
-  },
-  {
-    id: 'p-12',
-    name: 'Remera Deportiva DryFit NIKE Pro',
-    category: 'Remeras deportivas',
-    subcategory: 'Tops & Remeras',
-    price: 12000,
-    wholesale_price: 9200,
-    stock: 110,
-    sales_count: 310,
-    image_url: '/elpaquetero_imagenes/Logo 2.jpeg',
-    description: 'Remera técnica respirable DryFit corte anatómico.',
-    is_offer: true,
-    is_top_seller: true
-  }
-];
-
-export const CATEGORIES = [
-  { id: 'all', name: 'Todos los Productos', count: 12 },
-  { id: 'Buzos', name: 'Buzos', subcategories: ['Urbano', 'Con Capucha', 'Canguro'] },
-  { id: 'Camperas', name: 'Camperas', subcategories: ['Deportivas', 'Térmicas', 'Urbana', 'AFA'] },
-  { id: 'Calzas', name: 'Calzas', subcategories: ['Deportivas', 'Largas', 'Ciclismo'] },
-  { id: 'Camisas', name: 'Camisas', subcategories: ['Leñadoras', 'De Vestir', 'Lino'] },
-  { id: 'Gorras', name: 'Gorras', subcategories: ['Accesorios', 'Planas', 'Curvas'] },
-  { id: 'Infantil', name: 'Infantil', subcategories: ['Conjuntos', 'Buzos', 'Remeras'] },
-  { id: 'Medias', name: 'Medias', subcategories: ['Deportivas', 'Invisibles', 'Packs'] },
-  { id: 'Pantalon de Yoguin', name: 'Pantalón Jogging', subcategories: ['Babuchas', 'Rectos', 'Frizados'] },
-  { id: 'Perfumeria', name: 'Perfumería', subcategories: ['Fragancias Textiles', 'Ambientadores'] },
-  { id: 'Remeras deportivas', name: 'Remeras Deportivas', subcategories: ['DryFit', 'Entrenamiento', 'Musculosas'] },
-  { id: 'Top Deportivos', name: 'Top Deportivos', subcategories: ['Alto Impacto', 'Standard'] }
-];
+export const INITIAL_PRODUCTS = CATALOG_PRODUCTS;
+export const CATEGORIES = CATALOG_CATEGORIES;
 
 // In-Memory / LocalStorage State Manager with Supabase Mirror
 class DataStore {
   constructor() {
     this.products = [...INITIAL_PRODUCTS];
     this.currentUser = null;
-    this.orders = [
-      {
-        id: 'ORD-584920',
-        client_name: 'Carlos Ruiz — Moda San Martín',
-        client_phone: '3416095021',
-        client_dni: '38450123',
-        client_locality: 'Rosario',
-        delivery_method: 'Envío a Domicilio',
-        receipt_url: '/elpaquetero_imagenes/Local.jpg',
-        items: [],
-        total_amount: 148500,
-        raffle_tickets: ['TICKET-78492', 'TICKET-78493'],
-        created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-        status: 'completado'
-      },
-      {
-        id: 'ORD-584918',
-        client_name: 'Mariana Gómez — Indumentaria Rosario',
-        client_phone: '3415129482',
-        client_dni: '35129482',
-        client_locality: 'Funes',
-        delivery_method: 'Retiro por Sucursal',
-        receipt_url: '/elpaquetero_imagenes/Logo 2.jpeg',
-        items: [],
-        total_amount: 89000,
-        raffle_tickets: ['TICKET-78490'],
-        created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
-        status: 'completado'
-      },
-      {
-        id: 'ORD-584910',
-        client_name: 'Lucas Benítez — Sportwear',
-        client_phone: '3414920192',
-        client_dni: '40192831',
-        client_locality: 'San Lorenzo',
-        delivery_method: 'Envío a Domicilio',
-        receipt_url: null,
-        items: [],
-        total_amount: 62000,
-        raffle_tickets: ['TICKET-78488'],
-        created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
-        status: 'completado'
-      }
-    ];
-    this.cashMovements = [
-      { id: 'cm-1', type: 'income', amount: 485000, concept: 'Venta Mayorista #1001', date: new Date().toISOString() },
-      { id: 'cm-2', type: 'income', amount: 620000, concept: 'Venta Mayorista #1002', date: new Date(Date.now() - 86400000).toISOString() },
-      { id: 'cm-3', type: 'expense', amount: 150000, concept: 'Pago Proveedor Tela', date: new Date(Date.now() - 172800000).toISOString() },
-      { id: 'cm-4', type: 'income', amount: 890000, concept: 'Venta Mayorista #1003', date: new Date(Date.now() - 259200000).toISOString() },
-    ];
+    this.orders = [];
+    this.cashMovements = [];
+    this.categories = CATALOG_CATEGORIES.filter(c => c.id !== 'all');
     this.listeners = [];
+    this.syncCleanCatalogWithSupabase();
+    this.fetchOrdersFromSupabase();
+  }
+
+  async fetchOrdersFromSupabase() {
+    if (!supabase) return;
+    try {
+      const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+      if (data && !error && data.length > 0) {
+        this.orders = data;
+        this.notify();
+      }
+    } catch (err) {
+      console.warn('Supabase orders fetch warning:', err);
+    }
+  }
+  }
+
+  async syncCleanCatalogWithSupabase() {
+    if (!supabase) return;
+    try {
+      const categoriesToUpsert = CATALOG_CATEGORIES.filter(c => c.id !== 'all').map(c => ({
+        id: c.id,
+        name: c.name,
+        subcategories: c.subcategories
+      }));
+      
+      await supabase.from('categories').upsert(categoriesToUpsert);
+
+      const validCatIds = new Set(CATALOG_CATEGORIES.map(c => c.id));
+      const { data: existingSupabaseCats } = await supabase.from('categories').select('id');
+      if (existingSupabaseCats && existingSupabaseCats.length > 0) {
+        for (const cat of existingSupabaseCats) {
+          if (!validCatIds.has(cat.id) && cat.id !== 'all') {
+            await supabase.from('categories').delete().eq('id', cat.id);
+          }
+        }
+      }
+
+      await supabase.from('products').upsert(CATALOG_PRODUCTS);
+    } catch (err) {
+      console.warn('Supabase catalog sync warning:', err);
+    }
+  }
+
+  async fetchCategoriesFromSupabase() {
+    if (!supabase) return;
+    try {
+      const { data, error } = await supabase.from('categories').select('*');
+      if (data && data.length > 0 && !error) {
+        const validCatIds = new Set(CATALOG_CATEGORIES.map(c => c.id));
+        const cleanCats = data
+          .filter(item => validCatIds.has(item.id))
+          .map(item => ({
+            id: item.id,
+            name: item.name,
+            subcategories: Array.isArray(item.subcategories) 
+              ? item.subcategories 
+              : (typeof item.subcategories === 'string' ? JSON.parse(item.subcategories) : [])
+          }));
+        
+        if (cleanCats.length > 0) {
+          this.categories = cleanCats;
+          this.notify();
+        }
+      }
+    } catch (err) {
+      console.warn('Supabase categories fetch warning:', err);
+    }
+  }
+
+  getCategories() {
+    const categoryCounts = {};
+    this.products.forEach(p => {
+      if (p.category) {
+        categoryCounts[p.category] = (categoryCounts[p.category] || 0) + 1;
+      }
+    });
+
+    return [
+      { id: 'all', name: 'Todos los Productos', count: this.products.length },
+      ...this.categories.map(c => ({
+        ...c,
+        count: categoryCounts[c.id] || categoryCounts[c.name] || 0
+      }))
+    ];
+  }
+
+  addCategory(name, initialSubcategories = []) {
+    const cleanName = name.trim();
+    if (!cleanName) return;
+
+    const existingIndex = this.categories.findIndex(c => c.id.toLowerCase() === cleanName.toLowerCase() || c.name.toLowerCase() === cleanName.toLowerCase());
+
+    const subcats = Array.isArray(initialSubcategories) 
+      ? initialSubcategories.map(s => s.trim()).filter(Boolean)
+      : initialSubcategories.split(',').map(s => s.trim()).filter(Boolean);
+
+    let catObj;
+    if (existingIndex >= 0) {
+      const existing = this.categories[existingIndex];
+      const mergedSubcats = Array.from(new Set([...(existing.subcategories || []), ...subcats]));
+      catObj = { ...existing, subcategories: mergedSubcats };
+      this.categories[existingIndex] = catObj;
+    } else {
+      catObj = {
+        id: cleanName,
+        name: cleanName,
+        subcategories: Array.from(new Set(subcats))
+      };
+      this.categories.push(catObj);
+    }
+
+    this.notify();
+
+    if (supabase) {
+      supabase.from('categories').upsert({
+        id: catObj.id,
+        name: catObj.name,
+        subcategories: catObj.subcategories
+      }).then(() => {}).catch(() => {});
+    }
+  }
+
+  addSubcategory(categoryId, subcategoryName) {
+    const subClean = subcategoryName.trim();
+    if (!subClean) return;
+
+    const catIndex = this.categories.findIndex(c => c.id === categoryId || c.name === categoryId);
+    if (catIndex < 0) return;
+
+    const cat = this.categories[catIndex];
+    const subcats = cat.subcategories || [];
+    if (!subcats.includes(subClean)) {
+      const updatedSubcats = [...subcats, subClean];
+      const updatedCat = { ...cat, subcategories: updatedSubcats };
+      this.categories[catIndex] = updatedCat;
+      this.notify();
+
+      if (supabase) {
+        supabase.from('categories').upsert({
+          id: updatedCat.id,
+          name: updatedCat.name,
+          subcategories: updatedCat.subcategories
+        }).then(() => {}).catch(() => {});
+      }
+    }
+  }
+
+  deleteSubcategory(categoryId, subcategoryName) {
+    const catIndex = this.categories.findIndex(c => c.id === categoryId || c.name === categoryId);
+    if (catIndex < 0) return;
+
+    const cat = this.categories[catIndex];
+    const updatedSubcats = (cat.subcategories || []).filter(s => s !== subcategoryName);
+    const updatedCat = { ...cat, subcategories: updatedSubcats };
+    this.categories[catIndex] = updatedCat;
+    this.notify();
+
+    if (supabase) {
+      supabase.from('categories').upsert({
+        id: updatedCat.id,
+        name: updatedCat.name,
+        subcategories: updatedCat.subcategories
+      }).then(() => {}).catch(() => {});
+    }
+  }
+
+  deleteCategory(categoryId) {
+    this.categories = this.categories.filter(c => c.id !== categoryId && c.name !== categoryId);
+    this.notify();
+
+    if (supabase) {
+      supabase.from('categories').delete().eq('id', categoryId).then(() => {}).catch(() => {});
+    }
   }
 
   subscribe(listener) {
@@ -293,6 +239,34 @@ class DataStore {
     });
   }
 
+  updatePricesByPercentage(productIds, percentage, applyToList = true, applyToWholesale = true) {
+    const pct = parseFloat(percentage);
+    if (isNaN(pct) || pct === 0) return;
+
+    const targetIds = Array.isArray(productIds) && productIds.length > 0 
+      ? new Set(productIds) 
+      : null;
+
+    const factor = 1 + (pct / 100);
+
+    this.products = this.products.map(p => {
+      if (targetIds && !targetIds.has(p.id)) return p;
+
+      const newPrice = applyToList ? Math.round(p.price * factor) : p.price;
+      const newWholesalePrice = applyToWholesale ? Math.round(p.wholesale_price * factor) : p.wholesale_price;
+
+      const updates = { price: newPrice, wholesale_price: newWholesalePrice };
+
+      if (supabase) {
+        supabase.from('products').update(updates).eq('id', p.id).then(() => {}).catch(() => {});
+      }
+
+      return { ...p, ...updates };
+    });
+
+    this.notify();
+  }
+
   // User Authentication
   registerUser(userData) {
     const user = {
@@ -328,12 +302,60 @@ class DataStore {
     this.notify();
   }
 
+  bulkInsertProducts(productsList) {
+    if (!Array.isArray(productsList) || productsList.length === 0) return 0;
+
+    const newFormattedProducts = productsList.map((item, idx) => {
+      const price = parseFloat(item.price || item.precio || item.precio_minorista || item.precio_lista) || 0;
+      const wholesale_price = item.wholesale_price || item.precio_mayorista 
+        ? (parseFloat(item.wholesale_price || item.precio_mayorista) || 0)
+        : Math.round(price * 0.60);
+
+      const categoryName = (item.category || item.categoria || 'General').trim();
+      const subcategoryName = (item.subcategory || item.subcategoria || '').trim();
+
+      if (categoryName && categoryName !== 'General') {
+        this.addCategory(categoryName, subcategoryName ? [subcategoryName] : []);
+      }
+
+      return {
+        id: item.id || `p-${Date.now()}-${idx}-${Math.floor(Math.random()*1000)}`,
+        name: (item.name || item.nombre || 'Producto Importado').trim(),
+        category: categoryName,
+        subcategory: subcategoryName,
+        price,
+        wholesale_price,
+        stock: parseInt(item.stock, 10) || 0,
+        sales_count: 0,
+        image_url: (item.image_url || item.imagen || item.url_imagen || '/elpaquetero_imagenes/Logo 2.jpeg').trim(),
+        description: (item.description || item.descripcion || '').trim(),
+        is_offer: Boolean(item.is_offer),
+        is_top_seller: false
+      };
+    });
+
+    this.products = [...newFormattedProducts, ...this.products];
+    this.notify();
+
+    if (supabase) {
+      supabase.from('products').upsert(newFormattedProducts).then(() => {}).catch(() => {});
+    }
+
+    return newFormattedProducts.length;
+  }
+
   // Create Order & Generate Raffle Tickets for purchases >= $50.000
   createOrder(cartItems, clientDetails) {
-    const total = cartItems.reduce((sum, item) => sum + (item.product.wholesale_price * item.quantity), 0);
+    const retailSubtotal = cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+    const isWholesaleQualified = retailSubtotal >= 50000;
+
+    // Apply 40% OFF wholesale discount if retail subtotal >= $50.000
+    const total = isWholesaleQualified 
+      ? Math.round(retailSubtotal * 0.60) 
+      : retailSubtotal;
     
     // Generate raffle tickets if total >= $50.000 (1 ticket per $50.000 spent)
-    const raffleTicketsCount = total >= 50000 ? Math.floor(total / 50000) : 0;
+    const raffleTicketsCount = total >= 50000 ? Math.floor(total / 50000) : (isWholesaleQualified ? 1 : 0);
     const generatedTickets = [];
 
     for (let i = 0; i < raffleTicketsCount; i++) {
@@ -351,6 +373,8 @@ class DataStore {
       receipt_url: clientDetails.receiptUrl || null,
       items: cartItems,
       total_amount: total,
+      is_wholesale: isWholesaleQualified,
+      discount_applied: isWholesaleQualified ? Math.round(retailSubtotal * 0.40) : 0,
       raffle_tickets: generatedTickets,
       created_at: new Date().toISOString(),
       status: 'completado'
@@ -372,13 +396,85 @@ class DataStore {
       id: 'cm-' + Date.now(),
       type: 'income',
       amount: total,
-      concept: `Venta Mayorista ${order.id} (${clientDetails.name})`,
+      concept: `Venta ${isWholesaleQualified ? 'Mayorista (40% OFF)' : 'Minorista'} ${order.id} (${clientDetails.name})`,
       date: new Date().toISOString()
     });
 
     this.orders.unshift(order);
     this.notify();
+
+    if (supabase) {
+      supabase.from('orders').insert({
+        id: order.id,
+        client_name: order.client_name,
+        client_phone: order.client_phone,
+        client_dni: order.client_dni,
+        client_locality: order.client_locality,
+        delivery_method: order.delivery_method,
+        receipt_url: order.receipt_url,
+        total_amount: order.total_amount,
+        items: order.items,
+        raffle_tickets: order.raffle_tickets,
+        status: order.status,
+        created_at: order.created_at
+      }).then(() => {}).catch(() => {});
+    }
+
     return order;
+  }
+
+  updateOrderReceipt(orderId, receiptUrl) {
+    this.orders = this.orders.map(o => o.id === orderId ? { ...o, receipt_url: receiptUrl } : o);
+    this.notify();
+
+    if (supabase) {
+      supabase.from('orders').update({ receipt_url: receiptUrl }).eq('id', orderId).then(() => {}).catch(() => {});
+    }
+  }
+
+  updateOrderStatus(orderId, newStatus) {
+    this.orders = this.orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o);
+    this.notify();
+
+    if (supabase) {
+      supabase.from('orders').update({ status: newStatus }).eq('id', orderId).then(() => {}).catch(() => {});
+    }
+  }
+
+  async cleanOldReceipts(daysThreshold = 30) {
+    const cutoffTime = Date.now() - (daysThreshold * 86400000);
+    let cleanedCount = 0;
+
+    for (const order of this.orders) {
+      if (order.receipt_url && new Date(order.created_at).getTime() < cutoffTime) {
+        if (supabase && order.receipt_url.includes('supabase.co')) {
+          try {
+            const parts = order.receipt_url.split('/Productos/');
+            if (parts[1]) {
+              await supabase.storage.from('Productos').remove([decodeURIComponent(parts[1])]);
+            }
+          } catch (e) {
+            console.warn('Error deleting storage receipt:', e);
+          }
+        }
+
+        order.receipt_url = null;
+        cleanedCount++;
+      }
+    }
+
+    if (cleanedCount > 0) {
+      this.notify();
+      if (supabase) {
+        for (const order of this.orders) {
+          if (!order.receipt_url) {
+            await supabase.from('orders').update({ receipt_url: null }).eq('id', order.id);
+          }
+        }
+      }
+    }
+
+    return cleanedCount;
   }
 
   // Aggregated VIP Client Stats & Ranking

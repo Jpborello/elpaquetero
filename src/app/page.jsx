@@ -13,6 +13,7 @@ import { Store, Phone, MapPin, Instagram, Facebook } from 'lucide-react';
 
 export default function Home() {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,6 +27,7 @@ export default function Home() {
   useEffect(() => {
     const updateStoreData = () => {
       setProducts(dataStore.getProducts());
+      setCategories(dataStore.getCategories());
       setCurrentUser(dataStore.currentUser);
     };
 
@@ -90,11 +92,34 @@ export default function Home() {
 
   // Filter products by category, subcategory and search query
   const filteredProducts = products.filter((product) => {
-    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
-    const matchesSubcategory = !selectedSubcategory || product.subcategory === selectedSubcategory;
+    let matchesCategory = selectedCategory === 'all';
+    
+    if (!matchesCategory) {
+      const selCatLower = selectedCategory.toLowerCase().trim();
+      const prodCatLower = (product.category || '').toLowerCase().trim();
+      const prodSubLower = (product.subcategory || '').toLowerCase().trim();
+
+      matchesCategory = (
+        prodCatLower === selCatLower ||
+        prodSubLower === selCatLower ||
+        prodCatLower.includes(selCatLower) ||
+        prodSubLower.includes(selCatLower) ||
+        selCatLower.includes(prodSubLower) ||
+        selCatLower.includes(prodCatLower)
+      );
+    }
+
+    let matchesSubcategory = !selectedSubcategory;
+    if (!matchesSubcategory && selectedSubcategory) {
+      const selSubLower = selectedSubcategory.toLowerCase().trim();
+      const prodSubLower = (product.subcategory || '').toLowerCase().trim();
+      matchesSubcategory = prodSubLower === selSubLower || prodSubLower.includes(selSubLower);
+    }
+
     const matchesSearch = searchQuery === '' || 
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (product.subcategory && product.subcategory.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()));
 
     return matchesCategory && matchesSubcategory && matchesSearch;
@@ -104,6 +129,8 @@ export default function Home() {
   const topSeller = dataStore.getTopSellingProduct();
 
   const totalCartItemsCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const cartSubtotalRetail = cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+  const isWholesaleQualified = cartSubtotalRetail >= 50000;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -136,7 +163,7 @@ export default function Home() {
       {/* Main Catalog Area */}
       <main className="main-catalog-layout">
         <CategoryNav 
-          categories={CATEGORIES}
+          categories={categories}
           selectedCategory={selectedCategory}
           onSelectCategory={setSelectedCategory}
           selectedSubcategory={selectedSubcategory}
@@ -146,6 +173,7 @@ export default function Home() {
         <ProductGrid 
           products={filteredProducts}
           onAddToCart={handleAddToCart}
+          isWholesaleQualified={isWholesaleQualified}
         />
       </main>
 
