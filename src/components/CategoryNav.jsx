@@ -11,7 +11,7 @@ export default function CategoryNav({
 
   return (
     <div id="catalogo" style={{ marginBottom: '24px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
         <h2 style={{ fontSize: '1.6rem', fontWeight: 800 }}>Nuestras Categorías Mayoristas</h2>
         <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>
           Mostrando productos de alta calidad

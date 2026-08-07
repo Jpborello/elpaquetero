@@ -37,7 +37,7 @@ export default function Header({
         </Link>
 
         {/* Search Bar */}
-        <div style={{ flex: '1', maxWidth: '380px', position: 'relative' }}>
+        <div className="header-search" style={{ position: 'relative' }}>
           <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
           <input
             type="text"

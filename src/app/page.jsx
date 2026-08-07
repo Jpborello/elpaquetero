@@ -13,7 +13,7 @@ import WholesaleBanner from '@/components/WholesaleBanner';
 import TrustBar from '@/components/TrustBar';
 import ProductDetailModal from '@/components/ProductDetailModal';
 import { dataStore, CATEGORIES } from '@/lib/dataStore';
-import { Store, Phone, MapPin, Instagram, Facebook } from 'lucide-react';
+import { Store, Phone, MapPin, Instagram } from 'lucide-react';
 
 const CART_STORAGE_KEY = 'elpaquetero_cart';
 
@@ -267,7 +267,7 @@ export default function Home() {
         <div style={{ maxWidth: '1320px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '40px', marginBottom: '40px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-              <img src="/elpaquetero_imagenes/Logo 2.jpeg" alt="" style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid var(--accent-gold)' }} />
+              <img src="/elpaquetero_imagenes/Logo 2.jpeg" alt="Logo El Paquetero" style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid var(--accent-gold)' }} />
               <span style={{ fontSize: '1.4rem', fontWeight: 800 }}>El Paquetero</span>
             </div>
             <p style={{ color: '#A09890', fontSize: '0.9rem', lineHeight: '1.6' }}>
@@ -287,14 +287,32 @@ export default function Home() {
           <div>
             <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px', color: 'var(--accent-gold-light)' }}>Redes & Consultas</h4>
             <div style={{ display: 'flex', gap: '12px' }}>
-              <a href="#" className="btn-icon" style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: '#FFF' }}><Instagram size={20} /></a>
-              <a href="#" className="btn-icon" style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: '#FFF' }}><Facebook size={20} /></a>
+              <a
+                href="https://www.instagram.com/el_paquetero_godoy/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram de El Paquetero"
+                className="btn-icon"
+                style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: '#FFF' }}
+              >
+                <Instagram size={20} />
+              </a>
             </div>
           </div>
         </div>
 
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '20px', textAlign: 'center', fontSize: '0.8rem', color: '#857D75' }}>
           © {new Date().getFullYear()} El Paquetero - Todos los derechos reservados. Plataforma E-commerce Mayorista.
+          <br />
+          Desarrollado por{' '}
+          <a
+            href="https://www.neo-core-sys.com.ar/"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: 'var(--accent-gold-light)', fontWeight: 700 }}
+          >
+            Neo Core Sys
+          </a>
         </div>
       </footer>
     </div>

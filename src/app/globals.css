@@ -113,6 +113,17 @@ button {
   align-items: center;
   gap: 12px;
   cursor: pointer;
+  flex-shrink: 0;
+}
+
+.header-search {
+  flex: 1;
+  max-width: 380px;
+  min-width: 0;
+}
+
+.header-search input {
+  min-width: 0;
 }
 
 .brand-logo-img {
@@ -906,7 +917,20 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
   margin-bottom: 30px;
+}
+
+.admin-header-title {
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+@media (max-width: 640px) {
+  .admin-header-title {
+    font-size: 1.35rem;
+  }
 }
 
 .admin-tabs {
@@ -995,9 +1019,20 @@ button {
     flex-wrap: wrap;
     padding: 10px 16px;
   }
-  
+
   .brand-title {
     font-size: 1.2rem;
+  }
+
+  .header-actions {
+    order: 2;
+    margin-left: auto;
+  }
+
+  .header-search {
+    order: 3;
+    flex-basis: 100%;
+    max-width: 100%;
   }
 
   .hero-wrapper {
@@ -1028,6 +1063,22 @@ button {
     max-width: 100%;
   }
 
+  .admin-tabs {
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .admin-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
+/* Las tablas del admin son anchas (muchas columnas): les damos scroll
+   horizontal ya desde tablet, no solo en celular, para que no se rompa
+   el layout de la pagina entera. */
+@media (max-width: 1024px) {
   .admin-tabs {
     overflow-x: auto;
     white-space: nowrap;

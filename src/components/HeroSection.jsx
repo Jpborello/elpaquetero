@@ -13,7 +13,7 @@ export default function HeroSection({ onExploreCatalog }) {
         </div>
 
         <h1 className="hero-title">
-          Moda e Indumentaria <span>Mayorista de Alto Rendimiento</span>
+          Moda e Indumentaria <span>Mayorista</span>
         </h1>
 
         <p className="hero-subtitle">

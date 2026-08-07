@@ -13,7 +13,7 @@ export default function AdminHeader({ onLogout }) {
         >
           <ArrowLeft size={16} /> Volver a la Tienda
         </Link>
-        <h1 style={{ fontSize: '2rem', fontWeight: 800 }}>Panel de Administración — El Paquetero</h1>
+        <h1 className="admin-header-title">Panel de Administración — El Paquetero</h1>
       </div>
 
       <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
