@@ -12,7 +12,7 @@ export default function CarouselSection({ offers, topSeller, onAddToCart }) {
       id: 'slide-1',
       name: 'Novedades de la Semana — Camperas & Buzos Frizados',
       description: 'Aprovechá la nueva temporada con un 15% de descuento adicional llevando curva completa de talles.',
-      image_url: '/elpaquetero_imagenes/Camperas/Campera de abrigo.jpg',
+      image_url: '/elpaquetero_imagenes/Logo 2.jpeg',
       wholesale_price: 34000
     }
   ];
@@ -32,32 +32,31 @@ export default function CarouselSection({ offers, topSeller, onAddToCart }) {
         
         {/* Left Side: Offers & News Auto-Carousel */}
         <div className="carousel-box">
-            <div style={{ position: 'relative' }}>
-              <img 
-                src={currentSlide.image_url} 
-                alt={currentSlide.name} 
-                className="carousel-img"
-              />
-              <span style={{
-                position: 'absolute',
-                bottom: '12px',
-                left: '12px',
-                fontSize: '0.65rem',
-                fontWeight: 800,
-                letterSpacing: '1px',
-                color: 'rgba(255, 255, 255, 0.8)',
-                backgroundColor: 'rgba(15, 23, 42, 0.5)',
-                backdropFilter: 'blur(3px)',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                pointerEvents: 'none',
-                textTransform: 'uppercase',
-                userSelect: 'none',
-                zIndex: 2
-              }}>
-                El Paquetero
-              </span>
-            </div>
+          <div className="carousel-slide-content" style={{ position: 'relative' }}>
+            <img 
+              src={currentSlide.image_url} 
+              alt={currentSlide.name} 
+              className="carousel-img"
+            />
+            <span style={{
+              position: 'absolute',
+              bottom: '12px',
+              left: '12px',
+              fontSize: '0.65rem',
+              fontWeight: 800,
+              letterSpacing: '1px',
+              color: 'rgba(255, 255, 255, 0.8)',
+              backgroundColor: 'rgba(15, 23, 42, 0.5)',
+              backdropFilter: 'blur(3px)',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              pointerEvents: 'none',
+              textTransform: 'uppercase',
+              userSelect: 'none',
+              zIndex: 2
+            }}>
+              El Paquetero
+            </span>
             <div className="carousel-info">
               <span className="carousel-tag">
                 <Tag size={12} style={{ marginRight: '4px' }} /> Novedad & Oferta Especial
