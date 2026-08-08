@@ -8,7 +8,13 @@ export const CATEGORIES = CATALOG_CATEGORIES;
 class DataStore {
   constructor() {
     this.products = [...INITIAL_PRODUCTS].map(p => ({ sales_count: 0, ...p }));
-    this.currentUser = null;
+    this.currentUser = typeof window !== 'undefined' && localStorage.getItem('elpaquetero_current_user')
+      ? JSON.parse(localStorage.getItem('elpaquetero_current_user'))
+      : null;
+    this.activeOrder = typeof window !== 'undefined' && localStorage.getItem('elpaquetero_active_order')
+      ? JSON.parse(localStorage.getItem('elpaquetero_active_order'))
+      : null;
+    this.clients = [];
     this.orders = [];
     this.cashMovements = [];
     this.categories = CATALOG_CATEGORIES.filter(c => c.id !== 'all');
@@ -25,7 +31,8 @@ class DataStore {
     await Promise.all([
       this.fetchProductsFromSupabase(),
       this.fetchCategoriesFromSupabase(),
-      this.fetchOrdersFromSupabase()
+      this.fetchOrdersFromSupabase(),
+      this.fetchClientsFromSupabase()
     ]);
   }
 
@@ -39,6 +46,19 @@ class DataStore {
       }
     } catch (err) {
       console.warn('Supabase orders fetch warning:', err);
+    }
+  }
+
+  async fetchClientsFromSupabase() {
+    if (!supabase) return;
+    try {
+      const { data, error } = await supabase.from('wholesale_clients').select('*').order('created_at', { ascending: false });
+      if (data && !error && data.length > 0) {
+        this.clients = data;
+        this.notify();
+      }
+    } catch (err) {
+      console.warn('Supabase clients fetch warning:', err);
     }
   }
 
@@ -351,16 +371,37 @@ class DataStore {
   // User Authentication
   registerUser(userData) {
     const user = {
-      id: 'u-' + Date.now(),
       name: userData.name,
       dni: userData.dni,
       phone: userData.phone,
       locality: userData.locality,
-      password: userData.password,
-      role: 'client'
+      password: userData.password || 'cliente123',
+      role: 'client',
+      created_at: new Date().toISOString()
     };
     this.currentUser = user;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('elpaquetero_current_user', JSON.stringify(user));
+    }
+
+    const existingIdx = this.clients.findIndex(c => c.phone === user.phone);
+    if (existingIdx >= 0) {
+      this.clients[existingIdx] = { ...this.clients[existingIdx], ...user };
+    } else {
+      this.clients.unshift(user);
+    }
     this.notify();
+
+    if (supabase) {
+      supabase.from('wholesale_clients').upsert({
+        name: user.name,
+        dni: user.dni,
+        phone: user.phone,
+        locality: user.locality,
+        password: user.password
+      }, { onConflict: 'phone' }).then(() => {}).catch(() => {});
+    }
+
     return user;
   }
 
@@ -372,14 +413,27 @@ class DataStore {
       return adminUser;
     }
     
-    const user = { id: 'u-' + Date.now(), name: 'Cliente Mayorista', phone, role: 'client' };
+    const existingClient = this.clients.find(c => c.phone === phone);
+    const user = existingClient || {
+      name: 'Cliente Mayorista',
+      phone,
+      role: 'client',
+      created_at: new Date().toISOString()
+    };
+
     this.currentUser = user;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('elpaquetero_current_user', JSON.stringify(user));
+    }
     this.notify();
     return user;
   }
 
   logout() {
     this.currentUser = null;
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('elpaquetero_current_user');
+    }
     this.notify();
   }
 
@@ -425,20 +479,22 @@ class DataStore {
     return newFormattedProducts.length;
   }
 
-  // Create Order & Generate Raffle Tickets for purchases >= $50.000
+  // Create Order & Generate Raffle Tickets for REGISTERED purchases >= $50.000
   createOrder(cartItems, clientDetails) {
     const retailSubtotal = cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
     const isWholesaleQualified = retailSubtotal >= 50000;
 
-    // Apply 40% OFF wholesale discount if retail subtotal >= $50.000
     const total = isWholesaleQualified 
       ? Math.round(retailSubtotal * 0.60) 
       : retailSubtotal;
     
-    // Generate raffle tickets if total >= $50.000 (1 ticket per $50.000 spent)
-    const raffleTicketsCount = total >= 50000 ? Math.floor(total / 50000) : (isWholesaleQualified ? 1 : 0);
-    const generatedTickets = [];
+    // Raffle Tickets are strictly assigned ONLY to REGISTERED users
+    const isRegisteredUser = Boolean(clientDetails.isRegistered || this.currentUser);
+    const raffleTicketsCount = (isRegisteredUser && total >= 50000) 
+      ? Math.floor(total / 50000) 
+      : 0;
 
+    const generatedTickets = [];
     for (let i = 0; i < raffleTicketsCount; i++) {
       const ticketNum = 'TICKET-' + Math.floor(10000 + Math.random() * 90000);
       generatedTickets.push(ticketNum);
@@ -457,14 +513,40 @@ class DataStore {
       is_wholesale: isWholesaleQualified,
       discount_applied: isWholesaleQualified ? Math.round(retailSubtotal * 0.40) : 0,
       raffle_tickets: generatedTickets,
+      is_registered: isRegisteredUser,
       created_at: new Date().toISOString(),
-      // Arranca como 'pendiente' hasta que el admin verifique el comprobante
-      // y lo pase a 'aprobado'. Recién ahí se habilita imprimir la comanda.
       status: 'pendiente'
     };
 
-    // Update sales_count and stock for products (descuento atomico en DB
-    // via RPC, para que compras simultaneas no vendan de mas el mismo stock)
+    // Store active order in memory and localStorage so it never disappears
+    this.activeOrder = order;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('elpaquetero_active_order', JSON.stringify(order));
+    }
+
+    // Save client info to wholesale_clients
+    if (clientDetails.phone && clientDetails.name) {
+      const clientRecord = {
+        name: clientDetails.name,
+        dni: clientDetails.dni || '',
+        phone: clientDetails.phone,
+        locality: clientDetails.locality || '',
+        password: 'cliente' + (clientDetails.phone.slice(-4) || '123')
+      };
+
+      const existingIdx = this.clients.findIndex(c => c.phone === clientDetails.phone);
+      if (existingIdx >= 0) {
+        this.clients[existingIdx] = { ...this.clients[existingIdx], ...clientRecord };
+      } else {
+        this.clients.unshift(clientRecord);
+      }
+
+      if (supabase) {
+        supabase.from('wholesale_clients').upsert(clientRecord, { onConflict: 'phone' }).then(() => {}).catch(() => {});
+      }
+    }
+
+    // Update sales_count and stock for products
     cartItems.forEach(item => {
       this.decrementStockAfterSale(item.product.id, item.quantity);
     });
@@ -481,6 +563,7 @@ class DataStore {
     this.orders.unshift(order);
     this.notify();
 
+    // Insert into Supabase table orders (omitting non-existing columns like raffle_tickets)
     if (supabase) {
       supabase.from('orders').insert({
         id: order.id,
@@ -492,10 +575,9 @@ class DataStore {
         receipt_url: order.receipt_url,
         total_amount: order.total_amount,
         items: order.items,
-        raffle_tickets: order.raffle_tickets,
         status: order.status,
         created_at: order.created_at
-      }).then(() => {}).catch(() => {});
+      }).then(() => {}).catch((err) => console.warn('Order insert warning:', err));
     }
 
     return order;
@@ -503,6 +585,14 @@ class DataStore {
 
   updateOrderReceipt(orderId, receiptUrl) {
     this.orders = this.orders.map(o => o.id === orderId ? { ...o, receipt_url: receiptUrl } : o);
+
+    if (this.activeOrder && this.activeOrder.id === orderId) {
+      this.activeOrder = { ...this.activeOrder, receipt_url: receiptUrl };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('elpaquetero_active_order', JSON.stringify(this.activeOrder));
+      }
+    }
+
     this.notify();
 
     if (supabase) {
@@ -517,6 +607,25 @@ class DataStore {
     if (supabase) {
       supabase.from('orders').update({ status: newStatus }).eq('id', orderId).then(() => {}).catch(() => {});
     }
+  }
+
+  getActiveOrder() {
+    if (this.activeOrder) return this.activeOrder;
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('elpaquetero_active_order');
+      if (stored) {
+        try { return JSON.parse(stored); } catch (e) {}
+      }
+    }
+    return null;
+  }
+
+  clearActiveOrder() {
+    this.activeOrder = null;
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('elpaquetero_active_order');
+    }
+    this.notify();
   }
 
   async cleanOldReceipts(daysThreshold = 30) {
@@ -555,12 +664,30 @@ class DataStore {
     return cleanedCount;
   }
 
-  // Aggregated VIP Client Stats & Ranking
+  // Aggregated VIP Client Stats & Ranking (combines registered clients and orders)
   getClientsWithStats() {
     const clientMap = {};
 
+    // 1. Add all registered clients from wholesale_clients
+    (this.clients || []).forEach(c => {
+      const key = c.phone || c.name;
+      if (!key) return;
+      clientMap[key] = {
+        name: c.name || 'Cliente Registrado',
+        dni: c.dni || 'Sin especificar',
+        phone: c.phone || 'Sin especificar',
+        locality: c.locality || 'Sin especificar',
+        total_spent: 0,
+        orders_count: 0,
+        tickets_count: 0,
+        is_registered: true
+      };
+    });
+
+    // 2. Aggregate metrics from all orders
     this.orders.forEach(order => {
       const key = order.client_phone || order.client_name;
+      if (!key) return;
       if (!clientMap[key]) {
         clientMap[key] = {
           name: order.client_name,
@@ -569,7 +696,8 @@ class DataStore {
           locality: order.client_locality,
           total_spent: 0,
           orders_count: 0,
-          tickets_count: 0
+          tickets_count: 0,
+          is_registered: Boolean(order.is_registered)
         };
       }
 

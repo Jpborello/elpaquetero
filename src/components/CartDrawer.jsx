@@ -31,6 +31,9 @@ export default function CartDrawer({
   const [receiptUploaded, setReceiptUploaded] = useState(false);
   const [copiedAlias, setCopiedAlias] = useState(false);
 
+  const activeOrderFromStore = dataStore.getActiveOrder();
+  const displayOrder = createdOrder || activeOrderFromStore;
+
   const transferAlias = dataStore.getTransferAlias();
 
   const handleCopyAlias = () => {
@@ -71,10 +74,11 @@ export default function CartDrawer({
       dni,
       locality,
       address,
+      isRegistered: Boolean(currentUser),
       deliveryMethod: deliveryMethod === 'envio' ? 'Envío a Domicilio / Transporte' : 'Retiro por Sucursal (Camilo Aldao 2715)'
     });
 
-    setCreatedOrder({
+    const fullOrderObj = {
       ...orderData,
       client_name: name,
       client_phone: phone,
@@ -82,12 +86,14 @@ export default function CartDrawer({
       client_locality: locality,
       client_address: address,
       delivery_method: deliveryMethod
-    });
+    };
+
+    setCreatedOrder(fullOrderObj);
   };
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
-    if (!file) return;
+    if (!file || !displayOrder) return;
 
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -96,16 +102,16 @@ export default function CartDrawer({
     };
     reader.readAsDataURL(file);
 
-    if (supabase && createdOrder) {
+    if (supabase) {
       try {
         const ext = file.name.split('.').pop() || 'png';
-        const filePath = `comprobantes/comprobante_${createdOrder.id}_${Date.now()}.${ext}`;
+        const filePath = `comprobantes/comprobante_${displayOrder.id}_${Date.now()}.${ext}`;
         const { error: uploadErr } = await supabase.storage.from('Productos').upload(filePath, file, { upsert: true });
 
         if (!uploadErr) {
           const { data: urlData } = supabase.storage.from('Productos').getPublicUrl(filePath);
           const receiptPublicUrl = urlData.publicUrl;
-          dataStore.updateOrderReceipt(createdOrder.id, receiptPublicUrl);
+          dataStore.updateOrderReceipt(displayOrder.id, receiptPublicUrl);
         }
       } catch (err) {
         console.warn('Error subiendo comprobante a Supabase Storage:', err);
@@ -114,47 +120,49 @@ export default function CartDrawer({
   };
 
   const handleSendToWhatsApp = () => {
-    if (!createdOrder) return;
+    if (!displayOrder) return;
 
     let message = `*NUEVO PEDIDO - EL PAQUETERO*\n`;
-    message += `*Orden N°:* ${createdOrder.id}\n`;
-    message += `*Cliente:* ${createdOrder.client_name}\n`;
-    message += `*DNI/CUIT:* ${createdOrder.client_dni}\n`;
-    message += `*Teléfono:* ${createdOrder.client_phone}\n`;
-    message += `*Localidad:* ${createdOrder.client_locality}\n`;
-    message += `*Entrega:* ${createdOrder.delivery_method === 'envio' ? '🚚 Envío a Domicilio' : '🏬 Retiro por Sucursal'}\n\n`;
+    message += `*Orden N°:* ${displayOrder.id}\n`;
+    message += `*Cliente:* ${displayOrder.client_name}\n`;
+    message += `*DNI/CUIT:* ${displayOrder.client_dni}\n`;
+    message += `*Teléfono:* ${displayOrder.client_phone}\n`;
+    message += `*Localidad:* ${displayOrder.client_locality}\n`;
+    message += `*Entrega:* ${displayOrder.delivery_method === 'envio' ? '🚚 Envío a Domicilio' : '🏬 Retiro por Sucursal'}\n\n`;
     
-    if (createdOrder.is_wholesale) {
+    if (displayOrder.is_wholesale) {
       message += `🎉 *¡DESCUENTO MAYORISTA APLICADO: 40% OFF!*\n\n`;
     }
 
     message += `*DETALLE DEL PEDIDO:*\n`;
 
-    createdOrder.items.forEach((item, idx) => {
-      const itemUnitPrice = createdOrder.is_wholesale ? Math.round(item.product.price * 0.60) : item.product.price;
+    (displayOrder.items || []).forEach((item, idx) => {
+      const itemUnitPrice = displayOrder.is_wholesale ? Math.round(item.product.price * 0.60) : item.product.price;
       const itemTotal = itemUnitPrice * item.quantity;
       message += `${idx + 1}. ${item.product.name} (x${item.quantity}) - $${itemTotal.toLocaleString('es-AR')}\n`;
     });
 
-    if (createdOrder.is_wholesale && createdOrder.discount_applied) {
-      message += `\n*Subtotal Minorista:* $${(createdOrder.total_amount + createdOrder.discount_applied).toLocaleString('es-AR')}`;
-      message += `\n*Descuento 40% Mayorista:* -$${createdOrder.discount_applied.toLocaleString('es-AR')}`;
+    if (displayOrder.is_wholesale && displayOrder.discount_applied) {
+      message += `\n*Subtotal Minorista:* $${(displayOrder.total_amount + displayOrder.discount_applied).toLocaleString('es-AR')}`;
+      message += `\n*Descuento 40% Mayorista:* -$${displayOrder.discount_applied.toLocaleString('es-AR')}`;
     }
 
-    message += `\n*TOTAL FINAL A PAGAR:* $${createdOrder.total_amount.toLocaleString('es-AR')}\n`;
+    message += `\n*TOTAL FINAL A PAGAR:* $${displayOrder.total_amount.toLocaleString('es-AR')}\n`;
     
-    if (receiptUploaded) {
+    if (receiptUploaded || displayOrder.receipt_url) {
       message += `📌 *Comprobante de pago adjuntado en sistema.*\n`;
     }
 
     const encodedMsg = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/5493416095021?text=${encodedMsg}`;
     window.open(whatsappUrl, '_blank');
-    
+  };
+
+  const handleStartNewOrder = () => {
+    dataStore.clearActiveOrder();
     setCreatedOrder(null);
     setReceiptImage(null);
     setReceiptUploaded(false);
-    handleClose();
   };
 
   return (
@@ -173,17 +181,19 @@ export default function CartDrawer({
         </div>
 
         <div className="drawer-body">
-          {/* STEP 2: ORDER CREATED & RECEIPT UPLOAD */}
-          {createdOrder ? (
+          {/* STEP 2: ORDER CREATED OR ACTIVE PENDING ORDER & RECEIPT UPLOAD */}
+          {displayOrder ? (
             <div style={{ padding: '10px 0' }}>
               <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                 <CheckCircle2 size={48} style={{ color: 'var(--accent-emerald)', marginBottom: '8px' }} />
-                <h3 style={{ fontSize: '1.3rem', fontWeight: 800 }}>¡Pedido #{createdOrder.id} Generado!</h3>
+                <h3 style={{ fontSize: '1.3rem', fontWeight: 800 }}>
+                  ¡Pedido #{displayOrder.id} Generado!
+                </h3>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                  Monto total: <strong>${createdOrder.total_amount.toLocaleString('es-AR')}</strong>
+                  Monto total: <strong>${displayOrder.total_amount?.toLocaleString('es-AR')}</strong>
                 </p>
 
-                {createdOrder.is_wholesale && (
+                {displayOrder.is_wholesale && (
                   <div style={{
                     backgroundColor: '#ECFDF5',
                     color: '#047857',
@@ -194,12 +204,12 @@ export default function CartDrawer({
                     fontWeight: 700,
                     marginTop: '10px'
                   }}>
-                    🎉 40% OFF Mayorista Aplicado (-${createdOrder.discount_applied?.toLocaleString('es-AR')})
+                    🎉 40% OFF Mayorista Aplicado (-${displayOrder.discount_applied?.toLocaleString('es-AR')})
                   </div>
                 )}
 
-                {/* Raffle Tickets Assigned Card */}
-                {createdOrder.raffle_tickets && createdOrder.raffle_tickets.length > 0 && (
+                {/* Raffle Tickets Assigned Card (ONLY for registered users) */}
+                {displayOrder.raffle_tickets && displayOrder.raffle_tickets.length > 0 ? (
                   <div style={{ 
                     marginTop: '12px', 
                     backgroundColor: 'var(--accent-gold-light)', 
@@ -209,13 +219,26 @@ export default function CartDrawer({
                     border: '1px dashed var(--accent-gold)' 
                   }}>
                     <div style={{ fontWeight: 800, fontSize: '0.9rem', marginBottom: '4px' }}>
-                      🎟️ ¡Ganaste {createdOrder.raffle_tickets.length} cupón(es) para el Gran Sorteo!
+                      🎟️ ¡Ganaste {displayOrder.raffle_tickets.length} cupón(es) para el Gran Sorteo!
                     </div>
                     <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>
-                      Tu(s) Boleto(s): <strong>{createdOrder.raffle_tickets.join(', ')}</strong>
+                      Tu(s) Boleto(s): <strong>{displayOrder.raffle_tickets.join(', ')}</strong>
                     </div>
                   </div>
-                )}
+                ) : !displayOrder.is_registered ? (
+                  <div style={{
+                    marginTop: '12px',
+                    backgroundColor: '#FFFBEB',
+                    color: '#B45309',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    fontSize: '0.8rem',
+                    border: '1px solid #FDE68A',
+                    fontWeight: 600
+                  }}>
+                    💡 *Tip*: Si te registrás como usuario, participás automáticamente del Gran Sorteo con cupones en tus compras mayoristas.
+                  </div>
+                ) : null}
               </div>
 
               {/* Bank Transfer Alias Card */}
@@ -301,13 +324,13 @@ export default function CartDrawer({
                   style={{ width: '100%', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
                 >
                   <Upload size={16} /> 
-                  {receiptUploaded ? '✓ Comprobante Cargado (Cambiar)' : 'Subir Imagen de Comprobante'}
+                  {receiptUploaded || displayOrder.receipt_url ? '✓ Comprobante Cargado (Cambiar)' : 'Subir Imagen de Comprobante'}
                 </label>
 
-                {receiptImage && (
+                {(receiptImage || displayOrder.receipt_url) && (
                   <div style={{ marginTop: '12px', textAlign: 'center' }}>
                     <img 
-                      src={receiptImage} 
+                      src={receiptImage || displayOrder.receipt_url} 
                       alt="Comprobante" 
                       style={{ maxHeight: '120px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}
                     />
@@ -318,8 +341,25 @@ export default function CartDrawer({
                 )}
               </div>
 
-              <button onClick={handleSendToWhatsApp} className="btn-hero-primary" style={{ width: '100%' }}>
+              <button onClick={handleSendToWhatsApp} className="btn-hero-primary" style={{ width: '100%', marginBottom: '12px' }}>
                 <Send size={18} style={{ display: 'inline', marginRight: '6px' }} /> Confirmar por WhatsApp
+              </button>
+
+              <button 
+                onClick={handleStartNewOrder} 
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  backgroundColor: 'transparent',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '10px',
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer'
+                }}
+              >
+                🛒 Realizar un Nuevo Pedido
               </button>
             </div>
           ) : cartItems.length === 0 ? (

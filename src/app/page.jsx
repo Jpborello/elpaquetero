@@ -125,6 +125,8 @@ export default function Home() {
       phone: clientDetails?.phone || currentUser?.phone || 'Sin especificar',
       dni: clientDetails?.dni || currentUser?.dni || 'Sin especificar',
       locality: clientDetails?.locality || currentUser?.locality || 'Sin especificar',
+      address: clientDetails?.address || currentUser?.address || '',
+      isRegistered: Boolean(clientDetails?.isRegistered || currentUser),
       deliveryMethod: clientDetails?.deliveryMethod || 'Envío a Domicilio',
       receiptUrl: clientDetails?.receiptUrl || null
     });
@@ -210,6 +212,42 @@ export default function Home() {
 
       {/* Wholesale Threshold Banner */}
       <WholesaleBanner />
+
+      {/* Active Pending Order Banner */}
+      {dataStore.getActiveOrder() && (
+        <div style={{
+          backgroundColor: '#EFF6FF',
+          borderBottom: '2px solid #3B82F6',
+          padding: '12px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '14px',
+          flexWrap: 'wrap',
+          fontSize: '0.88rem',
+          fontWeight: 700,
+          color: '#1E40AF',
+          boxShadow: '0 2px 8px rgba(59,130,246,0.15)'
+        }}>
+          <span>
+            📌 Tenés una compra pendiente (Orden N° <strong>#{dataStore.getActiveOrder()?.id}</strong>) por <strong>${dataStore.getActiveOrder()?.total_amount?.toLocaleString('es-AR')}</strong>
+          </span>
+          <button 
+            onClick={() => setIsCartOpen(true)}
+            style={{
+              backgroundColor: '#2563EB',
+              color: '#FFF',
+              border: 'none',
+              padding: '6px 14px',
+              borderRadius: '8px',
+              fontWeight: 800,
+              cursor: 'pointer'
+            }}
+          >
+            {dataStore.getActiveOrder()?.receipt_url ? '✓ Ver / Modificar Comprobante' : '💳 Subir Comprobante / Pagar'}
+          </button>
+        </div>
+      )}
 
       {/* Hero Section */}
       <HeroSection
