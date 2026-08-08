@@ -321,6 +321,7 @@ export default function Home() {
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveFromCart}
         onCheckout={handleCheckout}
+        onRestoreCart={(items) => setCartItems(items)}
         currentUser={currentUser}
       />
 

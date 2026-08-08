@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Trash2, Plus, Minus, Send, ShoppingBag, Truck, Store, Upload, CheckCircle2, UserCheck, Sparkles, Tag, Copy, Check, CreditCard, Clock } from 'lucide-react';
+import { X, Trash2, Plus, Minus, Send, ShoppingBag, Truck, Store, Upload, CheckCircle2, UserCheck, Sparkles, Tag, Copy, Check, CreditCard, Clock, Edit3, RotateCcw } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { dataStore } from '@/lib/dataStore';
 import useCloseOnBack from '@/lib/useCloseOnBack';
@@ -13,6 +13,7 @@ export default function CartDrawer({
   onUpdateQuantity, 
   onRemoveItem, 
   onCheckout, 
+  onRestoreCart,
   currentUser,
   onOpenAuth
 }) {
@@ -178,6 +179,17 @@ export default function CartDrawer({
     setReceiptImage(null);
     setReceiptUploaded(false);
     setIsFinishedSuccess(true);
+  };
+
+  const handleModifyOrCancelOrder = () => {
+    if (displayOrder?.items && onRestoreCart) {
+      onRestoreCart(displayOrder.items);
+    }
+    dataStore.clearActiveOrder();
+    setCreatedOrder(null);
+    setReceiptImage(null);
+    setReceiptUploaded(false);
+    setIsFinishedSuccess(false);
   };
 
   const handleStartNewOrder = () => {
@@ -467,6 +479,30 @@ export default function CartDrawer({
               </button>
 
               <button 
+                type="button"
+                onClick={handleModifyOrCancelOrder} 
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  backgroundColor: '#FEF2F2',
+                  border: '1px solid #FECACA',
+                  borderRadius: '10px',
+                  fontWeight: 800,
+                  fontSize: '0.88rem',
+                  color: '#DC2626',
+                  cursor: 'pointer',
+                  marginBottom: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <Edit3 size={16} /> ✏️ Modificar o Cancelar este Pedido (Volver al Carrito)
+              </button>
+
+              <button 
                 onClick={handleStartNewOrder} 
                 style={{
                   width: '100%',
@@ -480,7 +516,7 @@ export default function CartDrawer({
                   cursor: 'pointer'
                 }}
               >
-                🛒 Realizar un Nuevo Pedido
+                🛒 Limpiar y Empezar Pedido Desde Cero
               </button>
             </div>
           ) : cartItems.length === 0 ? (
