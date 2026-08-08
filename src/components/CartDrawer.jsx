@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Trash2, Plus, Minus, Send, ShoppingBag, Truck, Store, Upload, CheckCircle2, UserCheck, Sparkles, Tag } from 'lucide-react';
+import { X, Trash2, Plus, Minus, Send, ShoppingBag, Truck, Store, Upload, CheckCircle2, UserCheck, Sparkles, Tag, Copy, Check, CreditCard } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { dataStore } from '@/lib/dataStore';
 import useCloseOnBack from '@/lib/useCloseOnBack';
@@ -29,6 +29,17 @@ export default function CartDrawer({
   const [createdOrder, setCreatedOrder] = useState(null);
   const [receiptImage, setReceiptImage] = useState(null);
   const [receiptUploaded, setReceiptUploaded] = useState(false);
+  const [copiedAlias, setCopiedAlias] = useState(false);
+
+  const transferAlias = dataStore.getTransferAlias();
+
+  const handleCopyAlias = () => {
+    if (navigator?.clipboard) {
+      navigator.clipboard.writeText(transferAlias);
+    }
+    setCopiedAlias(true);
+    setTimeout(() => setCopiedAlias(false), 2500);
+  };
 
   // 40% OFF Wholesale Discount calculations (threshold: $50.000)
   const retailSubtotal = cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
@@ -205,6 +216,60 @@ export default function CartDrawer({
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Bank Transfer Alias Card */}
+              <div style={{
+                backgroundColor: '#EFF6FF',
+                border: '2px dashed #3B82F6',
+                borderRadius: '12px',
+                padding: '16px',
+                marginBottom: '16px',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                  <CreditCard size={16} /> Alias para Transferencia Bancaria
+                </div>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  gap: '10px', 
+                  backgroundColor: '#FFFFFF', 
+                  border: '1px solid #BFDBFE', 
+                  padding: '10px 14px', 
+                  borderRadius: '8px',
+                  margin: '12px 0',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                }}>
+                  <span style={{ fontSize: '1.2rem', fontWeight: 900, color: '#1D4ED8', letterSpacing: '1px', fontFamily: 'monospace' }}>
+                    {transferAlias}
+                  </span>
+                  <button 
+                    type="button" 
+                    onClick={handleCopyAlias}
+                    style={{
+                      backgroundColor: copiedAlias ? '#10B981' : '#2563EB',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      fontWeight: 700,
+                      fontSize: '0.8rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    {copiedAlias ? <Check size={15} /> : <Copy size={15} />}
+                    {copiedAlias ? '¡Copiado!' : 'Copiar'}
+                  </button>
+                </div>
+                <p style={{ fontSize: '0.78rem', color: '#1E40AF', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>
+                  Podés adjuntar tu comprobante de pago subiendo la foto desde esta pantalla o enviárnoslo por WhatsApp junto con tu pedido.
+                </p>
               </div>
 
               {/* Upload Receipt Section */}

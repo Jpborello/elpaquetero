@@ -12,6 +12,7 @@ class DataStore {
     this.orders = [];
     this.cashMovements = [];
     this.categories = CATALOG_CATEGORIES.filter(c => c.id !== 'all');
+    this.transferAlias = typeof window !== 'undefined' ? (localStorage.getItem('elpaquetero_transfer_alias') || 'ELPAQUETERO.MP') : 'ELPAQUETERO.MP';
     this.listeners = [];
     this.initFromSupabase();
   }
@@ -95,13 +96,23 @@ class DataStore {
     try {
       const { data, error } = await supabase.from('categories').select('*');
       if (data && data.length > 0 && !error) {
-        const cleanCats = data.map(item => ({
-          id: item.id,
-          name: item.name,
-          subcategories: Array.isArray(item.subcategories)
-            ? item.subcategories
-            : (typeof item.subcategories === 'string' ? JSON.parse(item.subcategories) : [])
-        }));
+        const aliasRow = data.find(item => item.id === '_config_alias');
+        if (aliasRow && aliasRow.name) {
+          this.transferAlias = aliasRow.name;
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('elpaquetero_transfer_alias', aliasRow.name);
+          }
+        }
+
+        const cleanCats = data
+          .filter(item => item.id !== '_config_alias')
+          .map(item => ({
+            id: item.id,
+            name: item.name,
+            subcategories: Array.isArray(item.subcategories)
+              ? item.subcategories
+              : (typeof item.subcategories === 'string' ? JSON.parse(item.subcategories) : [])
+          }));
 
         this.categories = cleanCats;
         this.notify();
@@ -109,6 +120,27 @@ class DataStore {
     } catch (err) {
       console.warn('Supabase categories fetch warning:', err);
     }
+  }
+
+  getTransferAlias() {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('elpaquetero_transfer_alias');
+      if (stored) return stored;
+    }
+    return this.transferAlias || 'ELPAQUETERO.MP';
+  }
+
+  setTransferAlias(newAlias) {
+    const cleanAlias = (newAlias || '').trim().toUpperCase();
+    if (!cleanAlias) return;
+    this.transferAlias = cleanAlias;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('elpaquetero_transfer_alias', cleanAlias);
+    }
+    if (supabase) {
+      supabase.from('categories').upsert({ id: '_config_alias', name: cleanAlias, subcategories: [] }).then(() => {}).catch(() => {});
+    }
+    this.notify();
   }
 
   getCategories() {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Lock, ShieldCheck, ArrowLeft, KeyRound, Loader2 } from 'lucide-react';
+import { Lock, ShieldCheck, ArrowLeft, KeyRound, Loader2, CreditCard } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { dataStore } from '@/lib/dataStore';
 import AdminHeader from '@/components/admin/AdminHeader';
@@ -36,6 +36,7 @@ export default function AdminPage() {
   const [metrics, setMetrics] = useState({});
   const [searchFilter, setSearchFilter] = useState('');
   const [editSuccessMsg, setEditSuccessMsg] = useState('');
+  const [aliasInput, setAliasInput] = useState('');
   
   // Mercado Pago Transfers State
   const [mpTransfers, setMpTransfers] = useState([]);
@@ -145,6 +146,7 @@ export default function AdminPage() {
       setClients(dataStore.getClientsWithStats());
       setTickets(dataStore.getAllRaffleTickets());
       setMetrics(dataStore.getMetrics());
+      setAliasInput(dataStore.getTransferAlias());
     };
 
     updateState();
@@ -157,6 +159,14 @@ export default function AdminPage() {
   const showSuccessNotice = (msg) => {
     setEditSuccessMsg(msg);
     setTimeout(() => setEditSuccessMsg(''), 4000);
+  };
+
+  const handleSaveAlias = (e) => {
+    e.preventDefault();
+    const clean = (aliasInput || '').trim().toUpperCase();
+    if (!clean) return;
+    dataStore.setTransferAlias(clean);
+    showSuccessNotice(`¡Alias de transferencia actualizado a "${clean}"!`);
   };
 
   const handleStockUpdate = (id, newStock) => {
@@ -354,6 +364,122 @@ export default function AdminPage() {
 
       {activeTab === 'metrics' && (
         <MetricsTab metrics={metrics} products={products} />
+      )}
+
+      {activeTab === 'settings' && (
+        <div style={{
+          backgroundColor: 'var(--bg-surface)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '16px',
+          padding: '24px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
+          maxWidth: '720px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
+            <div style={{
+              backgroundColor: '#EFF6FF',
+              color: '#2563EB',
+              width: '48px',
+              height: '48px',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '1px solid #BFDBFE'
+            }}>
+              <CreditCard size={26} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
+                Alias para Transferencias Bancarias
+              </h3>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+                Configurá el Alias CBU / CVU que verán automáticamente tus clientes al momento de pagar en el carrito.
+              </p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSaveAlias} style={{ marginTop: '20px' }}>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, marginBottom: '8px', color: 'var(--text-main)' }}>
+                Nuevo Alias CBU / CVU / Mercado Pago:
+              </label>
+              <input 
+                type="text" 
+                value={aliasInput} 
+                onChange={(e) => setAliasInput(e.target.value.toUpperCase())}
+                placeholder="Ej: ELPAQUETERO.MP" 
+                className="form-input"
+                style={{
+                  fontSize: '1.2rem',
+                  fontWeight: 900,
+                  padding: '12px 16px',
+                  fontFamily: 'monospace',
+                  letterSpacing: '1px',
+                  borderRadius: '10px',
+                  textTransform: 'uppercase',
+                  border: '2px solid #BFDBFE',
+                  backgroundColor: '#F8FAFC'
+                }}
+                required
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button type="submit" className="btn-hero-primary" style={{ padding: '12px 24px', borderRadius: '10px', fontWeight: 800 }}>
+                ✓ Guardar y Publicar Alias
+              </button>
+
+              <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                Se actualizará automáticamente para todos los clientes.
+              </span>
+            </div>
+          </form>
+
+          {/* Customer Preview Card */}
+          <div style={{
+            marginTop: '28px',
+            backgroundColor: '#F8FAFC',
+            border: '1px solid #E2E8F0',
+            borderRadius: '12px',
+            padding: '16px'
+          }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#334155', marginBottom: '8px' }}>
+              📌 Vista Previa en la Pantalla del Cliente:
+            </div>
+            <div style={{
+              backgroundColor: '#EFF6FF',
+              border: '2px dashed #3B82F6',
+              borderRadius: '10px',
+              padding: '14px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                💳 Alias para Transferencia Bancaria
+              </div>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '12px',
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #BFDBFE',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                margin: '10px 0'
+              }}>
+                <span style={{ fontSize: '1.15rem', fontWeight: 900, color: '#1D4ED8', fontFamily: 'monospace', letterSpacing: '1px' }}>
+                  {aliasInput || 'ELPAQUETERO.MP'}
+                </span>
+                <span style={{ backgroundColor: '#2563EB', color: '#FFF', padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700 }}>
+                  Copiar
+                </span>
+              </div>
+              <p style={{ fontSize: '0.75rem', color: '#1E40AF', margin: 0, fontWeight: 600 }}>
+                Podés adjuntar tu comprobante de pago subiendo la foto desde esta pantalla o enviárnoslo por WhatsApp junto con tu pedido.
+              </p>
+            </div>
+          </div>
+        </div>
       )}
 
       {activeTab === 'stock' && (
