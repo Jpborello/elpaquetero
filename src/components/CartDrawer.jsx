@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Trash2, Plus, Minus, Send, ShoppingBag, Truck, Store, Upload, CheckCircle2, UserCheck, Sparkles, Tag, Copy, Check, CreditCard } from 'lucide-react';
+import { X, Trash2, Plus, Minus, Send, ShoppingBag, Truck, Store, Upload, CheckCircle2, UserCheck, Sparkles, Tag, Copy, Check, CreditCard, Clock } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { dataStore } from '@/lib/dataStore';
 import useCloseOnBack from '@/lib/useCloseOnBack';
@@ -30,6 +30,8 @@ export default function CartDrawer({
   const [receiptImage, setReceiptImage] = useState(null);
   const [receiptUploaded, setReceiptUploaded] = useState(false);
   const [copiedAlias, setCopiedAlias] = useState(false);
+  const [isFinishedSuccess, setIsFinishedSuccess] = useState(false);
+  const [completedOrderId, setCompletedOrderId] = useState('');
 
   const activeOrderFromStore = dataStore.getActiveOrder();
   const displayOrder = createdOrder || activeOrderFromStore;
@@ -119,8 +121,21 @@ export default function CartDrawer({
     }
   };
 
+  const handleFinishWithReceipt = () => {
+    if (!displayOrder) return;
+    const targetId = displayOrder.id;
+    dataStore.updateOrderStatus(targetId, 'comprobante_subido');
+    setCompletedOrderId(targetId);
+    dataStore.clearActiveOrder();
+    setCreatedOrder(null);
+    setReceiptImage(null);
+    setReceiptUploaded(false);
+    setIsFinishedSuccess(true);
+  };
+
   const handleSendToWhatsApp = () => {
     if (!displayOrder) return;
+    const targetId = displayOrder.id;
 
     let message = `*NUEVO PEDIDO - EL PAQUETERO*\n`;
     message += `*Orden N°:* ${displayOrder.id}\n`;
@@ -156,6 +171,13 @@ export default function CartDrawer({
     const encodedMsg = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/5493416095021?text=${encodedMsg}`;
     window.open(whatsappUrl, '_blank');
+
+    setCompletedOrderId(targetId);
+    dataStore.clearActiveOrder();
+    setCreatedOrder(null);
+    setReceiptImage(null);
+    setReceiptUploaded(false);
+    setIsFinishedSuccess(true);
   };
 
   const handleStartNewOrder = () => {
@@ -163,6 +185,17 @@ export default function CartDrawer({
     setCreatedOrder(null);
     setReceiptImage(null);
     setReceiptUploaded(false);
+    setIsFinishedSuccess(false);
+  };
+
+  const handleResetToCatalog = () => {
+    setIsFinishedSuccess(false);
+    setCompletedOrderId('');
+    dataStore.clearActiveOrder();
+    setCreatedOrder(null);
+    setReceiptImage(null);
+    setReceiptUploaded(false);
+    handleClose();
   };
 
   return (
@@ -181,8 +214,72 @@ export default function CartDrawer({
         </div>
 
         <div className="drawer-body">
-          {/* STEP 2: ORDER CREATED OR ACTIVE PENDING ORDER & RECEIPT UPLOAD */}
-          {displayOrder ? (
+          {/* STEP 3: SUCCESS THANK YOU SCREEN */}
+          {isFinishedSuccess ? (
+            <div style={{ padding: '24px 12px', textAlign: 'center' }}>
+              <div style={{
+                width: '72px',
+                height: '72px',
+                backgroundColor: '#ECFDF5',
+                color: '#10B981',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 20px auto',
+                border: '3px solid #A7F3D0',
+                boxShadow: '0 4px 16px rgba(16,185,129,0.2)'
+              }}>
+                <CheckCircle2 size={44} />
+              </div>
+
+              <h2 style={{ fontSize: '1.45rem', fontWeight: 900, marginBottom: '8px', color: 'var(--text-main)' }}>
+                ¡Muchas Gracias por tu Compra!
+              </h2>
+
+              <p style={{ fontSize: '0.92rem', color: '#10B981', fontWeight: 800, marginBottom: '20px' }}>
+                🎉 Tu pedido {completedOrderId ? `#${completedOrderId}` : ''} fue recibido exitosamente.
+              </p>
+
+              <div style={{
+                backgroundColor: '#F8FAFC',
+                border: '1px solid #E2E8F0',
+                borderRadius: '14px',
+                padding: '18px',
+                textAlign: 'left',
+                marginBottom: '24px'
+              }}>
+                <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#1E293B', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Clock size={18} style={{ color: '#2563EB' }} />
+                  <span>¿Cómo sigue tu pedido?</span>
+                </div>
+                
+                <ul style={{ fontSize: '0.84rem', color: '#475569', margin: 0, paddingLeft: '20px', lineHeight: '1.6' }}>
+                  <li style={{ marginBottom: '8px' }}>
+                    <strong>Aprobación de Pago:</strong> Una vez verificado tu comprobante por nuestro equipo, tu pedido se marcará como <em>Aprobado</em> para su armado.
+                  </li>
+                  <li>
+                    <strong>Contacto por WhatsApp:</strong> Un representante de ventas se pondrá en contacto con vos en pocos minutos para coordinar la entrega o envío.
+                  </li>
+                </ul>
+              </div>
+
+              <button 
+                onClick={handleResetToCatalog}
+                className="btn-hero-primary" 
+                style={{ 
+                  width: '100%', 
+                  padding: '14px', 
+                  borderRadius: '12px', 
+                  fontWeight: 800,
+                  fontSize: '1rem',
+                  backgroundColor: '#2563EB' 
+                }}
+              >
+                🛍️ Volver al Catálogo y Seguir Comprando
+              </button>
+            </div>
+          ) : displayOrder ? (
             <div style={{ padding: '10px 0' }}>
               <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                 <CheckCircle2 size={48} style={{ color: 'var(--accent-emerald)', marginBottom: '8px' }} />
@@ -337,12 +434,36 @@ export default function CartDrawer({
                     <div style={{ fontSize: '0.75rem', color: 'var(--accent-emerald)', fontWeight: 700, marginTop: '4px' }}>
                       Comprobante adjuntado correctamente
                     </div>
+
+                    <button 
+                      type="button"
+                      onClick={handleFinishWithReceipt}
+                      style={{ 
+                        width: '100%', 
+                        backgroundColor: '#10B981',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        padding: '14px', 
+                        borderRadius: '10px', 
+                        fontWeight: 800,
+                        fontSize: '0.95rem',
+                        marginTop: '14px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        boxShadow: '0 4px 12px rgba(16,185,129,0.25)'
+                      }}
+                    >
+                      <CheckCircle2 size={20} /> ✓ Aceptar y Enviar Comprobante
+                    </button>
                   </div>
                 )}
               </div>
 
               <button onClick={handleSendToWhatsApp} className="btn-hero-primary" style={{ width: '100%', marginBottom: '12px' }}>
-                <Send size={18} style={{ display: 'inline', marginRight: '6px' }} /> Confirmar por WhatsApp
+                <Send size={18} style={{ display: 'inline', marginRight: '6px' }} /> 💬 Finalizar y Enviar por WhatsApp
               </button>
 
               <button 
