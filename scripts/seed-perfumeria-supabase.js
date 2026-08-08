@@ -1,5 +1,5 @@
 const supabaseUrl = 'https://pgipeujafjwhqjobcjzw.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBnaXBldWphZmp3aHFqb2Jjanp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4Nzg0MDcsImV4cCI6MjEwMTQ1NDQwN30.A9sRFYI36UvOmjw3fsFGlteutTLsaPRXPszacwysbQk';
+const serviceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBnaXBldWphZmp3aHFqb2Jjanp3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NTg3ODQwNywiZXhwIjoyMTAxNDU0NDA3fQ.joDHBlItgWPcdRMeSAnoRs4c7R-UKmshwQwrcP5dPgk';
 
 const perfumeriaCategory = {
   id: 'Perfumeria',
@@ -7,14 +7,16 @@ const perfumeriaCategory = {
   subcategories: ['Perfumes y Cremas']
 };
 
+const calcRetail = (wholesale) => Math.round(wholesale * 1.40);
+
 const perfumeriaProducts = [
   {
     id: 'p-4001',
     name: 'Mascarilla Karseell',
     category: 'Perfumería',
     subcategory: 'Perfumes y Cremas',
-    wholesale_price: 15000,
-    price: 21000,
+    wholesale_price: 10000,
+    price: calcRetail(10000),
     stock: 50,
     sales_count: 0,
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Perfumeria/4001_MASCARILLA_KARSEELL.webp',
@@ -27,8 +29,8 @@ const perfumeriaProducts = [
     name: 'Matizadora Karseell',
     category: 'Perfumería',
     subcategory: 'Perfumes y Cremas',
-    wholesale_price: 15000,
-    price: 21000,
+    wholesale_price: 10000,
+    price: calcRetail(10000),
     stock: 50,
     sales_count: 0,
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Perfumeria/4002_MATIZADORA_KARSEELL.webp',
@@ -41,8 +43,8 @@ const perfumeriaProducts = [
     name: 'Perfume Eclaire 30 ml',
     category: 'Perfumería',
     subcategory: 'Perfumes y Cremas',
-    wholesale_price: 18500,
-    price: 25900,
+    wholesale_price: 7500,
+    price: calcRetail(7500),
     stock: 50,
     sales_count: 0,
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Perfumeria/5000_PERFUME_ECLAIRE_30_ML.webp',
@@ -55,8 +57,8 @@ const perfumeriaProducts = [
     name: 'Perfume Odyssey Artisto 100 ml',
     category: 'Perfumería',
     subcategory: 'Perfumes y Cremas',
-    wholesale_price: 28000,
-    price: 39200,
+    wholesale_price: 21000,
+    price: calcRetail(21000),
     stock: 50,
     sales_count: 0,
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Perfumeria/5001_PERFUME_ODYSSEY_ARTISTO_100_ML.webp',
@@ -69,8 +71,8 @@ const perfumeriaProducts = [
     name: 'Perfume Odyssey Mega 100 ml',
     category: 'Perfumería',
     subcategory: 'Perfumes y Cremas',
-    wholesale_price: 28000,
-    price: 39200,
+    wholesale_price: 21000,
+    price: calcRetail(21000),
     stock: 50,
     sales_count: 0,
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Perfumeria/5002_PERFUME_ODYSSEY_MEGA_100_ML.webp',
@@ -83,8 +85,8 @@ const perfumeriaProducts = [
     name: 'Perfume Broken Love 100 ml',
     category: 'Perfumería',
     subcategory: 'Perfumes y Cremas',
-    wholesale_price: 25000,
-    price: 35000,
+    wholesale_price: 9000,
+    price: calcRetail(9000),
     stock: 50,
     sales_count: 0,
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Perfumeria/5003_PERFUME_BROKEN_LOVE_100_ML.webp',
@@ -97,8 +99,8 @@ const perfumeriaProducts = [
     name: 'Perfume Give Me Berry On Top 75 ml',
     category: 'Perfumería',
     subcategory: 'Perfumes y Cremas',
-    wholesale_price: 22000,
-    price: 30800,
+    wholesale_price: 21000,
+    price: calcRetail(21000),
     stock: 50,
     sales_count: 0,
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Perfumeria/5004_PERFUME_GIVE_ME_BERRY_ON_TOP_75ML.webp',
@@ -111,8 +113,8 @@ const perfumeriaProducts = [
     name: 'Perfume Give Me Vanilla Freak 75 ml',
     category: 'Perfumería',
     subcategory: 'Perfumes y Cremas',
-    wholesale_price: 22000,
-    price: 30800,
+    wholesale_price: 21000,
+    price: calcRetail(21000),
     stock: 50,
     sales_count: 0,
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Perfumeria/5005_PERFUME_GIVE_ME_VANILLA_FREAK_75ML.webp',
@@ -125,8 +127,8 @@ const perfumeriaProducts = [
     name: 'Perfume Yara Candy 100 ml',
     category: 'Perfumería',
     subcategory: 'Perfumes y Cremas',
-    wholesale_price: 28000,
-    price: 39200,
+    wholesale_price: 21000,
+    price: calcRetail(21000),
     stock: 50,
     sales_count: 0,
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Perfumeria/5006_PERFUME_YARA_CANDY_100ML.webp',
@@ -139,8 +141,8 @@ const perfumeriaProducts = [
     name: 'Perfume Yara 50 ml',
     category: 'Perfumería',
     subcategory: 'Perfumes y Cremas',
-    wholesale_price: 22000,
-    price: 30800,
+    wholesale_price: 9000,
+    price: calcRetail(9000),
     stock: 50,
     sales_count: 0,
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Perfumeria/5007_PERFUME_YARA_50ML.webp',
@@ -154,7 +156,7 @@ const perfumeriaProducts = [
     category: 'Perfumería',
     subcategory: 'Perfumes y Cremas',
     wholesale_price: 28000,
-    price: 39200,
+    price: calcRetail(28000),
     stock: 50,
     sales_count: 0,
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Perfumeria/5008_PERFUME_ODYSSEY_DUBAI_CHOCOLAT.webp',
@@ -168,7 +170,7 @@ const perfumeriaProducts = [
     category: 'Perfumería',
     subcategory: 'Perfumes y Cremas',
     wholesale_price: 28000,
-    price: 39200,
+    price: calcRetail(28000),
     stock: 50,
     sales_count: 0,
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Perfumeria/5009_PERFUME_FAME_AND_FORTUNE_100ML.webp',
@@ -182,7 +184,7 @@ const perfumeriaProducts = [
     category: 'Perfumería',
     subcategory: 'Perfumes y Cremas',
     wholesale_price: 28000,
-    price: 39200,
+    price: calcRetail(28000),
     stock: 50,
     sales_count: 0,
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Perfumeria/5010_PERFUME_YARA_100ML.webp',
@@ -196,7 +198,7 @@ const perfumeriaProducts = [
     category: 'Perfumería',
     subcategory: 'Perfumes y Cremas',
     wholesale_price: 28000,
-    price: 39200,
+    price: calcRetail(28000),
     stock: 50,
     sales_count: 0,
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Perfumeria/5011_PERFUME_HAWAS_PINK_100ML.webp',
@@ -210,7 +212,7 @@ const perfumeriaProducts = [
     category: 'Perfumería',
     subcategory: 'Perfumes y Cremas',
     wholesale_price: 28000,
-    price: 39200,
+    price: calcRetail(28000),
     stock: 50,
     sales_count: 0,
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Perfumeria/5012_PERFUME_LINTORDIET_105ML.webp',
@@ -224,7 +226,7 @@ const perfumeriaProducts = [
     category: 'Perfumería',
     subcategory: 'Perfumes y Cremas',
     wholesale_price: 25000,
-    price: 35000,
+    price: calcRetail(25000),
     stock: 50,
     sales_count: 0,
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Perfumeria/5013_PERFUME_BONITA_100ML.webp',
@@ -238,7 +240,7 @@ const perfumeriaProducts = [
     category: 'Perfumería',
     subcategory: 'Perfumes y Cremas',
     wholesale_price: 18500,
-    price: 25900,
+    price: calcRetail(18500),
     stock: 50,
     sales_count: 0,
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Perfumeria/5014_PERFUME_AMEERAT_AL_ARAB_30ML.webp',
@@ -252,7 +254,7 @@ const perfumeriaProducts = [
     category: 'Perfumería',
     subcategory: 'Perfumes y Cremas',
     wholesale_price: 25000,
-    price: 35000,
+    price: calcRetail(25000),
     stock: 50,
     sales_count: 0,
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Perfumeria/5015_PERFUME_LADY_MILION_80ML.webp',
@@ -266,7 +268,7 @@ const perfumeriaProducts = [
     category: 'Perfumería',
     subcategory: 'Perfumes y Cremas',
     wholesale_price: 25000,
-    price: 35000,
+    price: calcRetail(25000),
     stock: 50,
     sales_count: 0,
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Perfumeria/5016_PERFUME_ECLAIIRE.webp',
@@ -277,12 +279,12 @@ const perfumeriaProducts = [
 ];
 
 async function seed() {
-  console.log('Upserting categoría Perfumería via REST...');
+  console.log('Upserting categoría Perfumería via Service Role REST API...');
   const catRes = await fetch(`${supabaseUrl}/rest/v1/categories`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${supabaseKey}`,
-      'apikey': supabaseKey,
+      'Authorization': `Bearer ${serviceRoleKey}`,
+      'apikey': serviceRoleKey,
       'Content-Type': 'application/json',
       'Prefer': 'resolution=merge-duplicates'
     },
@@ -292,15 +294,15 @@ async function seed() {
   if (!catRes.ok) {
     console.error('Error insertando categoría:', await catRes.text());
   } else {
-    console.log('Categoría Perfumería insertada en Supabase.');
+    console.log('✓ Categoría Perfumería insertada en Supabase.');
   }
 
-  console.log('Upserting 19 productos de Perfumería via REST...');
+  console.log('Upserting 19 productos de Perfumería via Service Role REST API con precios actualizados...');
   const prodRes = await fetch(`${supabaseUrl}/rest/v1/products`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${supabaseKey}`,
-      'apikey': supabaseKey,
+      'Authorization': `Bearer ${serviceRoleKey}`,
+      'apikey': serviceRoleKey,
       'Content-Type': 'application/json',
       'Prefer': 'resolution=merge-duplicates'
     },
@@ -310,7 +312,7 @@ async function seed() {
   if (!prodRes.ok) {
     console.error('Error insertando productos:', await prodRes.text());
   } else {
-    console.log('¡19 Productos de Perfumería insertados con éxito en la tabla products de Supabase!');
+    console.log('✓ ¡19 Productos de Perfumería insertados y actualizados con éxito en Supabase!');
   }
 }
 
