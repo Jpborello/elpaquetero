@@ -43,48 +43,28 @@ export default function ProductGrid({ products, onAddToCart, isWholesaleQualifie
                   e.target.src = '/elpaquetero_imagenes/Logo 2.jpeg';
                 }}
               />
-              {/* Top-Left Brand Badge Overlay to cover stamped prices on photos */}
-              <span style={{
-                position: 'absolute',
-                top: '8px',
-                left: '8px',
-                fontSize: '0.68rem',
-                fontWeight: 900,
-                letterSpacing: '0.8px',
-                color: '#F59E0B',
-                backgroundColor: '#1E293B',
-                padding: '4px 9px',
-                borderRadius: '6px',
-                pointerEvents: 'none',
-                textTransform: 'uppercase',
-                userSelect: 'none',
-                zIndex: 4,
-                border: '1px solid #F59E0B',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.25)'
-              }}>
-                ⭐ EL PAQUETERO
-              </span>
-
-              {/* Watermark Overlay "El Paquetero" */}
-              <span style={{
+              {/* Bottom-Right Price Patch Overlay (covers stamped $XX.XXX prices at bottom right without covering top title) */}
+              <div style={{
                 position: 'absolute',
                 bottom: '8px',
                 right: '8px',
-                fontSize: '0.62rem',
-                fontWeight: 800,
-                letterSpacing: '0.8px',
-                color: 'rgba(255, 255, 255, 0.75)',
-                backgroundColor: 'rgba(15, 23, 42, 0.45)',
-                backdropFilter: 'blur(2px)',
-                padding: '3px 7px',
-                borderRadius: '4px',
+                minWidth: '120px',
+                textAlign: 'center',
+                backgroundColor: '#FFFFFF',
+                color: '#1E293B',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                border: '2px solid #CBD5E1',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
+                fontWeight: 900,
+                fontSize: '0.78rem',
+                letterSpacing: '0.5px',
                 pointerEvents: 'none',
-                textTransform: 'uppercase',
                 userSelect: 'none',
-                zIndex: 2
+                zIndex: 3
               }}>
-                El Paquetero
-              </span>
+                ⭐ EL PAQUETERO
+              </div>
 
               {product.is_offer && <span className="card-badge-offer">Oferta</span>}
               

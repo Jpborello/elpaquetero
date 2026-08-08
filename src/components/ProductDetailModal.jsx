@@ -44,26 +44,28 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
               alt={product.name}
               onError={(e) => { e.target.src = '/elpaquetero_imagenes/Logo 2.jpeg'; }}
             />
-            <span style={{
+            {/* Bottom-Right Price Patch Overlay */}
+            <div style={{
               position: 'absolute',
-              top: '8px',
-              left: '8px',
-              fontSize: '0.68rem',
+              bottom: '10px',
+              right: '10px',
+              minWidth: '130px',
+              textAlign: 'center',
+              backgroundColor: '#FFFFFF',
+              color: '#1E293B',
+              padding: '7px 16px',
+              borderRadius: '8px',
+              border: '2px solid #CBD5E1',
+              boxShadow: '0 4px 14px rgba(0,0,0,0.18)',
               fontWeight: 900,
-              letterSpacing: '0.8px',
-              color: '#F59E0B',
-              backgroundColor: '#1E293B',
-              padding: '4px 9px',
-              borderRadius: '6px',
+              fontSize: '0.82rem',
+              letterSpacing: '0.5px',
               pointerEvents: 'none',
-              textTransform: 'uppercase',
               userSelect: 'none',
-              zIndex: 4,
-              border: '1px solid #F59E0B',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.25)'
+              zIndex: 3
             }}>
               ⭐ EL PAQUETERO
-            </span>
+            </div>
           </div>
 
           <div className="product-detail-info">
