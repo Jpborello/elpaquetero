@@ -19,12 +19,12 @@ export const CATALOG_CATEGORIES = [
     subcategories: ['Indumentaria Infantil'] 
   },
   { 
-    id: 'Blanqueria', 
+    id: 'Blanquería', 
     name: 'Blanquería', 
     subcategories: ['Sabanas'] 
   },
   {
-    id: 'Perfumeria',
+    id: 'Perfumería',
     name: 'Perfumería',
     subcategories: ['Perfumes y Cremas']
   }

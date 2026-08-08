@@ -145,14 +145,21 @@ export default function Home() {
     dataStore.logout();
   };
 
+  const normalizeStr = (str) =>
+    (str || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+
   // Filter products by category, subcategory and search query
   const filteredProducts = products.filter((product) => {
     let matchesCategory = selectedCategory === 'all';
     
     if (!matchesCategory) {
-      const selCatLower = selectedCategory.toLowerCase().trim();
-      const prodCatLower = (product.category || '').toLowerCase().trim();
-      const prodSubLower = (product.subcategory || '').toLowerCase().trim();
+      const selCatLower = normalizeStr(selectedCategory);
+      const prodCatLower = normalizeStr(product.category);
+      const prodSubLower = normalizeStr(product.subcategory);
 
       matchesCategory = (
         prodCatLower === selCatLower ||
@@ -166,16 +173,17 @@ export default function Home() {
 
     let matchesSubcategory = !selectedSubcategory;
     if (!matchesSubcategory && selectedSubcategory) {
-      const selSubLower = selectedSubcategory.toLowerCase().trim();
-      const prodSubLower = (product.subcategory || '').toLowerCase().trim();
+      const selSubLower = normalizeStr(selectedSubcategory);
+      const prodSubLower = normalizeStr(product.subcategory);
       matchesSubcategory = prodSubLower === selSubLower || prodSubLower.includes(selSubLower);
     }
 
-    const matchesSearch = searchQuery === '' || 
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (product.subcategory && product.subcategory.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    const normSearch = normalizeStr(searchQuery);
+    const matchesSearch = normSearch === '' || 
+      normalizeStr(product.name).includes(normSearch) ||
+      normalizeStr(product.category).includes(normSearch) ||
+      normalizeStr(product.subcategory).includes(normSearch) ||
+      normalizeStr(product.description).includes(normSearch);
 
     return matchesCategory && matchesSubcategory && matchesSearch;
   });
