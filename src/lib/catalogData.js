@@ -30,8 +30,8 @@ export const CATALOG_CATEGORIES = [
   }
 ];
 
-// Helper para calcular precio de lista minorista (+40%)
-const calcRetail = (wholesale) => Math.round(wholesale * 1.40);
+// Helper para calcular precio de lista minorista (+40% redondeado hacia arriba al múltiplo de $500)
+export const calcRetail = (wholesale) => Math.ceil((wholesale * 1.40) / 500) * 500;
 
 const ADULT_SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
 const KIDS_SIZES = ['2', '4', '6', '8', '10', '12', '14', '16'];

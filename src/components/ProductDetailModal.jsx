@@ -38,12 +38,32 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
 
         <div className="product-detail-scroll">
         <div className="product-detail-grid">
-          <div className="product-detail-img-wrapper">
+          <div className="product-detail-img-wrapper" style={{ position: 'relative' }}>
             <img
               src={product.image_url}
               alt={product.name}
               onError={(e) => { e.target.src = '/elpaquetero_imagenes/Logo 2.jpeg'; }}
             />
+            <span style={{
+              position: 'absolute',
+              top: '8px',
+              left: '8px',
+              fontSize: '0.68rem',
+              fontWeight: 900,
+              letterSpacing: '0.8px',
+              color: '#F59E0B',
+              backgroundColor: '#1E293B',
+              padding: '4px 9px',
+              borderRadius: '6px',
+              pointerEvents: 'none',
+              textTransform: 'uppercase',
+              userSelect: 'none',
+              zIndex: 4,
+              border: '1px solid #F59E0B',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.25)'
+            }}>
+              ⭐ EL PAQUETERO
+            </span>
           </div>
 
           <div className="product-detail-info">
