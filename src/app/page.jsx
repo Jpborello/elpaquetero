@@ -33,6 +33,7 @@ export default function Home() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [detailProduct, setDetailProduct] = useState(null);
+  const [addedToast, setAddedToast] = useState(null);
 
   useEffect(() => {
     const updateStoreData = () => {
@@ -102,7 +103,10 @@ export default function Home() {
       }
       return [...prev, { product, quantity: 1 }];
     });
-    setIsCartOpen(true);
+    
+    // Toast no invasivo en vez de abrir el drawer en cada click (especialmente en celulares)
+    setAddedToast(product.name);
+    setTimeout(() => setAddedToast(null), 3000);
   };
 
   const handleUpdateQuantity = (productId, newQty) => {
@@ -309,6 +313,50 @@ export default function Home() {
         onAddToCart={handleAddToCart}
         isWholesaleQualified={isWholesaleQualified}
       />
+
+      {/* Floating Toast Notification on Item Added */}
+      {addedToast && (
+        <div style={{
+          position: 'fixed',
+          bottom: '85px',
+          right: '20px',
+          left: '20px',
+          maxWidth: '420px',
+          margin: '0 auto',
+          backgroundColor: '#1E293B',
+          color: '#FFFFFF',
+          padding: '12px 18px',
+          borderRadius: '14px',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+          zIndex: 9999,
+          border: '1px solid #334155',
+          animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}>
+          <div style={{ fontSize: '0.88rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            🛒 Agregado: <strong>{addedToast}</strong>
+          </div>
+          <button 
+            onClick={() => { setAddedToast(null); setIsCartOpen(true); }}
+            style={{
+              backgroundColor: '#2563EB',
+              color: '#FFF',
+              border: 'none',
+              padding: '6px 14px',
+              borderRadius: '8px',
+              fontWeight: 800,
+              fontSize: '0.8rem',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            Ver Carrito
+          </button>
+        </div>
+      )}
 
       {/* Floating WhatsApp Contact Button */}
       <WhatsAppButton />
