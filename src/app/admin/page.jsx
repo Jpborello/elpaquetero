@@ -525,8 +525,8 @@ export default function AdminPage() {
             borderRadius: '12px',
             padding: '16px'
           }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#334155', marginBottom: '8px' }}>
-              📌 Vista Previa en la Pantalla del Cliente:
+            <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', marginBottom: '10px' }}>
+              👁️ Vista previa de cómo lo verán tus clientes en el carrito:
             </div>
             <div style={{
               backgroundColor: '#EFF6FF',
@@ -536,7 +536,10 @@ export default function AdminPage() {
               textAlign: 'center'
             }}>
               <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                💳 Alias para Transferencia Bancaria
+                💳 Datos para Transferencia (Mercado Pago)
+              </div>
+              <div style={{ fontSize: '0.8rem', color: '#1E3A8A', margin: '6px 0 10px 0', fontWeight: 600 }}>
+                <strong>Titular:</strong> {holderInput || 'María Leandra Bernardi'} | <strong>CUIT:</strong> {cuitInput || '27-30938323-6'}
               </div>
               <div style={{
                 display: 'inline-flex',
@@ -544,17 +547,30 @@ export default function AdminPage() {
                 gap: '12px',
                 backgroundColor: '#FFFFFF',
                 border: '1px solid #BFDBFE',
-                padding: '8px 16px',
+                padding: '6px 14px',
                 borderRadius: '8px',
-                margin: '10px 0'
+                margin: '4px 0'
               }}>
-                <span style={{ fontSize: '1.15rem', fontWeight: 900, color: '#1D4ED8', fontFamily: 'monospace', letterSpacing: '1px' }}>
-                  {aliasInput || 'ELPAQUETERO.MP'}
-                </span>
-                <span style={{ backgroundColor: '#2563EB', color: '#FFF', padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700 }}>
-                  Copiar
+                <span style={{ fontSize: '1rem', fontWeight: 900, color: '#1D4ED8', fontFamily: 'monospace' }}>
+                  Alias 1: {alias1Input || 'el.paquetero.godoy'}
                 </span>
               </div>
+              {alias2Input && (
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid #BFDBFE',
+                  padding: '6px 14px',
+                  borderRadius: '8px',
+                  margin: '4px 0 10px 8px'
+                }}>
+                  <span style={{ fontSize: '1rem', fontWeight: 900, color: '#1D4ED8', fontFamily: 'monospace' }}>
+                    Alias 2: {alias2Input}
+                  </span>
+                </div>
+              )}
               <p style={{ fontSize: '0.75rem', color: '#1E40AF', margin: 0, fontWeight: 600 }}>
                 Podés adjuntar tu comprobante de pago subiendo la foto desde esta pantalla o enviárnoslo por WhatsApp junto con tu pedido.
               </p>
