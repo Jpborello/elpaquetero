@@ -11,7 +11,12 @@ async function setup() {
       'Content-Type': 'application/json',
       'Prefer': 'resolution=merge-duplicates'
     },
-    body: JSON.stringify([{ id: 'transfer_alias', value: 'ELPAQUETERO.MP' }])
+    body: JSON.stringify([
+      { id: 'transfer_alias1', value: 'el.paquetero.godoy' },
+      { id: 'transfer_alias2', value: 'elpaqueterogodoy' },
+      { id: 'transfer_holder', value: 'María Leandra Bernardi' },
+      { id: 'transfer_cuit', value: '27-30938323-6' }
+    ])
   });
 
   if (!res.ok) {

@@ -16,9 +16,12 @@ class DataStore {
       : null;
     this.clients = [];
     this.orders = [];
-    this.cashMovements = [];
     this.categories = CATALOG_CATEGORIES.filter(c => c.id !== 'all');
-    this.transferAlias = typeof window !== 'undefined' ? (localStorage.getItem('elpaquetero_transfer_alias') || 'ELPAQUETERO.MP') : 'ELPAQUETERO.MP';
+    this.transferAlias1 = 'el.paquetero.godoy';
+    this.transferAlias2 = 'elpaqueterogodoy';
+    this.transferHolder = 'María Leandra Bernardi';
+    this.transferCuit = '27-30938323-6';
+    this.transferAlias = 'el.paquetero.godoy';
     this.listeners = [];
     this.initFromSupabase();
   }
