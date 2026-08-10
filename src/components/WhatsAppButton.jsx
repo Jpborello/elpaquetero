@@ -1,10 +1,27 @@
 'use client';
 
+function checkBusinessHours() {
+  try {
+    const now = new Date();
+    const argStr = now.toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' });
+    const argDate = new Date(argStr);
+    const day = argDate.getDay();
+    if (day === 0) return false; // Domingo cerrado
+    const mins = argDate.getHours() * 60 + argDate.getMinutes();
+    return mins >= 480 && mins <= 990; // 8:00 a 16:30 hs
+  } catch (e) {
+    return true;
+  }
+}
+
 export default function WhatsAppButton({
   phone = '5493417838723',
   message = '¡Hola! Quiero hacer una consulta sobre productos de El Paquetero.'
 }) {
-  const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  const isBusinessHours = checkBusinessHours();
+  const outOfHoursNotice = '\n\n📌 *Horario de Atención:* Lunes a Sábados de 8:00 a 16:30 hs. Te responderemos a primera hora.';
+  const finalMessage = isBusinessHours ? message : `${message}${outOfHoursNotice}`;
+  const url = `https://wa.me/${phone}?text=${encodeURIComponent(finalMessage)}`;
 
   return (
     <a
@@ -13,7 +30,7 @@ export default function WhatsAppButton({
       rel="noreferrer"
       className="whatsapp-fab"
       aria-label="Consultar por WhatsApp"
-      title="Consultanos por WhatsApp"
+      title={isBusinessHours ? "Consultanos por WhatsApp" : "Horario de Atención: L-S 8:00 a 16:30 hs. Dejanos tu mensaje y te respondemos a primera hora."}
     >
       <span className="whatsapp-fab-ring"></span>
       <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

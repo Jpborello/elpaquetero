@@ -178,6 +178,20 @@ export default function CartDrawer({
       message += `📌 *Comprobante de pago adjuntado en sistema.*\n`;
     }
 
+    // Check Business Hours (Mon-Sat 8:00 to 16:30 Argentina Time)
+    try {
+      const now = new Date();
+      const argStr = now.toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' });
+      const argDate = new Date(argStr);
+      const day = argDate.getDay();
+      const mins = argDate.getHours() * 60 + argDate.getMinutes();
+      const isBusinessHours = day !== 0 && mins >= 480 && mins <= 990;
+
+      if (!isBusinessHours) {
+        message += `\n📌 *Horario de Atención:* Lunes a Sábados de 8:00 a 16:30 hs. Tu pedido fue recibido y te contactaremos a primera hora. ¡Muchas gracias!\n`;
+      }
+    } catch (e) {}
+
     const encodedMsg = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/5493417838723?text=${encodedMsg}`;
     window.open(whatsappUrl, '_blank');
@@ -261,6 +275,35 @@ export default function CartDrawer({
               <p style={{ fontSize: '0.92rem', color: '#10B981', fontWeight: 800, marginBottom: '20px' }}>
                 🎉 Tu pedido {completedOrderId ? `#${completedOrderId}` : ''} fue recibido exitosamente.
               </p>
+
+              {/* Out of hours notice banner */}
+              {(() => {
+                try {
+                  const now = new Date();
+                  const argStr = now.toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' });
+                  const argDate = new Date(argStr);
+                  const day = argDate.getDay();
+                  const mins = argDate.getHours() * 60 + argDate.getMinutes();
+                  if (day === 0 || mins < 480 || mins > 990) {
+                    return (
+                      <div style={{
+                        backgroundColor: '#FFFBEB',
+                        color: '#B45309',
+                        border: '1px solid #FDE68A',
+                        borderRadius: '10px',
+                        padding: '12px 14px',
+                        fontSize: '0.85rem',
+                        fontWeight: 700,
+                        marginBottom: '16px',
+                        textAlign: 'left'
+                      }}>
+                        🌙 <strong>Aviso de Horario de Atención:</strong> Nuestro horario de atención es de Lunes a Sábados de 8:00 a 16:30 hs. Tu pedido quedó guardado en el sistema y te contactaremos a primera hora del próximo día hábil.
+                      </div>
+                    );
+                  }
+                } catch (e) {}
+                return null;
+              })()}
 
               <div style={{
                 backgroundColor: '#F8FAFC',
