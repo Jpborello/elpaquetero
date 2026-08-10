@@ -234,21 +234,24 @@ class DataStore {
     this.setTransferDetails({ alias1: newAlias });
   }
 
-  // Visits Counter (Sutil)
+  // Visits Counter (Global y en tiempo real)
   recordVisit() {
     if (typeof window === 'undefined') return;
     try {
       if (!sessionStorage.getItem('elpaquetero_visit_counted')) {
         sessionStorage.setItem('elpaquetero_visit_counted', '1');
-        const currentLocal = parseInt(localStorage.getItem('elpaquetero_visit_count') || '154', 10);
-        const newCount = currentLocal + 1;
-        localStorage.setItem('elpaquetero_visit_count', newCount.toString());
-        this.visitCount = newCount;
-        this.notify();
-
-        if (supabase) {
-          supabase.from('settings').upsert({ id: 'visit_count', value: newCount.toString() }).then(() => {}).catch(() => {});
-        }
+        fetch('/api/visit', { method: 'POST' })
+          .then(res => res.json())
+          .then(data => {
+            if (data && typeof data.count === 'number') {
+              this.visitCount = data.count;
+              localStorage.setItem('elpaquetero_visit_count', data.count.toString());
+              this.notify();
+            }
+          })
+          .catch(() => {});
+      } else {
+        this.fetchVisitCountFromSupabase();
       }
     } catch (e) {
       console.warn('Visit counter error:', e);
@@ -257,29 +260,24 @@ class DataStore {
 
   async fetchVisitCountFromSupabase() {
     if (typeof window === 'undefined') return;
-    const localVal = parseInt(localStorage.getItem('elpaquetero_visit_count') || '154', 10);
-    this.visitCount = localVal;
-
-    if (supabase) {
-      try {
-        const { data } = await supabase.from('settings').select('value').eq('id', 'visit_count').single();
-        if (data && data.value) {
-          const dbCount = parseInt(data.value, 10);
-          if (!isNaN(dbCount) && dbCount > this.visitCount) {
-            this.visitCount = dbCount;
-            localStorage.setItem('elpaquetero_visit_count', dbCount.toString());
-            this.notify();
-          }
+    try {
+      const res = await fetch('/api/visit');
+      if (res.ok) {
+        const data = await res.json();
+        if (data && typeof data.count === 'number') {
+          this.visitCount = data.count;
+          localStorage.setItem('elpaquetero_visit_count', data.count.toString());
+          this.notify();
         }
-      } catch (err) {}
-    }
+      }
+    } catch (err) {}
   }
 
   getVisitCount() {
     if (typeof window !== 'undefined' && !this.visitCount) {
-      this.visitCount = parseInt(localStorage.getItem('elpaquetero_visit_count') || '154', 10);
+      this.visitCount = parseInt(localStorage.getItem('elpaquetero_visit_count') || '156', 10);
     }
-    return this.visitCount || 154;
+    return this.visitCount || 156;
   }
 
   getCategories() {
