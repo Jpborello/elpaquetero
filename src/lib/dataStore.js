@@ -23,7 +23,58 @@ class DataStore {
     this.transferCuit = '27-30938323-6';
     this.transferAlias = 'el.paquetero.godoy';
     this.listeners = [];
+    
+    this.loadProductsFromLocalStorage();
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'elpaquetero_products_overrides') {
+          this.loadProductsFromLocalStorage();
+          this.notify();
+        }
+      });
+    }
+
     this.initFromSupabase();
+  }
+
+  saveProductsToLocalStorage() {
+    if (typeof window === 'undefined') return;
+    try {
+      const overrides = {};
+      this.products.forEach(p => {
+        overrides[p.id] = {
+          price: p.price,
+          wholesale_price: p.wholesale_price,
+          stock: p.stock,
+          image_url: p.image_url,
+          is_offer: p.is_offer,
+          colors: p.colors
+        };
+      });
+      localStorage.setItem('elpaquetero_products_overrides', JSON.stringify(overrides));
+    } catch (e) {
+      console.warn('LocalStorage save products warning:', e);
+    }
+  }
+
+  loadProductsFromLocalStorage() {
+    if (typeof window === 'undefined') return;
+    try {
+      const stored = localStorage.getItem('elpaquetero_products_overrides');
+      if (stored) {
+        const overrides = JSON.parse(stored);
+        if (overrides && typeof overrides === 'object') {
+          this.products = this.products.map(p => {
+            if (overrides[p.id]) {
+              return { ...p, ...overrides[p.id] };
+            }
+            return p;
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('LocalStorage load products warning:', e);
+    }
   }
 
   // Seed any missing catalog rows once (never overwrites existing data),
@@ -95,17 +146,30 @@ class DataStore {
       const { data, error } = await supabase.from('products').select('*');
       if (!data || error) return;
 
+      let overrides = {};
+      if (typeof window !== 'undefined') {
+        try {
+          const stored = localStorage.getItem('elpaquetero_products_overrides');
+          if (stored) overrides = JSON.parse(stored) || {};
+        } catch (e) {}
+      }
+
       const dbById = new Map(data.map(p => [p.id, p]));
       const merged = this.products.map(localP => {
         const dbP = dbById.get(localP.id);
-        if (!dbP) return localP;
-        return { ...localP, ...dbP, sales_count: dbP.sales_count ?? 0 };
+        const ovP = overrides[localP.id];
+        const base = dbP ? { ...localP, ...dbP, sales_count: dbP.sales_count ?? 0 } : localP;
+        return ovP ? { ...base, ...ovP } : base;
       });
 
       const localIds = new Set(this.products.map(p => p.id));
       const extraFromDb = data
         .filter(p => !localIds.has(p.id))
-        .map(p => ({ ...p, sales_count: p.sales_count ?? 0 }));
+        .map(p => {
+          const ovP = overrides[p.id];
+          const base = { ...p, sales_count: p.sales_count ?? 0 };
+          return ovP ? { ...base, ...ovP } : base;
+        });
 
       this.products = [...merged, ...extraFromDb];
       this.notify();
@@ -439,12 +503,18 @@ class DataStore {
 
   // Stock & Price Updates
   updateProduct(id, updates) {
-    this.products = this.products.map(p => p.id === id ? { ...p, ...updates } : p);
+    const existingP = this.products.find(p => p.id === id);
+    const updatedP = existingP ? { ...existingP, ...updates } : updates;
+
+    this.products = this.products.map(p => p.id === id ? updatedP : p);
+    this.saveProductsToLocalStorage();
     this.notify();
     
-    // Async attempt to update Supabase if configured
     if (supabase) {
-      supabase.from('products').update(updates).eq('id', id).then(() => {}).catch(() => {});
+      const { sizes, stock_per_size, code, ...dbFields } = updatedP;
+      supabase.from('products').upsert(dbFields, { onConflict: 'id' }).then(({ error }) => {
+        if (error) console.warn('Supabase product upsert warning:', error);
+      }).catch((err) => console.warn('Supabase product upsert error:', err));
     }
   }
 
@@ -467,6 +537,7 @@ class DataStore {
         sales_count: (p.sales_count || 0) + qty
       };
     });
+    this.saveProductsToLocalStorage();
     this.notify();
 
     if (supabase) {
@@ -490,6 +561,7 @@ class DataStore {
       : null;
 
     const factor = 1 + (pct / 100);
+    const updatedProductsForDb = [];
 
     this.products = this.products.map(p => {
       if (targetIds && !targetIds.has(p.id)) return p;
@@ -497,16 +569,21 @@ class DataStore {
       const newPrice = applyToList ? Math.round(p.price * factor) : p.price;
       const newWholesalePrice = applyToWholesale ? Math.round(p.wholesale_price * factor) : p.wholesale_price;
 
-      const updates = { price: newPrice, wholesale_price: newWholesalePrice };
+      const updatedP = { ...p, price: newPrice, wholesale_price: newWholesalePrice };
+      const { sizes, stock_per_size, code, ...dbFields } = updatedP;
+      updatedProductsForDb.push(dbFields);
 
-      if (supabase) {
-        supabase.from('products').update(updates).eq('id', p.id).then(() => {}).catch(() => {});
-      }
-
-      return { ...p, ...updates };
+      return updatedP;
     });
 
+    this.saveProductsToLocalStorage();
     this.notify();
+
+    if (supabase && updatedProductsForDb.length > 0) {
+      supabase.from('products').upsert(updatedProductsForDb, { onConflict: 'id' }).then(({ error }) => {
+        if (error) console.warn('Supabase bulk price update warning:', error);
+      }).catch((err) => console.warn('Supabase bulk price update error:', err));
+    }
   }
 
   // User Authentication

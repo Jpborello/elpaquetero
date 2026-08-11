@@ -19,6 +19,7 @@ export default function PricesTab({
 
   // Individual percentage state per product id: { [productId]: number | string }
   const [individualPcts, setIndividualPcts] = useState({});
+  const [savedIds, setSavedIds] = useState({});
 
   const handleApplyBulk = () => {
     const pct = parseFloat(bulkPct);
@@ -258,6 +259,7 @@ export default function PricesTab({
                 <td>
                   <input 
                     type="number" 
+                    key={`price-${p.id}-${p.price}`}
                     defaultValue={p.price} 
                     id={`price-${p.id}`}
                     className="form-input" 
@@ -269,6 +271,7 @@ export default function PricesTab({
                 <td>
                   <input 
                     type="number" 
+                    key={`wprice-${p.id}-${p.wholesale_price}`}
                     defaultValue={p.wholesale_price} 
                     id={`wprice-${p.id}`}
                     className="form-input" 
@@ -345,15 +348,35 @@ export default function PricesTab({
                 <td>
                   <button 
                     onClick={() => {
-                      const priceVal = document.getElementById(`price-${p.id}`).value;
-                      const wpriceVal = document.getElementById(`wprice-${p.id}`).value;
+                      const priceInput = document.getElementById(`price-${p.id}`);
+                      const wpriceInput = document.getElementById(`wprice-${p.id}`);
+                      const priceVal = priceInput ? priceInput.value : p.price;
+                      const wpriceVal = wpriceInput ? wpriceInput.value : p.wholesale_price;
+                      
                       onUpdatePrice(p.id, priceVal, wpriceVal);
                       setIndividualPcts(prev => ({ ...prev, [p.id]: '' }));
+                      
+                      setSavedIds(prev => ({ ...prev, [p.id]: true }));
+                      setTimeout(() => {
+                        setSavedIds(prev => ({ ...prev, [p.id]: false }));
+                      }, 2500);
                     }}
                     className="btn-primary"
-                    style={{ padding: '6px 14px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    style={{ 
+                      padding: '6px 14px', 
+                      fontSize: '0.8rem', 
+                      display: 'inline-flex', 
+                      alignItems: 'center', 
+                      gap: '4px',
+                      backgroundColor: savedIds[p.id] ? '#059669' : undefined,
+                      borderColor: savedIds[p.id] ? '#059669' : undefined
+                    }}
                   >
-                    <Save size={14} /> Guardar
+                    {savedIds[p.id] ? (
+                      <>✓ ¡Guardado!</>
+                    ) : (
+                      <><Save size={14} /> Guardar</>
+                    )}
                   </button>
                 </td>
               </tr>
