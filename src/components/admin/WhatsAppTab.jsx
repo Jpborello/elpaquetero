@@ -30,7 +30,7 @@ export default function WhatsAppTab() {
   // Settings State
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [openrouterKey, setOpenrouterKey] = useState('');
-  const [selectedModel, setSelectedModel] = useState('google/gemini-2.0-flash-001');
+  const [selectedModel, setSelectedModel] = useState('deepseek/deepseek-chat');
   const [systemPrompt, setSystemPrompt] = useState('');
   const [isGlobalEnabled, setIsGlobalEnabled] = useState(true);
   const [showKey, setShowKey] = useState(false);
@@ -536,10 +536,8 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
                 >
                   <option value="deepseek/deepseek-chat">🔥 DeepSeek V3 (deepseek-chat) - Ultra Rápido & Económico</option>
                   <option value="deepseek/deepseek-r1">🧠 DeepSeek R1 (deepseek-r1) - Razonamiento Avanzado</option>
-                  <option value="deepseek/deepseek-chat:free">⚡ DeepSeek V3 (Versión 100% Gratuita OpenRouter)</option>
-                  <option value="google/gemini-2.0-flash-001">Google Gemini 2.0 Flash (Rápido)</option>
+                  <option value="deepseek/deepseek-chat:free">⚡ DeepSeek V3 (Gratis — requiere haber cargado crédito una vez en OpenRouter)</option>
                   <option value="meta-llama/llama-3.3-70b-instruct">Meta Llama 3.3 70B</option>
-                  <option value="anthropic/claude-3.5-haiku">Anthropic Claude 3.5 Haiku</option>
                   <option value="openai/gpt-4o-mini">OpenAI GPT-4o Mini</option>
                 </select>
               </div>

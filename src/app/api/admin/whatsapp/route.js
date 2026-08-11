@@ -24,7 +24,7 @@ export async function GET(req) {
         settings: data || {
           id: 'main',
           openrouter_key: '',
-          model: 'google/gemini-2.0-flash-001',
+          model: 'deepseek/deepseek-chat',
           system_prompt: 'Sos el asistente virtual mayorista de El Paquetero.',
           is_global_enabled: true
         } 
@@ -69,7 +69,7 @@ export async function POST(req) {
         .upsert([{
           id: 'main',
           openrouter_key,
-          model: model || 'google/gemini-2.0-flash-001',
+          model: model || 'deepseek/deepseek-chat',
           system_prompt,
           is_global_enabled: is_global_enabled !== false,
           updated_at: new Date().toISOString()
