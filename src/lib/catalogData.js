@@ -91,6 +91,39 @@ const createStockPerSize = (sizesArray, countPerSize = 20) => {
 };
 
 export const CATALOG_PRODUCTS = [
+  // ================= NUEVAS OFERTAS DE PANTALONES =================
+  {
+    id: 'p-0108',
+    code: '0108',
+    name: 'Palazo Lycra Dama',
+    category: 'Mujeres',
+    subcategory: 'Pantalones y Calzas',
+    wholesale_price: 9500,
+    price: 9500,
+    stock: 100,
+    sizes: ['1', '2', '3', '4', '5', '6'],
+    stock_per_size: createStockPerSize(['1', '2', '3', '4', '5', '6'], 16),
+    image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Mujeres/PANTALONES/0108_PALAZO_LYCRA_DAMA.webp',
+    description: 'Palazo de lycra de dama en oferta especial del talle 1 al 6.',
+    is_offer: true,
+    is_top_seller: true
+  },
+  {
+    id: 'p-0109',
+    code: '0109',
+    name: 'Joggin Algodón Hombre',
+    category: 'Hombres',
+    subcategory: 'Pantalon',
+    wholesale_price: 9500,
+    price: 9500,
+    stock: 100,
+    sizes: ['2', '3', '4', '5'],
+    stock_per_size: createStockPerSize(['2', '3', '4', '5'], 25),
+    image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Hombres/PANTALONES/0109_JOGGIN_ALGODON_HOMBRE.webp',
+    description: 'Jogging de algodón de hombre frizado en talle del 2 al 5.',
+    is_offer: true,
+    is_top_seller: true
+  },
   // ================= NUEVAS CAMPERAS (OFERTAS DE TEMPORADA) =================
   {
     id: 'p-0040-new',

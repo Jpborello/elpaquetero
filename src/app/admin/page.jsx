@@ -165,7 +165,23 @@ export default function AdminPage() {
     fetchMpTransfers();
 
     const unsubscribe = dataStore.subscribe(updateState);
-    return () => unsubscribe();
+
+    // Escucha en tiempo real los pedidos nuevos que entran desde cualquier
+    // dispositivo/cliente, para que la alerta sonora del panel realmente suene.
+    let ordersChannel = null;
+    if (supabase) {
+      ordersChannel = supabase
+        .channel('admin-orders-realtime')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
+          dataStore.handleRealtimeOrderInsert(payload.new);
+        })
+        .subscribe();
+    }
+
+    return () => {
+      unsubscribe();
+      if (ordersChannel) supabase.removeChannel(ordersChannel);
+    };
   }, [isAuthenticated]);
 
   const showSuccessNotice = (msg) => {

@@ -16,6 +16,7 @@ class DataStore {
       : null;
     this.clients = [];
     this.orders = [];
+    this.cashMovements = [];
     this.categories = CATALOG_CATEGORIES.filter(c => c.id !== 'all');
     this.transferAlias1 = 'el.paquetero.godoy';
     this.transferAlias2 = 'elpaqueterogodoy';
@@ -101,6 +102,14 @@ class DataStore {
     } catch (err) {
       console.warn('Supabase orders fetch warning:', err);
     }
+  }
+
+  // Llamado desde el listener de Supabase Realtime cuando entra un pedido
+  // nuevo mientras el panel admin está abierto (dispara la alerta sonora).
+  handleRealtimeOrderInsert(row) {
+    if (!row || this.orders.some(o => o.id === row.id)) return;
+    this.orders = [row, ...this.orders];
+    this.notify();
   }
 
   async fetchClientsFromSupabase() {
@@ -745,6 +754,7 @@ class DataStore {
       client_phone: clientDetails.phone,
       client_dni: clientDetails.dni,
       client_locality: clientDetails.locality,
+      client_address: clientDetails.address || '',
       delivery_method: clientDetails.deliveryMethod,
       receipt_url: clientDetails.receiptUrl || null,
       items: cartItems,
@@ -810,6 +820,7 @@ class DataStore {
         client_phone: order.client_phone,
         client_dni: order.client_dni,
         client_locality: order.client_locality,
+        client_address: order.client_address,
         delivery_method: order.delivery_method,
         receipt_url: order.receipt_url,
         total_amount: order.total_amount,
