@@ -168,8 +168,11 @@ export default function CartDrawer({
     (displayOrder.items || []).forEach((item, idx) => {
       const itemUnitPrice = item.product.wholesale_price || item.product.price || 0;
       const itemTotal = itemUnitPrice * item.quantity;
-      const sizeStr = (item.product.selectedSize || item.selectedSize) ? ` [Talle: ${item.product.selectedSize || item.selectedSize}]` : '';
-      message += `${idx + 1}. ${item.product.name}${sizeStr} (x${item.quantity}) - $${itemTotal.toLocaleString('es-AR')}\n`;
+      const sizeVal = item.product?.selectedSize || item.selectedSize;
+      const colorVal = item.product?.selectedColor || item.selectedColor;
+      const optionsArr = [sizeVal ? `Talle: ${sizeVal}` : null, colorVal ? `Color: ${colorVal}` : null].filter(Boolean);
+      const detailsTag = optionsArr.length > 0 ? ` [${optionsArr.join(' • ')}]` : '';
+      message += `${idx + 1}. ${item.product.name}${detailsTag} (x${item.quantity}) - $${itemTotal.toLocaleString('es-AR')}\n`;
     });
 
     message += `\n*TOTAL MAYORISTA:* $${displayOrder.total_amount.toLocaleString('es-AR')}\n`;
@@ -688,6 +691,8 @@ export default function CartDrawer({
                 {cartItems.map((item) => {
                   const unitPrice = item.product.wholesale_price || item.product.price || 0;
                   const itemTotal = unitPrice * item.quantity;
+                  const itemSize = item.product?.selectedSize || item.selectedSize;
+                  const itemColor = item.product?.selectedColor || item.selectedColor;
 
                   return (
                     <div key={item.product.id} className="cart-item-row">
@@ -699,9 +704,17 @@ export default function CartDrawer({
                       <div className="cart-item-info">
                         <div className="cart-item-title">
                           {item.product.name}
-                          {(item.product.selectedSize || item.selectedSize) && (
-                            <span style={{ marginLeft: '6px', fontSize: '0.75rem', backgroundColor: '#EFF6FF', color: '#1D4ED8', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
-                              Talle: {item.product.selectedSize || item.selectedSize}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '2px', marginBottom: '4px' }}>
+                          {itemSize && (
+                            <span style={{ fontSize: '0.73rem', backgroundColor: '#EFF6FF', color: '#1D4ED8', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                              Talle: {itemSize}
+                            </span>
+                          )}
+                          {itemColor && (
+                            <span style={{ fontSize: '0.73rem', backgroundColor: '#F1F5F9', color: '#0F172A', border: '1px solid #CBD5E1', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                              Color: {itemColor}
                             </span>
                           )}
                         </div>

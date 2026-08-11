@@ -574,6 +574,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                       <th style={{ width: '24px' }}>✓</th>
                       <th>Prenda / Producto</th>
                       <th style={{ textAlign: 'center' }}>Talle</th>
+                      <th style={{ textAlign: 'center' }}>Color</th>
                       <th style={{ textAlign: 'center' }}>Cant.</th>
                       <th style={{ textAlign: 'right' }}>P. Unit.</th>
                       <th style={{ textAlign: 'right' }}>Subtotal</th>
@@ -582,19 +583,23 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                   <tbody>
                     {selectedPrintOrder.items && selectedPrintOrder.items.length > 0 ? (
                       selectedPrintOrder.items.map((item, idx) => {
-                        const unitPrice = selectedPrintOrder.is_wholesale ? Math.round(item.product.price * 0.60) : item.product.price;
+                        const unitPrice = selectedPrintOrder.is_wholesale ? Math.round((item.product?.price || item.product?.wholesale_price || 0) * 0.60) : (item.product?.price || item.product?.wholesale_price || 0);
                         const itemTotal = unitPrice * item.quantity;
-                        const size = item.product.selectedSize || item.selectedSize || 'Único';
+                        const size = item.product?.selectedSize || item.selectedSize || '-';
+                        const color = item.product?.selectedColor || item.selectedColor || 'Surtido';
 
                         return (
                           <tr key={idx}>
                             <td style={{ textAlign: 'center' }}>☐</td>
                             <td>
-                              <strong>{item.product.name}</strong>
-                              {item.product.code && <span className="product-code">Cód: {item.product.code}</span>}
+                              <strong>{item.product?.name}</strong>
+                              {item.product?.code && <span className="product-code">Cód: {item.product.code}</span>}
                             </td>
                             <td style={{ textAlign: 'center' }} className="highlight-size">
                               {size}
+                            </td>
+                            <td style={{ textAlign: 'center', fontWeight: 800, color: '#0F172A' }}>
+                              {color}
                             </td>
                             <td style={{ textAlign: 'center' }} className="highlight-qty">
                               x{item.quantity}
@@ -610,7 +615,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                       })
                     ) : (
                       <tr>
-                        <td colSpan="6" style={{ textAlign: 'center', fontStyle: 'italic' }}>
+                        <td colSpan="7" style={{ textAlign: 'center', fontStyle: 'italic' }}>
                           Sin detalle de prendas individuales.
                         </td>
                       </tr>

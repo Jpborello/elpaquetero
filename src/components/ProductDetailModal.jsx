@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, ShoppingCart, Tag } from 'lucide-react';
+import { X, ShoppingCart, Tag, Palette } from 'lucide-react';
 import useCloseOnBack from '@/lib/useCloseOnBack';
+import { getProductColors } from '@/lib/catalogData';
 
 export default function ProductDetailModal({ product, isOpen, onClose, onAddToCart, isWholesaleQualified = false }) {
   const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedColor, setSelectedColor] = useState(null);
   const [isZoomed, setIsZoomed] = useState(false);
   const handleClose = useCloseOnBack(isOpen, () => {
     if (isZoomed) {
@@ -15,10 +17,16 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
     }
   });
 
+  const availableColors = getProductColors(product);
+
   useEffect(() => {
     if (product) {
       const hasSizes = Array.isArray(product.sizes) && product.sizes.length > 0;
       setSelectedSize(hasSizes ? product.sizes[0] : null);
+      
+      const colors = getProductColors(product);
+      setSelectedColor(colors && colors.length > 0 ? colors[0] : null);
+
       setIsZoomed(false);
     }
   }, [product]);
@@ -29,7 +37,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
   const isStockOk = product.stock > 10;
 
   const handleAdd = () => {
-    onAddToCart({ ...product, selectedSize });
+    onAddToCart({ ...product, selectedSize, selectedColor });
     handleClose();
   };
 
@@ -137,6 +145,42 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
               </div>
             )}
 
+            {/* Selector de Colores */}
+            {availableColors && availableColors.length > 0 && (
+              <div style={{ marginTop: '14px' }}>
+                <span className="product-detail-size-label" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                  <Palette size={14} style={{ color: 'var(--accent-gold)' }} />
+                  Color: {selectedColor ? <strong>{selectedColor}</strong> : 'Seleccionar'}
+                </span>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
+                  {availableColors.map((color) => {
+                    const isSelected = selectedColor === color;
+                    return (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => setSelectedColor(color)}
+                        style={{
+                          padding: '6px 14px',
+                          borderRadius: '20px',
+                          fontSize: '0.82rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          border: isSelected ? '2px solid #0F172A' : '1px solid #CBD5E1',
+                          backgroundColor: isSelected ? '#0F172A' : '#F8FAFC',
+                          color: isSelected ? '#FFFFFF' : '#334155',
+                          boxShadow: isSelected ? '0 2px 8px rgba(15,23,42,0.25)' : 'none'
+                        }}
+                      >
+                        {color}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="product-detail-price-box">
               <span className="wholesale-tag"><Tag size={13} /> Precio Mayorista</span>
               <div className="price-row">
@@ -151,7 +195,11 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
               style={{ marginTop: '16px' }}
             >
               <ShoppingCart size={16} />
-              {product.stock > 0 ? (selectedSize ? `Agregar (Talle ${selectedSize})` : 'Agregar al Carrito') : 'Sin Stock'}
+              {product.stock > 0
+                ? (selectedSize || selectedColor 
+                    ? `Agregar (${[selectedSize ? `Talle ${selectedSize}` : null, selectedColor ? `Color ${selectedColor}` : null].filter(Boolean).join(' • ')})` 
+                    : 'Agregar al Carrito') 
+                : 'Sin Stock'}
             </button>
           </div>
         </div>

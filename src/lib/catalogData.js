@@ -33,6 +33,52 @@ export const CATALOG_CATEGORIES = [
 // Helper para devolver el precio mayorista (sin recargo minorista)
 export const calcRetail = (wholesale) => wholesale;
 
+export const DEFAULT_CATEGORY_COLORS = {
+  'Hombres': {
+    'Buzos': ['Negro', 'Gris Topo', 'Blanco', 'Bordó', 'Azul Marino', 'Rosa', 'Surtido'],
+    'Camperas': ['Negro', 'Azul Marino', 'Verde Militar', 'Gris', 'Surtido'],
+    'Pantalon': ['Negro', 'Gris', 'Azul', 'Beige', 'Surtido'],
+    'Remeras y Chombas': ['Negro', 'Blanco', 'Gris', 'Azul', 'Rojo', 'Surtido'],
+    'Ropa Interior': ['Surtido', 'Negro', 'Blanco', 'Gris']
+  },
+  'Mujeres': {
+    'Buzos y abrigos': ['Negro', 'Rosa', 'Blanco', 'Lila', 'Gris', 'Bordó', 'Surtido'],
+    'Camperas': ['Negro', 'Beige', 'Rosa', 'Verde', 'Blanco', 'Surtido'],
+    'Pantalones y Calzas': ['Negro', 'Gris', 'Azul', 'Fucsia', 'Surtido'],
+    'Remeras': ['Blanco', 'Negro', 'Rosa', 'Lila', 'Rojo', 'Surtido'],
+    'Medias': ['Surtido', 'Blanco', 'Negro'],
+    'Ropa Intima': ['Surtido', 'Negro', 'Blanco', 'Nude'],
+    'Otros Productos': ['Surtido', 'Único']
+  },
+  'Infantil': {
+    'Indumentaria Infantil': ['Rosa', 'Celeste', 'Amarillo', 'Blanco', 'Azul', 'Rojo', 'Lila', 'Surtido']
+  },
+  'Blanquería': {
+    'Sabanas': ['Blanco', 'Beige', 'Gris', 'Azul', 'Rosa', 'Surtido']
+  },
+  'Perfumería': {
+    'Perfumes y Cremas': ['Único']
+  }
+};
+
+export const getProductColors = (product) => {
+  if (!product) return ['Surtido'];
+  if (Array.isArray(product.colors) && product.colors.length > 0) {
+    return product.colors;
+  }
+  const categoryMap = DEFAULT_CATEGORY_COLORS[product.category];
+  if (categoryMap) {
+    if (product.subcategory && categoryMap[product.subcategory]) {
+      return categoryMap[product.subcategory];
+    }
+    const firstSubcatKey = Object.keys(categoryMap)[0];
+    if (firstSubcatKey && categoryMap[firstSubcatKey]) {
+      return categoryMap[firstSubcatKey];
+    }
+  }
+  return ['Negro', 'Blanco', 'Gris', 'Surtido'];
+};
+
 const ADULT_SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
 const KIDS_SIZES = ['2', '4', '6', '8', '10', '12', '14', '16'];
 
