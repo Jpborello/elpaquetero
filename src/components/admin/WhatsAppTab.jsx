@@ -500,9 +500,12 @@ export default function WhatsAppTab() {
                   onChange={(e) => setSelectedModel(e.target.value)}
                   style={{ width: '100%', padding: '8px 12px', fontSize: '0.85rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-main)' }}
                 >
-                  <option value="google/gemini-2.0-flash-001">Google Gemini 2.0 Flash (Recomendado - Ultra Rápido)</option>
-                  <option value="meta-llama/llama-3.3-70b-instruct">Meta Llama 3.3 70B (Inteligente y Económico)</option>
-                  <option value="anthropic/claude-3.5-haiku">Anthropic Claude 3.5 Haiku (Respuesta Cálida)</option>
+                  <option value="deepseek/deepseek-chat">🔥 DeepSeek V3 (deepseek-chat) - Ultra Rápido & Económico</option>
+                  <option value="deepseek/deepseek-r1">🧠 DeepSeek R1 (deepseek-r1) - Razonamiento Avanzado</option>
+                  <option value="deepseek/deepseek-chat:free">⚡ DeepSeek V3 (Versión 100% Gratuita OpenRouter)</option>
+                  <option value="google/gemini-2.0-flash-001">Google Gemini 2.0 Flash (Rápido)</option>
+                  <option value="meta-llama/llama-3.3-70b-instruct">Meta Llama 3.3 70B</option>
+                  <option value="anthropic/claude-3.5-haiku">Anthropic Claude 3.5 Haiku</option>
                   <option value="openai/gpt-4o-mini">OpenAI GPT-4o Mini</option>
                 </select>
               </div>
