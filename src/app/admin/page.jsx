@@ -16,6 +16,7 @@ import ImagesTab from '@/components/admin/ImagesTab';
 import OrdersTab from '@/components/admin/OrdersTab';
 import ClientsTab from '@/components/admin/ClientsTab';
 import RaffleTab from '@/components/admin/RaffleTab';
+import WhatsAppTab from '@/components/admin/WhatsAppTab';
 
 export default function AdminPage() {
   // Admin Authentication State with Supabase Auth
@@ -394,7 +395,15 @@ export default function AdminPage() {
       <AdminTabsNav activeTab={activeTab} onTabChange={setActiveTab} />
 
       {activeTab === 'metrics' && (
-        <MetricsTab metrics={metrics} products={products} />
+        <MetricsTab 
+          metrics={metrics}
+          products={products}
+          orders={orders}
+        />
+      )}
+
+      {activeTab === 'whatsapp' && (
+        <WhatsAppTab />
       )}
 
       {activeTab === 'settings' && (

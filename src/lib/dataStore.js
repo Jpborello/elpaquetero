@@ -644,13 +644,13 @@ class DataStore {
     this.notify();
 
     if (supabase) {
-      supabase.from('wholesale_clients').upsert({
-        name: user.name,
-        dni: user.dni,
-        phone: user.phone,
-        locality: user.locality,
-        password: user.password
-      }, { onConflict: 'phone' }).then(() => {}).catch(() => {});
+      supabase.rpc('upsert_wholesale_client', {
+        p_name: user.name,
+        p_dni: user.dni,
+        p_phone: user.phone,
+        p_locality: user.locality,
+        p_password: user.password
+      }).then(() => {}).catch((err) => console.warn('Client upsert warning:', err));
     }
 
     return user;
@@ -791,7 +791,13 @@ class DataStore {
       }
 
       if (supabase) {
-        supabase.from('wholesale_clients').upsert(clientRecord, { onConflict: 'phone' }).then(() => {}).catch(() => {});
+        supabase.rpc('upsert_wholesale_client', {
+          p_name: clientRecord.name,
+          p_dni: clientRecord.dni,
+          p_phone: clientRecord.phone,
+          p_locality: clientRecord.locality,
+          p_password: clientRecord.password
+        }).then(() => {}).catch((err) => console.warn('Client upsert warning:', err));
       }
     }
 

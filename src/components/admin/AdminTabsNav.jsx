@@ -1,10 +1,11 @@
 'use client';
 
-import { BarChart3, Package, DollarSign, Image as ImageIcon, Layers, Users, Sparkles, FolderPlus, FileSpreadsheet, CreditCard } from 'lucide-react';
+import { BarChart3, Package, DollarSign, Image as ImageIcon, Layers, Users, Sparkles, FolderPlus, FileSpreadsheet, CreditCard, MessageSquare } from 'lucide-react';
 
 export default function AdminTabsNav({ activeTab, onTabChange }) {
   const tabs = [
     { id: 'metrics', label: 'Métricas & Arqueo de Caja', icon: BarChart3 },
+    { id: 'whatsapp', label: '💬 WhatsApp CRM & IA', icon: MessageSquare },
     { id: 'settings', label: '💳 Alias de Transferencia', icon: CreditCard },
     { id: 'stock', label: 'Control de Stock', icon: Package },
     { id: 'prices', label: 'Cambio de Precios', icon: DollarSign },
