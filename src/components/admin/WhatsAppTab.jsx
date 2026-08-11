@@ -312,7 +312,10 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--text-main)' }}>
+                      <span style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <span title={chat.channel === 'web' ? 'Chat Web' : 'WhatsApp'}>
+                          {chat.channel === 'web' ? '🌐' : '📱'}
+                        </span>
                         {chat.client_name || chat.phone}
                       </span>
                       <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{dateStr}</span>
@@ -359,7 +362,11 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
                     {selectedChat.client_name || selectedChat.phone}
                   </h4>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    WhatsApp: <strong>{selectedChat.phone}</strong>
+                    {selectedChat.channel === 'web' ? (
+                      <>🌐 Chat Web (visitante del sitio)</>
+                    ) : (
+                      <>WhatsApp: <strong>{selectedChat.phone}</strong></>
+                    )}
                   </span>
                 </div>
 
@@ -439,9 +446,9 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
 
               {/* Message Input Box */}
               <form onSubmit={handleSendMessage} style={{ padding: '12px 18px', borderTop: '1px solid var(--border-color)', display: 'flex', gap: '10px', background: 'var(--bg-main)' }}>
-                <input 
-                  type="text" 
-                  placeholder="Escribí un mensaje directo al WhatsApp del cliente..."
+                <input
+                  type="text"
+                  placeholder={selectedChat.channel === 'web' ? 'Escribí una respuesta para el chat web del cliente...' : 'Escribí un mensaje directo al WhatsApp del cliente...'}
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   style={{ flex: 1, padding: '10px 14px', fontSize: '0.88rem', borderRadius: '10px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-main)' }}

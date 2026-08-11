@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { ShoppingCart, Sparkles } from 'lucide-react';
+import { ShoppingCart, Sparkles, Palette } from 'lucide-react';
+import { getProductColors } from '@/lib/catalogData';
 
 export default function ProductGrid({ products, onAddToCart, isWholesaleQualified = false, onOpenDetail }) {
-  // Store selected size per product id: { [productId]: string }
+  // Store selected size/color per product id: { [productId]: string }
   const [selectedSizes, setSelectedSizes] = useState({});
+  const [selectedColors, setSelectedColors] = useState({});
 
   if (!products || products.length === 0) {
     return (
@@ -21,12 +23,19 @@ export default function ProductGrid({ products, onAddToCart, isWholesaleQualifie
     setSelectedSizes(prev => ({ ...prev, [productId]: size }));
   };
 
+  const handleSelectColor = (productId, color) => {
+    setSelectedColors(prev => ({ ...prev, [productId]: color }));
+  };
+
   return (
     <div className="products-grid">
       {products.map((product) => {
         const isStockOk = product.stock > 10;
         const hasSizes = Array.isArray(product.sizes) && product.sizes.length > 0;
         const currentSelectedSize = selectedSizes[product.id] || (hasSizes ? product.sizes[0] : null);
+        const availableColors = getProductColors(product);
+        const hasColors = Array.isArray(availableColors) && availableColors.length > 0;
+        const currentSelectedColor = selectedColors[product.id] || (hasColors ? availableColors[0] : null);
 
         return (
           <div key={product.id} className="product-card">
@@ -119,6 +128,38 @@ export default function ProductGrid({ products, onAddToCart, isWholesaleQualifie
                   </div>
                 </div>
               )}
+
+              {/* Color selector */}
+              {hasColors && (
+                <div style={{ marginTop: '8px', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
+                    <Palette size={12} style={{ color: 'var(--accent-gold)' }} />
+                    Color: {currentSelectedColor ? <strong>{currentSelectedColor}</strong> : 'Seleccionar'}
+                  </span>
+                  <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                    {availableColors.map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => handleSelectColor(product.id, color)}
+                        style={{
+                          padding: '3px 8px',
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          borderRadius: '12px',
+                          border: currentSelectedColor === color ? '2px solid #0F172A' : '1px solid var(--border-color)',
+                          backgroundColor: currentSelectedColor === color ? '#0F172A' : 'var(--bg-surface-elevated)',
+                          color: currentSelectedColor === color ? '#FFFFFF' : 'var(--text-main)',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {color}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>
@@ -132,13 +173,17 @@ export default function ProductGrid({ products, onAddToCart, isWholesaleQualifie
                 </span>
               </div>
 
-              <button 
-                onClick={() => onAddToCart({ ...product, selectedSize: currentSelectedSize })} 
+              <button
+                onClick={() => onAddToCart({ ...product, selectedSize: currentSelectedSize, selectedColor: currentSelectedColor })}
                 className="btn-add-cart"
                 disabled={product.stock <= 0}
               >
-                <ShoppingCart size={16} /> 
-                {product.stock > 0 ? (currentSelectedSize ? `Agregar (Talle ${currentSelectedSize})` : 'Agregar al Carrito') : 'Sin Stock'}
+                <ShoppingCart size={16} />
+                {product.stock > 0
+                  ? (currentSelectedSize || currentSelectedColor
+                      ? `Agregar (${[currentSelectedSize ? `Talle ${currentSelectedSize}` : null, currentSelectedColor ? `Color ${currentSelectedColor}` : null].filter(Boolean).join(' • ')})`
+                      : 'Agregar al Carrito')
+                  : 'Sin Stock'}
               </button>
             </div>
           </div>

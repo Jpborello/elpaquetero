@@ -9,6 +9,7 @@ import ProductGrid from '@/components/ProductGrid';
 import CartDrawer from '@/components/CartDrawer';
 import AuthModal from '@/components/AuthModal';
 import WhatsAppButton from '@/components/WhatsAppButton';
+import WebChatWidget from '@/components/WebChatWidget';
 import WholesaleBanner from '@/components/WholesaleBanner';
 import TrustBar from '@/components/TrustBar';
 import ProductDetailModal from '@/components/ProductDetailModal';
@@ -96,34 +97,40 @@ export default function Home() {
   }, [cartItems, cartHydrated]);
 
   // Cart operations
+  // Cada combinacion de producto + talle + color es una linea de carrito
+  // distinta, para no perder el talle/color elegido cuando el cliente agrega
+  // varias variantes del mismo producto.
+  const getVariantKey = (product) => `${product.id}::${product.selectedSize || ''}::${product.selectedColor || ''}`;
+
   const handleAddToCart = (product) => {
+    const variantKey = getVariantKey(product);
     setCartItems((prev) => {
-      const existing = prev.find(item => item.product.id === product.id);
+      const existing = prev.find(item => item.variantKey === variantKey);
       if (existing) {
-        return prev.map(item => 
-          item.product.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        return prev.map(item =>
+          item.variantKey === variantKey ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
-      return [...prev, { product, quantity: 1 }];
+      return [...prev, { product, quantity: 1, variantKey }];
     });
-    
+
     // Toast no invasivo en vez de abrir el drawer en cada click (especialmente en celulares)
     setAddedToast(product.name);
     setTimeout(() => setAddedToast(null), 3000);
   };
 
-  const handleUpdateQuantity = (productId, newQty) => {
+  const handleUpdateQuantity = (variantKey, newQty) => {
     if (newQty <= 0) {
-      handleRemoveFromCart(productId);
+      handleRemoveFromCart(variantKey);
       return;
     }
-    setCartItems((prev) => 
-      prev.map(item => item.product.id === productId ? { ...item, quantity: newQty } : item)
+    setCartItems((prev) =>
+      prev.map(item => item.variantKey === variantKey ? { ...item, quantity: newQty } : item)
     );
   };
 
-  const handleRemoveFromCart = (productId) => {
-    setCartItems((prev) => prev.filter(item => item.product.id !== productId));
+  const handleRemoveFromCart = (variantKey) => {
+    setCartItems((prev) => prev.filter(item => item.variantKey !== variantKey));
   };
 
   const handleCheckout = (cart, clientDetails) => {
@@ -367,6 +374,7 @@ export default function Home() {
 
       {/* Floating WhatsApp Contact Button */}
       <WhatsAppButton />
+      <WebChatWidget />
 
       {/* Shopping Cart Drawer */}
       <CartDrawer

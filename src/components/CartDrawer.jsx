@@ -695,7 +695,7 @@ export default function CartDrawer({
                   const itemColor = item.product?.selectedColor || item.selectedColor;
 
                   return (
-                    <div key={item.product.id} className="cart-item-row">
+                    <div key={item.variantKey || item.product.id} className="cart-item-row">
                       <img 
                         src={item.product.image_url} 
                         alt={item.product.name} 
@@ -729,17 +729,17 @@ export default function CartDrawer({
                         </div>
 
                         <div className="qty-controls">
-                          <button onClick={() => onUpdateQuantity(item.product.id, item.quantity - 1)} className="qty-btn">
+                          <button onClick={() => onUpdateQuantity(item.variantKey || item.product.id, item.quantity - 1)} className="qty-btn">
                             <Minus size={14} />
                           </button>
                           <span style={{ fontWeight: 700, fontSize: '0.9rem', minWidth: '24px', textAlign: 'center' }}>
                             {item.quantity}
                           </span>
-                          <button onClick={() => onUpdateQuantity(item.product.id, item.quantity + 1)} className="qty-btn">
+                          <button onClick={() => onUpdateQuantity(item.variantKey || item.product.id, item.quantity + 1)} className="qty-btn">
                             <Plus size={14} />
                           </button>
 
-                          <button onClick={() => onRemoveItem(item.product.id)} style={{ marginLeft: 'auto', color: 'var(--accent-crimson)', padding: '4px' }}>
+                          <button onClick={() => onRemoveItem(item.variantKey || item.product.id)} style={{ marginLeft: 'auto', color: 'var(--accent-crimson)', padding: '4px' }}>
                             <Trash2 size={16} />
                           </button>
                         </div>
