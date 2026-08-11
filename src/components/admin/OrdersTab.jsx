@@ -478,190 +478,219 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
       )}
 
       {/* UNIVERSAL PRINTABLE ORDER TICKET / COMANDA MODAL */}
-      {selectedPrintOrder && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.82)',
-          backdropFilter: 'blur(4px)',
-          zIndex: 99999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
-        }}>
-          <div style={{
-            backgroundColor: '#FFFFFF',
-            borderRadius: '12px',
-            maxWidth: '680px',
-            width: '100%',
-            maxHeight: '92vh',
-            overflow: 'auto',
-            padding: '26px',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)',
-            position: 'relative'
-          }}>
-            {/* Modal Controls (Hidden during print) */}
-            <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '12px', borderBottom: '1px solid #E2E8F0' }}>
-              <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#64748B' }}>
-                Vista Previa de Comanda Universal
-              </span>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  onClick={triggerPrintWindow}
-                  className="btn-primary"
-                  style={{ fontSize: '0.88rem', padding: '8px 18px', backgroundColor: '#059669', borderColor: '#059669', color: '#FFF' }}
-                >
-                  <Printer size={16} /> Imprimir Comanda Ahora
-                </button>
-                <button
-                  onClick={() => setSelectedPrintOrder(null)}
-                  className="btn-secondary"
-                  style={{ fontSize: '0.88rem', padding: '8px 14px' }}
-                >
-                  <X size={16} /> Cerrar
-                </button>
+      {selectedPrintOrder && (() => {
+        const itemCount = selectedPrintOrder.items?.length || 0;
+        // Pedidos chicos: las 2 copias van lado a lado en la misma hoja A4.
+        // Pedidos con muchos items: cada copia en su propia hoja, para no
+        // achicar la tabla y perder legibilidad para el armador.
+        const useSideBySide = itemCount > 0 && itemCount <= 6;
+        const layoutClass = useSideBySide ? 'side-by-side' : 'stacked-pages';
+
+        const renderTicketBody = (copyLabel) => (
+          <>
+            <div className="copy-label-stamp">{copyLabel}</div>
+
+            {/* Header */}
+            <div className="ticket-header">
+              <h1 className="company-title">EL PAQUETERO</h1>
+              <p className="ticket-subtitle">COMANDA DE ARMADO Y DESPACHO</p>
+              <div className="ticket-order-meta">
+                <div>ORDEN N°: <strong>{selectedPrintOrder.id}</strong></div>
+                <div>FECHA Y HORA: <strong>{new Date(selectedPrintOrder.created_at || Date.now()).toLocaleString('es-AR')} hs</strong></div>
               </div>
             </div>
 
-            {/* PRINTABLE TICKET CONTENT AREA - UNIVERSAL HIGH CONTRAST FORMAT */}
-            <div id="printable-order-ticket">
-              
-              {/* Header */}
-              <div className="ticket-header">
-                <h1 className="company-title">EL PAQUETERO</h1>
-                <p className="ticket-subtitle">COMANDA DE ARMADO Y DESPACHO</p>
-                <div className="ticket-order-meta">
-                  <div>ORDEN N°: <strong>{selectedPrintOrder.id}</strong></div>
-                  <div>FECHA Y HORA: <strong>{new Date(selectedPrintOrder.created_at || Date.now()).toLocaleString('es-AR')} hs</strong></div>
-                </div>
+            {/* Client Info Block */}
+            <div className="client-info-box">
+              <div className="info-row"><strong>Nombre Completo:</strong> <span>{selectedPrintOrder.client_name}</span></div>
+              <div className="info-row"><strong>DNI / CUIT:</strong> <span>{selectedPrintOrder.client_dni || 'Sin DNI'}</span></div>
+              <div className="info-row"><strong>Teléfono de Contacto:</strong> <span>{selectedPrintOrder.client_phone}</span></div>
+              <div className="info-row">
+                <strong>Método de Entrega:</strong>
+                <span className="delivery-type-tag">
+                  {selectedPrintOrder.delivery_method?.toLowerCase().includes('retiro') ? '🏬 RETIRO POR SUCURSAL' : '🚚 ENVÍO A DOMICILIO / TRANSPORTE'}
+                </span>
               </div>
 
-              {/* Client Info Block */}
-              <div className="client-info-box">
-                <div className="info-row"><strong>Nombre Completo:</strong> <span>{selectedPrintOrder.client_name}</span></div>
-                <div className="info-row"><strong>DNI / CUIT:</strong> <span>{selectedPrintOrder.client_dni || 'Sin DNI'}</span></div>
-                <div className="info-row"><strong>Teléfono de Contacto:</strong> <span>{selectedPrintOrder.client_phone}</span></div>
-                <div className="info-row">
-                  <strong>Método de Entrega:</strong> 
-                  <span className="delivery-type-tag">
-                    {selectedPrintOrder.delivery_method?.toLowerCase().includes('retiro') ? '🏬 RETIRO POR SUCURSAL' : '🚚 ENVÍO A DOMICILIO / TRANSPORTE'}
-                  </span>
-                </div>
+              {/* Show Shipping Address if Delivery */}
+              {(!selectedPrintOrder.delivery_method || !selectedPrintOrder.delivery_method.toLowerCase().includes('retiro')) && (
+                <>
+                  <div className="info-row" style={{ marginTop: '4px', paddingTop: '4px', borderTop: '1px dashed #000' }}>
+                    <strong>Dirección de Envío:</strong> <span>{selectedPrintOrder.client_address || 'No especificada'}</span>
+                  </div>
+                  <div className="info-row">
+                    <strong>Localidad / Ciudad:</strong> <span>{selectedPrintOrder.client_locality || 'Rosario'}</span>
+                  </div>
+                </>
+              )}
+            </div>
 
-                {/* Show Shipping Address if Delivery */}
-                {(!selectedPrintOrder.delivery_method || !selectedPrintOrder.delivery_method.toLowerCase().includes('retiro')) && (
-                  <>
-                    <div className="info-row" style={{ marginTop: '4px', paddingTop: '4px', borderTop: '1px dashed #000' }}>
-                      <strong>Dirección de Envío:</strong> <span>{selectedPrintOrder.client_address || 'No especificada'}</span>
-                    </div>
-                    <div className="info-row">
-                      <strong>Localidad / Ciudad:</strong> <span>{selectedPrintOrder.client_locality || 'Rosario'}</span>
-                    </div>
-                  </>
+            {/* Itemized Table for Warehouse Assembly */}
+            <div className="items-section">
+              <h3 className="section-title">DETALLE DEL PEDIDO A PREPARAR:</h3>
+              <table className="ticket-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: '24px' }}>✓</th>
+                    <th>Prenda / Producto</th>
+                    <th style={{ textAlign: 'center' }}>Talle</th>
+                    <th style={{ textAlign: 'center' }}>Color</th>
+                    <th style={{ textAlign: 'center' }}>Cant.</th>
+                    <th style={{ textAlign: 'right' }}>P. Unit.</th>
+                    <th style={{ textAlign: 'right' }}>Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedPrintOrder.items && selectedPrintOrder.items.length > 0 ? (
+                    selectedPrintOrder.items.map((item, idx) => {
+                      const unitPrice = selectedPrintOrder.is_wholesale ? Math.round((item.product?.price || item.product?.wholesale_price || 0) * 0.60) : (item.product?.price || item.product?.wholesale_price || 0);
+                      const itemTotal = unitPrice * item.quantity;
+                      const size = item.product?.selectedSize || item.selectedSize || '-';
+                      const color = item.product?.selectedColor || item.selectedColor || 'Surtido';
+
+                      return (
+                        <tr key={idx}>
+                          <td style={{ textAlign: 'center' }}>☐</td>
+                          <td>
+                            <strong>{item.product?.name}</strong>
+                            {item.product?.code && <span className="product-code">Cód: {item.product.code}</span>}
+                          </td>
+                          <td style={{ textAlign: 'center' }} className="highlight-size">
+                            {size}
+                          </td>
+                          <td style={{ textAlign: 'center', fontWeight: 800, color: '#0F172A' }}>
+                            {color}
+                          </td>
+                          <td style={{ textAlign: 'center' }} className="highlight-qty">
+                            x{item.quantity}
+                          </td>
+                          <td style={{ textAlign: 'right' }}>
+                            ${unitPrice?.toLocaleString('es-AR')}
+                          </td>
+                          <td style={{ textAlign: 'right', fontWeight: 800 }}>
+                            ${itemTotal?.toLocaleString('es-AR')}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan="7" style={{ textAlign: 'center', fontStyle: 'italic' }}>
+                        Sin detalle de prendas individuales.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Order Totals */}
+            <div className="totals-section">
+              <div>
+                <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'block' }}>
+                  Estado del Pago: <strong style={{ textTransform: 'uppercase' }}>{selectedPrintOrder.status || 'APROBADO'}</strong>
+                </span>
+                {selectedPrintOrder.is_wholesale && (
+                  <span style={{ fontSize: '0.8rem', fontWeight: 800 }}>
+                    ✓ Venta Mayorista
+                  </span>
                 )}
               </div>
 
-              {/* Itemized Table for Warehouse Assembly */}
-              <div className="items-section">
-                <h3 className="section-title">DETALLE DEL PEDIDO A PREPARAR:</h3>
-                <table className="ticket-table">
-                  <thead>
-                    <tr>
-                      <th style={{ width: '24px' }}>✓</th>
-                      <th>Prenda / Producto</th>
-                      <th style={{ textAlign: 'center' }}>Talle</th>
-                      <th style={{ textAlign: 'center' }}>Color</th>
-                      <th style={{ textAlign: 'center' }}>Cant.</th>
-                      <th style={{ textAlign: 'right' }}>P. Unit.</th>
-                      <th style={{ textAlign: 'right' }}>Subtotal</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedPrintOrder.items && selectedPrintOrder.items.length > 0 ? (
-                      selectedPrintOrder.items.map((item, idx) => {
-                        const unitPrice = selectedPrintOrder.is_wholesale ? Math.round((item.product?.price || item.product?.wholesale_price || 0) * 0.60) : (item.product?.price || item.product?.wholesale_price || 0);
-                        const itemTotal = unitPrice * item.quantity;
-                        const size = item.product?.selectedSize || item.selectedSize || '-';
-                        const color = item.product?.selectedColor || item.selectedColor || 'Surtido';
-
-                        return (
-                          <tr key={idx}>
-                            <td style={{ textAlign: 'center' }}>☐</td>
-                            <td>
-                              <strong>{item.product?.name}</strong>
-                              {item.product?.code && <span className="product-code">Cód: {item.product.code}</span>}
-                            </td>
-                            <td style={{ textAlign: 'center' }} className="highlight-size">
-                              {size}
-                            </td>
-                            <td style={{ textAlign: 'center', fontWeight: 800, color: '#0F172A' }}>
-                              {color}
-                            </td>
-                            <td style={{ textAlign: 'center' }} className="highlight-qty">
-                              x{item.quantity}
-                            </td>
-                            <td style={{ textAlign: 'right' }}>
-                              ${unitPrice?.toLocaleString('es-AR')}
-                            </td>
-                            <td style={{ textAlign: 'right', fontWeight: 800 }}>
-                              ${itemTotal?.toLocaleString('es-AR')}
-                            </td>
-                          </tr>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td colSpan="7" style={{ textAlign: 'center', fontStyle: 'italic' }}>
-                          Sin detalle de prendas individuales.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+              <div style={{ textAlign: 'right' }}>
+                <span style={{ fontSize: '0.8rem', display: 'block' }}>TOTAL FINAL COMANDA:</span>
+                <span className="grand-total">${selectedPrintOrder.total_amount?.toLocaleString('es-AR')}</span>
               </div>
+            </div>
 
-              {/* Order Totals */}
-              <div className="totals-section">
-                <div>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'block' }}>
-                    Estado del Pago: <strong style={{ textTransform: 'uppercase' }}>{selectedPrintOrder.status || 'APROBADO'}</strong>
-                  </span>
-                  {selectedPrintOrder.is_wholesale && (
-                    <span style={{ fontSize: '0.8rem', fontWeight: 800 }}>
-                      ✓ Venta Mayorista
-                    </span>
-                  )}
-                </div>
+            {/* Warehouse Verification Footer */}
+            <div className="warehouse-checks">
+              <div style={{ fontWeight: 800, textTransform: 'uppercase', marginBottom: '6px' }}>
+                CONTROL DE DEPÓSITO Y CONTROL FINAL:
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+                <span>☐ Control de Talles y Prendas</span>
+                <span>☐ Bolsa / Embalaje</span>
+                <span>☐ Despachado</span>
+              </div>
+              <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between' }}>
+                <span>Firma Armador: ___________________</span>
+                <span>Firma Control: ___________________</span>
+              </div>
+            </div>
+          </>
+        );
 
-                <div style={{ textAlign: 'right' }}>
-                  <span style={{ fontSize: '0.8rem', display: 'block' }}>TOTAL FINAL COMANDA:</span>
-                  <span className="grand-total">${selectedPrintOrder.total_amount?.toLocaleString('es-AR')}</span>
+        return (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.82)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}>
+            <div style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '12px',
+              maxWidth: '680px',
+              width: '100%',
+              maxHeight: '92vh',
+              overflow: 'auto',
+              padding: '26px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)',
+              position: 'relative'
+            }}>
+              {/* Modal Controls (Hidden during print) */}
+              <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', paddingBottom: '12px', borderBottom: '1px solid #E2E8F0', flexWrap: 'wrap', gap: '10px' }}>
+                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#64748B' }}>
+                  Vista Previa de Comanda Universal
+                </span>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={triggerPrintWindow}
+                    className="btn-primary"
+                    style={{ fontSize: '0.88rem', padding: '8px 18px', backgroundColor: '#059669', borderColor: '#059669', color: '#FFF' }}
+                  >
+                    <Printer size={16} /> Imprimir Comanda Ahora
+                  </button>
+                  <button
+                    onClick={() => setSelectedPrintOrder(null)}
+                    className="btn-secondary"
+                    style={{ fontSize: '0.88rem', padding: '8px 14px' }}
+                  >
+                    <X size={16} /> Cerrar
+                  </button>
                 </div>
               </div>
 
-              {/* Warehouse Verification Footer */}
-              <div className="warehouse-checks">
-                <div style={{ fontWeight: 800, textTransform: 'uppercase', marginBottom: '6px' }}>
-                  CONTROL DE DEPÓSITO Y CONTROL FINAL:
+              <div className="no-print" style={{ fontSize: '0.78rem', color: '#059669', fontWeight: 700, marginBottom: '16px' }}>
+                🖨️ Se van a imprimir 2 copias (Armador y Cliente) — {useSideBySide ? 'lado a lado en la misma hoja A4' : 'cada una en su propia hoja, por la cantidad de prendas del pedido'}.
+              </div>
+
+              {/* PRINTABLE TICKET CONTENT AREA - UNIVERSAL HIGH CONTRAST FORMAT */}
+              <div id="printable-order-ticket">
+                {/* Vista previa en pantalla: una sola copia, para revisar antes de imprimir */}
+                <div className="screen-only-ticket">
+                  {renderTicketBody('VISTA PREVIA')}
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
-                  <span>☐ Control de Talles y Prendas</span>
-                  <span>☐ Bolsa / Embalaje</span>
-                  <span>☐ Despachado</span>
-                </div>
-                <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between' }}>
-                  <span>Firma Armador: ___________________</span>
-                  <span>Firma Control: ___________________</span>
+
+                {/* Lo que realmente sale impreso: 2 copias, en el layout que corresponda */}
+                <div className={`print-duplicate-wrap ${layoutClass}`}>
+                  <div className="ticket-copy">{renderTicketBody('COPIA ARMADOR — DEPÓSITO')}</div>
+                  <div className="ticket-copy">{renderTicketBody('COPIA CLIENTE')}</div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* UNIVERSAL PRINT CSS STYLES FOR THERMAL POS & STANDARD A4/A5 PRINTERS */}
       <style jsx global>{`
@@ -770,6 +799,15 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
           border-radius: 4px;
           font-size: 0.78rem;
         }
+        .copy-label-stamp {
+          display: none;
+        }
+
+        /* La copia doble (Armador + Cliente) solo existe para impresion.
+           En pantalla se ve una unica vista previa normal. */
+        .print-duplicate-wrap {
+          display: none;
+        }
 
         /* PRINT MEDIA DIRECTIVES (UNIVERSAL COMPATIBILITY) */
         @media print {
@@ -795,6 +833,67 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
           }
           .ticket-table th {
             background-color: transparent !important;
+          }
+
+          /* En pantalla se oculta la vista previa unica; en impresion se
+             oculta y en su lugar se muestran las 2 copias reales. */
+          .screen-only-ticket {
+            display: none !important;
+          }
+          .print-duplicate-wrap {
+            display: flex !important;
+          }
+          .copy-label-stamp {
+            display: block !important;
+            font-size: 0.7rem;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            text-align: center;
+            background-color: #0F172A !important;
+            color: #FFFFFF !important;
+            padding: 3px 6px;
+            border-radius: 3px;
+            margin-bottom: 6px;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+
+          /* Pedido chico: 2 copias lado a lado en la misma hoja A4 */
+          .print-duplicate-wrap.side-by-side {
+            flex-direction: row;
+            align-items: flex-start;
+          }
+          .print-duplicate-wrap.side-by-side .ticket-copy {
+            width: 50%;
+            box-sizing: border-box;
+            padding: 0 10px;
+          }
+          .print-duplicate-wrap.side-by-side .ticket-copy:first-child {
+            border-right: 2px dashed #64748B;
+          }
+          .print-duplicate-wrap.side-by-side .ticket-table {
+            font-size: 0.66rem;
+          }
+          .print-duplicate-wrap.side-by-side .company-title {
+            font-size: 1.15rem;
+          }
+          .print-duplicate-wrap.side-by-side .grand-total {
+            font-size: 1.1rem;
+          }
+          .print-duplicate-wrap.side-by-side .client-info-box,
+          .print-duplicate-wrap.side-by-side .warehouse-checks {
+            font-size: 0.72rem;
+          }
+
+          /* Pedido con varios items: cada copia en su propia hoja A4 completa */
+          .print-duplicate-wrap.stacked-pages {
+            flex-direction: column;
+          }
+          .print-duplicate-wrap.stacked-pages .ticket-copy {
+            width: 100%;
+          }
+          .print-duplicate-wrap.stacked-pages .ticket-copy:first-child {
+            page-break-after: always;
           }
         }
       `}</style>
