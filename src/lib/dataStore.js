@@ -146,32 +146,35 @@ class DataStore {
       const { data, error } = await supabase.from('products').select('*');
       if (!data || error) return;
 
-      let overrides = {};
-      if (typeof window !== 'undefined') {
-        try {
-          const stored = localStorage.getItem('elpaquetero_products_overrides');
-          if (stored) overrides = JSON.parse(stored) || {};
-        } catch (e) {}
-      }
-
       const dbById = new Map(data.map(p => [p.id, p]));
+
+      // La base de datos de Supabase es la fuente de verdad definitiva
       const merged = this.products.map(localP => {
         const dbP = dbById.get(localP.id);
-        const ovP = overrides[localP.id];
-        const base = dbP ? { ...localP, ...dbP, sales_count: dbP.sales_count ?? 0 } : localP;
-        return ovP ? { ...base, ...ovP } : base;
+        if (!dbP) return localP;
+        return { 
+          ...localP, 
+          ...dbP, 
+          price: Number(dbP.price), 
+          wholesale_price: Number(dbP.wholesale_price),
+          stock: Number(dbP.stock),
+          sales_count: dbP.sales_count ?? 0 
+        };
       });
 
       const localIds = new Set(this.products.map(p => p.id));
       const extraFromDb = data
         .filter(p => !localIds.has(p.id))
-        .map(p => {
-          const ovP = overrides[p.id];
-          const base = { ...p, sales_count: p.sales_count ?? 0 };
-          return ovP ? { ...base, ...ovP } : base;
-        });
+        .map(p => ({ 
+          ...p, 
+          price: Number(p.price), 
+          wholesale_price: Number(p.wholesale_price),
+          stock: Number(p.stock),
+          sales_count: p.sales_count ?? 0 
+        }));
 
       this.products = [...merged, ...extraFromDb];
+      this.saveProductsToLocalStorage();
       this.notify();
     } catch (err) {
       console.warn('Supabase products fetch warning:', err);
@@ -502,20 +505,40 @@ class DataStore {
   }
 
   // Stock & Price Updates
-  updateProduct(id, updates) {
+  async updateProduct(id, updates) {
     const existingP = this.products.find(p => p.id === id);
     const updatedP = existingP ? { ...existingP, ...updates } : updates;
+
+    if (updatedP.price !== undefined) updatedP.price = Number(updatedP.price);
+    if (updatedP.wholesale_price !== undefined) updatedP.wholesale_price = Number(updatedP.wholesale_price);
 
     this.products = this.products.map(p => p.id === id ? updatedP : p);
     this.saveProductsToLocalStorage();
     this.notify();
     
     if (typeof window !== 'undefined') {
-      fetch('/api/admin/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'updateProduct', id, updates: updatedP })
-      }).catch(err => console.warn('API updateProduct error:', err));
+      try {
+        const res = await fetch('/api/admin/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'updateProduct', id, updates: updatedP })
+        });
+        const result = await res.json();
+        if (result && result.success && Array.isArray(result.data) && result.data.length > 0) {
+          const freshFromDb = result.data[0];
+          const normalized = {
+            ...freshFromDb,
+            price: Number(freshFromDb.price),
+            wholesale_price: Number(freshFromDb.wholesale_price),
+            stock: Number(freshFromDb.stock)
+          };
+          this.products = this.products.map(p => p.id === id ? { ...p, ...normalized } : p);
+          this.saveProductsToLocalStorage();
+          this.notify();
+        }
+      } catch (err) {
+        console.warn('API updateProduct error:', err);
+      }
     }
   }
 
