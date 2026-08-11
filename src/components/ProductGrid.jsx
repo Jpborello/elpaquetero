@@ -1,13 +1,24 @@
 'use client';
 
 import { useState } from 'react';
-import { ShoppingCart, Sparkles, Palette } from 'lucide-react';
+import { ShoppingCart, Sparkles, Palette, Share2, Check } from 'lucide-react';
 import { getProductColors } from '@/lib/catalogData';
+import { shareProduct } from '@/lib/shareProduct';
 
 export default function ProductGrid({ products, onAddToCart, isWholesaleQualified = false, onOpenDetail }) {
   // Store selected size/color per product id: { [productId]: string }
   const [selectedSizes, setSelectedSizes] = useState({});
   const [selectedColors, setSelectedColors] = useState({});
+  const [copiedShareId, setCopiedShareId] = useState(null);
+
+  const handleShare = async (e, product) => {
+    e.stopPropagation();
+    const result = await shareProduct(product);
+    if (result === 'copied') {
+      setCopiedShareId(product.id);
+      setTimeout(() => setCopiedShareId((cur) => (cur === product.id ? null : cur)), 2000);
+    }
+  };
 
   if (!products || products.length === 0) {
     return (
@@ -79,6 +90,31 @@ export default function ProductGrid({ products, onAddToCart, isWholesaleQualifie
               <span className="card-badge-wholesale">
                 Precio Mayorista
               </span>
+
+              <button
+                type="button"
+                onClick={(e) => handleShare(e, product)}
+                title={copiedShareId === product.id ? 'Link copiado' : 'Compartir producto'}
+                style={{
+                  position: 'absolute',
+                  bottom: '8px',
+                  left: '8px',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  border: 'none',
+                  backgroundColor: 'rgba(15, 23, 42, 0.7)',
+                  color: '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  zIndex: 3,
+                  backdropFilter: 'blur(2px)'
+                }}
+              >
+                {copiedShareId === product.id ? <Check size={15} /> : <Share2 size={15} />}
+              </button>
             </div>
 
             <div>

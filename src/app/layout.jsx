@@ -76,7 +76,7 @@ const localBusinessJsonLd = {
   name: 'El Paquetero',
   image: `${SITE_URL}/elpaquetero_imagenes/logo.webp`,
   url: SITE_URL,
-  telephone: '+54-341-783-8723',
+  telephone: '+54-341-609-5021',
   priceRange: '$$',
   address: {
     '@type': 'PostalAddress',

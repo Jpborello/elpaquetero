@@ -1,14 +1,24 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, ShoppingCart, Tag, Palette } from 'lucide-react';
+import { X, ShoppingCart, Tag, Palette, Share2, Check } from 'lucide-react';
 import useCloseOnBack from '@/lib/useCloseOnBack';
 import { getProductColors } from '@/lib/catalogData';
+import { shareProduct } from '@/lib/shareProduct';
 
 export default function ProductDetailModal({ product, isOpen, onClose, onAddToCart, isWholesaleQualified = false }) {
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
   const [isZoomed, setIsZoomed] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
+
+  const handleShare = async () => {
+    const result = await shareProduct(product);
+    if (result === 'copied') {
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    }
+  };
   const handleClose = useCloseOnBack(isOpen, () => {
     if (isZoomed) {
       setIsZoomed(false);
@@ -108,7 +118,31 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
             <div className="product-category-name">
               {product.category} {product.subcategory ? `• ${product.subcategory}` : ''}
             </div>
-            <h2 className="product-detail-title">{product.name}</h2>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px' }}>
+              <h2 className="product-detail-title" style={{ margin: 0 }}>{product.name}</h2>
+              <button
+                type="button"
+                onClick={handleShare}
+                title={shareCopied ? 'Link copiado' : 'Compartir producto'}
+                style={{
+                  flexShrink: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '6px 10px',
+                  borderRadius: '20px',
+                  border: '1px solid var(--border-color)',
+                  backgroundColor: shareCopied ? '#ECFDF5' : 'var(--bg-surface-elevated)',
+                  color: shareCopied ? '#047857' : 'var(--text-main)',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                {shareCopied ? <Check size={14} /> : <Share2 size={14} />}
+                {shareCopied ? 'Copiado' : 'Compartir'}
+              </button>
+            </div>
 
             {product.code && <div className="product-detail-code">Código: {product.code}</div>}
 

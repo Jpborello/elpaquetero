@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Header from '@/components/Header';
 import HeroSection from '@/components/HeroSection';
 import CarouselSection from '@/components/CarouselSection';
@@ -35,6 +35,7 @@ export default function Home() {
   const [currentUser, setCurrentUser] = useState(null);
   const [detailProduct, setDetailProduct] = useState(null);
   const [addedToast, setAddedToast] = useState(null);
+  const deepLinkHandledRef = useRef(false);
 
   useEffect(() => {
     dataStore.recordVisit();
@@ -50,6 +51,17 @@ export default function Home() {
     const unsubscribe = dataStore.subscribe(updateStoreData);
     return () => unsubscribe();
   }, []);
+
+  // Links compartidos (?producto=ID) abren directo el modal de esa prenda.
+  useEffect(() => {
+    if (deepLinkHandledRef.current || products.length === 0) return;
+    const productId = new URLSearchParams(window.location.search).get('producto');
+    if (productId) {
+      const found = products.find((p) => p.id === productId);
+      if (found) setDetailProduct(found);
+    }
+    deepLinkHandledRef.current = true;
+  }, [products]);
 
   // Restaurar el carrito guardado (una vez que ya tenemos productos para
   // validar contra precio/stock actual) para que no se pierda al refrescar.
@@ -412,7 +424,7 @@ export default function Home() {
           <div>
             <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px', color: 'var(--accent-gold-light)' }}>Contacto Directo</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.9rem', color: '#D6C8B5' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Phone size={16} /> 341 783-8723</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Phone size={16} /> 341 609-5021</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><MapPin size={16} /> Camilo Aldao 2715 esq. ex Godoy (Rosario - Santa Fe)</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Store size={16} /> Atención Lunes a Sábado de 8:00 a 16:30 hs</div>
             </div>
