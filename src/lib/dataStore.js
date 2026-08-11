@@ -510,11 +510,12 @@ class DataStore {
     this.saveProductsToLocalStorage();
     this.notify();
     
-    if (supabase) {
-      const { sizes, stock_per_size, code, ...dbFields } = updatedP;
-      supabase.from('products').upsert(dbFields, { onConflict: 'id' }).then(({ error }) => {
-        if (error) console.warn('Supabase product upsert warning:', error);
-      }).catch((err) => console.warn('Supabase product upsert error:', err));
+    if (typeof window !== 'undefined') {
+      fetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'updateProduct', id, updates: updatedP })
+      }).catch(err => console.warn('API updateProduct error:', err));
     }
   }
 
@@ -561,7 +562,7 @@ class DataStore {
       : null;
 
     const factor = 1 + (pct / 100);
-    const updatedProductsForDb = [];
+    const updatedProductsList = [];
 
     this.products = this.products.map(p => {
       if (targetIds && !targetIds.has(p.id)) return p;
@@ -570,19 +571,19 @@ class DataStore {
       const newWholesalePrice = applyToWholesale ? Math.round(p.wholesale_price * factor) : p.wholesale_price;
 
       const updatedP = { ...p, price: newPrice, wholesale_price: newWholesalePrice };
-      const { sizes, stock_per_size, code, ...dbFields } = updatedP;
-      updatedProductsForDb.push(dbFields);
-
+      updatedProductsList.push(updatedP);
       return updatedP;
     });
 
     this.saveProductsToLocalStorage();
     this.notify();
 
-    if (supabase && updatedProductsForDb.length > 0) {
-      supabase.from('products').upsert(updatedProductsForDb, { onConflict: 'id' }).then(({ error }) => {
-        if (error) console.warn('Supabase bulk price update warning:', error);
-      }).catch((err) => console.warn('Supabase bulk price update error:', err));
+    if (typeof window !== 'undefined' && updatedProductsList.length > 0) {
+      fetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'upsertProducts', productsList: updatedProductsList })
+      }).catch(err => console.warn('API bulk update error:', err));
     }
   }
 
