@@ -116,7 +116,7 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
 
 2. DIRECCIÓN Y HORARIOS DE ATENCIÓN:
    - Dirección del local: Camilo Aldao 2715 esquina ex Godoy (Rosario, Santa Fe).
-   - Horario de Atención: De Lunes a Viernes de 8:00 AM a 4:30 PM (16:30 hs).
+   - Horario de Atención: De Lunes a Sábados de 8:00 AM a 4:30 PM (16:30 hs).
 
 3. MODALIDAD DE VENTA & ENVÍOS:
    - ¿Venden por unidad? Sí, vendemos por unidad, por curva completa de talles y también podés armar surtido o variedad de prendas.
