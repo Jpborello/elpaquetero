@@ -384,8 +384,8 @@ export default function Home() {
         </div>
       )}
 
-      {/* Floating WhatsApp Contact Button */}
-      <WhatsAppButton />
+      {/* Floating WhatsApp Contact Button - deshabilitado temporalmente (numero dado de baja por WhatsApp para revision) */}
+      {/* <WhatsAppButton /> */}
       <WebChatWidget />
 
       {/* Shopping Cart Drawer */}
