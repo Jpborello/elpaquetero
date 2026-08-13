@@ -196,7 +196,7 @@ export default function CartDrawer({
     } catch (e) {}
 
     const encodedMsg = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/5493417838723?text=${encodedMsg}`;
+    const whatsappUrl = `https://wa.me/5493415326592?text=${encodedMsg}`;
     window.open(whatsappUrl, '_blank');
 
     setCompletedOrderId(targetId);

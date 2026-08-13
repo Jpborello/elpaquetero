@@ -15,7 +15,7 @@ function checkBusinessHours() {
 }
 
 export default function WhatsAppButton({
-  phone = '5493417838723',
+  phone = '5493415326592',
   message = '¡Hola! Quiero hacer una consulta sobre productos de El Paquetero.'
 }) {
   const isBusinessHours = checkBusinessHours();
