@@ -68,6 +68,12 @@ export async function processIncomingChatMessage(supabaseAdmin, { chatId, client
   const globalEnabled = settings ? settings.is_global_enabled !== false : true;
   const openrouterKey = process.env.OPENROUTER_API_KEY || settings?.openrouter_key;
 
+  // WhatsApp queda siempre en modo manual: el mensaje se guarda para que
+  // el administrador responda a mano, sin importar la config global del bot.
+  if (channel === 'whatsapp') {
+    return { botReply: null, status: 'whatsapp_manual_only' };
+  }
+
   if (!globalEnabled || !isBotEnabledForChat || !openrouterKey) {
     return { botReply: null, status: 'disabled_or_no_key' };
   }
