@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { RefreshCw, Image as ImageIcon, ExternalLink, X, Eye, Download, Trash2, Printer, Bell, BellOff, CheckCircle2, Sparkles } from 'lucide-react';
+import { RefreshCw, Image as ImageIcon, ExternalLink, X, Eye, Download, Trash2, Printer, Bell, BellOff, CheckCircle2, Sparkles, Pencil, Minus, Plus } from 'lucide-react';
 import { dataStore } from '@/lib/dataStore';
 
 // Techo de repeticiones del timbre para que no suene para siempre si
@@ -13,6 +13,10 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [selectedPrintOrder, setSelectedPrintOrder] = useState(null);
   const [cleanNotice, setCleanNotice] = useState('');
+
+  // Edicion de pedido (sacar/bajar cantidad de productos y recalcular el total)
+  const [editingOrder, setEditingOrder] = useState(null);
+  const [editItems, setEditItems] = useState([]);
 
   // Real-time Sound & Visual Alert State
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -123,6 +127,40 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
     dataStore.updateOrderStatus(orderId, newStatus);
     setCleanNotice(`✓ Estado de la orden #${orderId} actualizado a "${newStatus.toUpperCase()}".`);
     setTimeout(() => setCleanNotice(''), 4000);
+  };
+
+  const openEditOrder = (ord) => {
+    setEditingOrder(ord);
+    setEditItems((ord.items || []).map((it) => ({ ...it })));
+  };
+
+  const closeEditOrder = () => {
+    setEditingOrder(null);
+    setEditItems([]);
+  };
+
+  const handleEditQtyChange = (idx, qty) => {
+    const safeQty = Math.max(0, Number.isFinite(qty) ? qty : 0);
+    setEditItems((prev) => prev.map((it, i) => (i === idx ? { ...it, quantity: safeQty } : it)));
+  };
+
+  const handleRemoveEditItem = (idx) => {
+    setEditItems((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const editItemPrice = (item) => item.product?.wholesale_price || item.product?.price || 0;
+  const editTotal = editItems.reduce((sum, it) => sum + editItemPrice(it) * (it.quantity || 0), 0);
+
+  const handleSaveEditOrder = () => {
+    const cleanedItems = editItems.filter((it) => (it.quantity || 0) > 0);
+    if (cleanedItems.length === 0) {
+      alert('El pedido no puede quedar sin productos. Cancelalo desde el estado si querés anularlo.');
+      return;
+    }
+    const newTotal = dataStore.updateOrderItems(editingOrder.id, cleanedItems);
+    setCleanNotice(`✓ Pedido #${editingOrder.id} modificado. Nuevo total: $${newTotal.toLocaleString('es-AR')}.`);
+    setTimeout(() => setCleanNotice(''), 5000);
+    closeEditOrder();
   };
 
   const handleExportCSV = () => {
@@ -425,14 +463,24 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                   {/* Ver Detalle: siempre disponible, sin importar el estado del pago.
                       Imprimir la comanda de depósito solo cuando ya está aprobado el pago. */}
                   <td>
-                    <button
-                      onClick={() => setSelectedPrintOrder(ord)}
-                      className="btn-primary"
-                      style={{ padding: '6px 12px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: currentStatus === 'aprobado' ? '#0F172A' : undefined, borderColor: currentStatus === 'aprobado' ? '#0F172A' : undefined, color: currentStatus === 'aprobado' ? '#FFF' : undefined }}
-                    >
-                      {currentStatus === 'aprobado' ? <Printer size={14} /> : <Eye size={14} />}
-                      {currentStatus === 'aprobado' ? 'Imprimir Comanda' : 'Ver Qué Pidió'}
-                    </button>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      <button
+                        onClick={() => setSelectedPrintOrder(ord)}
+                        className="btn-primary"
+                        style={{ padding: '6px 12px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: currentStatus === 'aprobado' ? '#0F172A' : undefined, borderColor: currentStatus === 'aprobado' ? '#0F172A' : undefined, color: currentStatus === 'aprobado' ? '#FFF' : undefined }}
+                      >
+                        {currentStatus === 'aprobado' ? <Printer size={14} /> : <Eye size={14} />}
+                        {currentStatus === 'aprobado' ? 'Imprimir Comanda' : 'Ver Qué Pidió'}
+                      </button>
+                      <button
+                        onClick={() => openEditOrder(ord)}
+                        className="btn-secondary"
+                        title="Modificar productos/cantidades del pedido"
+                        style={{ padding: '6px 10px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                      >
+                        <Pencil size={14} /> Editar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
@@ -525,6 +573,134 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
         </div>
       )}
 
+      {/* EDIT ORDER MODAL: sacar productos o bajar cantidades y recalcular el total */}
+      {editingOrder && (
+        <div className="no-print" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <div style={{
+            backgroundColor: '#FFFFFF',
+            borderRadius: '12px',
+            maxWidth: '640px',
+            width: '100%',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            padding: '24px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)',
+            position: 'relative'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                  Editar Pedido #{editingOrder.id}
+                </h3>
+                <p style={{ fontSize: '0.82rem', color: '#64748B', margin: '4px 0 0' }}>
+                  Cliente: <strong>{editingOrder.client_name}</strong> — cambiá cantidades o sacá productos y el total se recalcula solo.
+                </p>
+              </div>
+              <button
+                onClick={closeEditOrder}
+                style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', flexShrink: 0 }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {editItems.length === 0 ? (
+                <p style={{ fontSize: '0.85rem', color: '#94A3B8', textAlign: 'center', padding: '20px' }}>Sin productos. Agregá al menos uno o cancelá esta edición.</p>
+              ) : (
+                editItems.map((item, idx) => {
+                  const unitPrice = editItemPrice(item);
+                  const size = item.product?.selectedSize || item.selectedSize || '-';
+                  const color = item.product?.selectedColor || item.selectedColor || 'Surtido';
+                  return (
+                    <div key={item.variantKey || idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {item.product?.name}
+                        </div>
+                        <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                          Talle {size} · {color} · ${unitPrice.toLocaleString('es-AR')} c/u
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <button
+                          type="button"
+                          onClick={() => handleEditQtyChange(idx, (item.quantity || 0) - 1)}
+                          className="btn-secondary"
+                          style={{ width: '26px', height: '26px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          <Minus size={13} />
+                        </button>
+                        <input
+                          type="number"
+                          min="0"
+                          value={item.quantity || 0}
+                          onChange={(e) => handleEditQtyChange(idx, parseInt(e.target.value, 10) || 0)}
+                          style={{ width: '44px', textAlign: 'center', padding: '4px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleEditQtyChange(idx, (item.quantity || 0) + 1)}
+                          className="btn-secondary"
+                          style={{ width: '26px', height: '26px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          <Plus size={13} />
+                        </button>
+                      </div>
+
+                      <div style={{ width: '90px', textAlign: 'right', fontWeight: 800, fontSize: '0.88rem', color: '#059669' }}>
+                        ${(unitPrice * (item.quantity || 0)).toLocaleString('es-AR')}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveEditItem(idx)}
+                        title="Sacar del pedido"
+                        style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', padding: '4px', display: 'flex' }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '2px solid #0F172A', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>NUEVO TOTAL:</span>
+              <span style={{ fontSize: '1.3rem', fontWeight: 900, color: '#059669' }}>${editTotal.toLocaleString('es-AR')}</span>
+            </div>
+
+            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button onClick={closeEditOrder} className="btn-secondary" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveEditOrder}
+                className="btn-primary"
+                style={{ padding: '8px 18px', fontSize: '0.85rem', backgroundColor: '#059669', borderColor: '#059669' }}
+              >
+                Guardar Cambios
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* UNIVERSAL PRINTABLE ORDER TICKET / COMANDA MODAL */}
       {selectedPrintOrder && (() => {
         const itemCount = selectedPrintOrder.items?.length || 0;
@@ -591,7 +767,11 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                 <tbody>
                   {selectedPrintOrder.items && selectedPrintOrder.items.length > 0 ? (
                     selectedPrintOrder.items.map((item, idx) => {
-                      const unitPrice = selectedPrintOrder.is_wholesale ? Math.round((item.product?.price || item.product?.wholesale_price || 0) * 0.60) : (item.product?.price || item.product?.wholesale_price || 0);
+                      // El carrito siempre cobra al precio mayorista de cada producto
+                      // (ver CartDrawer.jsx), nunca al precio de vidriera/minorista.
+                      // La comanda tiene que reflejar lo mismo que se le cobro al
+                      // cliente, sino la suma de renglones no da igual al total final.
+                      const unitPrice = item.product?.wholesale_price || item.product?.price || 0;
                       const itemTotal = unitPrice * item.quantity;
                       const size = item.product?.selectedSize || item.selectedSize || '-';
                       const color = item.product?.selectedColor || item.selectedColor || 'Surtido';
@@ -912,6 +1092,11 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
             margin: 0 !important;
             border: none !important;
             box-shadow: none !important;
+            /* Siempre blanco y negro al imprimir, sin importar si el usuario
+               elige "Color" en el dialogo de impresion del navegador. */
+            filter: grayscale(100%) !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
           }
           .ticket-table th {
             background-color: transparent !important;

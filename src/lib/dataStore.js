@@ -832,7 +832,8 @@ class DataStore {
         total_amount: order.total_amount,
         items: order.items,
         status: order.status,
-        created_at: order.created_at
+        created_at: order.created_at,
+        is_wholesale: order.is_wholesale
       }).then(() => {}).catch((err) => console.warn('Order insert warning:', err));
     }
 
@@ -863,6 +864,33 @@ class DataStore {
     if (supabase) {
       supabase.from('orders').update({ status: newStatus }).eq('id', orderId).then(() => {}).catch(() => {});
     }
+  }
+
+  // Modificar los productos/cantidades de un pedido ya creado (ej. sacar
+  // prendas sin stock) y recalcular el total al mismo precio mayorista
+  // con el que se cobra en el carrito. Devuelve el nuevo total.
+  updateOrderItems(orderId, newItems) {
+    const total = newItems.reduce((sum, item) => {
+      const itemPrice = item.product.wholesale_price || item.product.price || 0;
+      return sum + (itemPrice * item.quantity);
+    }, 0);
+
+    this.orders = this.orders.map(o => o.id === orderId ? { ...o, items: newItems, total_amount: total } : o);
+
+    if (this.activeOrder && this.activeOrder.id === orderId) {
+      this.activeOrder = { ...this.activeOrder, items: newItems, total_amount: total };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('elpaquetero_active_order', JSON.stringify(this.activeOrder));
+      }
+    }
+
+    this.notify();
+
+    if (supabase) {
+      supabase.from('orders').update({ items: newItems, total_amount: total }).eq('id', orderId).then(() => {}).catch(() => {});
+    }
+
+    return total;
   }
 
   getActiveOrder() {
