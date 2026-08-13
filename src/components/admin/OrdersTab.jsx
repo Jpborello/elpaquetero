@@ -303,7 +303,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
               <th>Monto Total</th>
               <th>Estado Pago</th>
               <th>Comprobante</th>
-              <th>Acciones / Imprimir</th>
+              <th>Detalle / Imprimir</th>
             </tr>
           </thead>
           <tbody>
@@ -365,26 +365,17 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                     )}
                   </td>
 
-                  {/* Print Button — solo habilitado con el pago ya aprobado */}
+                  {/* Ver Detalle: siempre disponible, sin importar el estado del pago.
+                      Imprimir la comanda de depósito solo cuando ya está aprobado el pago. */}
                   <td>
-                    {currentStatus === 'aprobado' ? (
-                      <button
-                        onClick={() => setSelectedPrintOrder(ord)}
-                        className="btn-primary"
-                        style={{ padding: '6px 12px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#0F172A', borderColor: '#0F172A', color: '#FFF' }}
-                      >
-                        <Printer size={14} /> Imprimir Comanda
-                      </button>
-                    ) : (
-                      <button
-                        disabled
-                        title="Aprobá el pago antes de imprimir la comanda"
-                        className="btn-secondary"
-                        style={{ padding: '6px 12px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '6px', opacity: 0.5, cursor: 'not-allowed' }}
-                      >
-                        <Printer size={14} /> Aprobar pago primero
-                      </button>
-                    )}
+                    <button
+                      onClick={() => setSelectedPrintOrder(ord)}
+                      className="btn-primary"
+                      style={{ padding: '6px 12px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: currentStatus === 'aprobado' ? '#0F172A' : undefined, borderColor: currentStatus === 'aprobado' ? '#0F172A' : undefined, color: currentStatus === 'aprobado' ? '#FFF' : undefined }}
+                    >
+                      {currentStatus === 'aprobado' ? <Printer size={14} /> : <Eye size={14} />}
+                      {currentStatus === 'aprobado' ? 'Imprimir Comanda' : 'Ver Qué Pidió'}
+                    </button>
                   </td>
                 </tr>
               );
@@ -650,16 +641,27 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
               {/* Modal Controls (Hidden during print) */}
               <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', paddingBottom: '12px', borderBottom: '1px solid #E2E8F0', flexWrap: 'wrap', gap: '10px' }}>
                 <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#64748B' }}>
-                  Vista Previa de Comanda Universal
+                  {selectedPrintOrder.status === 'aprobado' ? 'Vista Previa de Comanda Universal' : `Qué Pidió — Orden #${selectedPrintOrder.id}`}
                 </span>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    onClick={triggerPrintWindow}
-                    className="btn-primary"
-                    style={{ fontSize: '0.88rem', padding: '8px 18px', backgroundColor: '#059669', borderColor: '#059669', color: '#FFF' }}
-                  >
-                    <Printer size={16} /> Imprimir Comanda Ahora
-                  </button>
+                  {selectedPrintOrder.status === 'aprobado' ? (
+                    <button
+                      onClick={triggerPrintWindow}
+                      className="btn-primary"
+                      style={{ fontSize: '0.88rem', padding: '8px 18px', backgroundColor: '#059669', borderColor: '#059669', color: '#FFF' }}
+                    >
+                      <Printer size={16} /> Imprimir Comanda Ahora
+                    </button>
+                  ) : (
+                    <button
+                      disabled
+                      title="Aprobá el pago primero para poder imprimir la comanda de despacho"
+                      className="btn-secondary"
+                      style={{ fontSize: '0.88rem', padding: '8px 18px', opacity: 0.5, cursor: 'not-allowed' }}
+                    >
+                      <Printer size={16} /> Aprobar pago para imprimir
+                    </button>
+                  )}
                   <button
                     onClick={() => setSelectedPrintOrder(null)}
                     className="btn-secondary"
@@ -670,9 +672,11 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                 </div>
               </div>
 
-              <div className="no-print" style={{ fontSize: '0.78rem', color: '#059669', fontWeight: 700, marginBottom: '16px' }}>
-                🖨️ Se van a imprimir 2 copias (Armador y Cliente) — {useSideBySide ? 'lado a lado en la misma hoja A4' : 'cada una en su propia hoja, por la cantidad de prendas del pedido'}.
-              </div>
+              {selectedPrintOrder.status === 'aprobado' && (
+                <div className="no-print" style={{ fontSize: '0.78rem', color: '#059669', fontWeight: 700, marginBottom: '16px' }}>
+                  🖨️ Se van a imprimir 2 copias (Armador y Cliente) — {useSideBySide ? 'lado a lado en la misma hoja A4' : 'cada una en su propia hoja, por la cantidad de prendas del pedido'}.
+                </div>
+              )}
 
               {/* PRINTABLE TICKET CONTENT AREA - UNIVERSAL HIGH CONTRAST FORMAT */}
               <div id="printable-order-ticket">
