@@ -1,18 +1,57 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { RefreshCw, Image as ImageIcon, ExternalLink, X, Eye, Download, Trash2, Printer, Bell, BellOff, CheckCircle2, Sparkles } from 'lucide-react';
 import { dataStore } from '@/lib/dataStore';
+
+// Techo de repeticiones del timbre para que no suene para siempre si
+// el pedido se queda sin atender (10 veces cada 6s = 1 minuto de aviso).
+const CHIME_REPEAT_LIMIT = 10;
+const CHIME_REPEAT_MS = 6000;
 
 export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading, onFetchMpTransfers }) {
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [selectedPrintOrder, setSelectedPrintOrder] = useState(null);
   const [cleanNotice, setCleanNotice] = useState('');
-  
+
   // Real-time Sound & Visual Alert State
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [newOrderToast, setNewOrderToast] = useState(null);
   const [prevOrdersCount, setPrevOrdersCount] = useState(orders.length);
+
+  const audioCtxRef = useRef(null);
+  const chimeIntervalRef = useRef(null);
+  const chimeCountRef = useRef(0);
+
+  // Los navegadores bloquean el audio hasta que el usuario interactuo
+  // con la pagina al menos una vez. "Desbloqueamos" el AudioContext en
+  // el primer click/tecla para que cuando llegue un pedido de verdad
+  // el sonido ya este listo para reproducirse, no recien empezando.
+  useEffect(() => {
+    const unlockAudio = () => {
+      if (!audioCtxRef.current) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) audioCtxRef.current = new AudioCtx();
+      }
+      if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
+        audioCtxRef.current.resume().catch(() => {});
+      }
+    };
+    window.addEventListener('click', unlockAudio);
+    window.addEventListener('keydown', unlockAudio);
+    return () => {
+      window.removeEventListener('click', unlockAudio);
+      window.removeEventListener('keydown', unlockAudio);
+    };
+  }, []);
+
+  const stopChimeLoop = () => {
+    if (chimeIntervalRef.current) {
+      clearInterval(chimeIntervalRef.current);
+      chimeIntervalRef.current = null;
+    }
+    chimeCountRef.current = 0;
+  };
 
   // Web Audio API Chime Generator for zero external file dependencies
   const playNewOrderChime = () => {
@@ -20,8 +59,10 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return;
-      const ctx = new AudioCtx();
-      
+      if (!audioCtxRef.current) audioCtxRef.current = new AudioCtx();
+      const ctx = audioCtxRef.current;
+      if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+
       // Dual-tone chime (A5 880Hz -> E6 1318Hz)
       const osc1 = ctx.createOscillator();
       const gain1 = ctx.createGain();
@@ -51,17 +92,32 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
     }
   };
 
-  // Monitor incoming new orders in real-time
+  // Monitor incoming new orders in real-time. El timbre se repite solo
+  // (no un unico sonido corto que se puede pasar por alto) hasta que se
+  // descarta el aviso o se abre el pedido, con un techo de repeticiones.
   useEffect(() => {
     if (orders.length > prevOrdersCount) {
       const latestOrder = orders[0];
       if (latestOrder) {
+        stopChimeLoop();
         playNewOrderChime();
+        chimeCountRef.current = 1;
+        chimeIntervalRef.current = setInterval(() => {
+          chimeCountRef.current += 1;
+          if (chimeCountRef.current > CHIME_REPEAT_LIMIT) {
+            stopChimeLoop();
+            return;
+          }
+          playNewOrderChime();
+        }, CHIME_REPEAT_MS);
         setNewOrderToast(latestOrder);
       }
     }
     setPrevOrdersCount(orders.length);
   }, [orders, prevOrdersCount]);
+
+  // Cortar el timbre si se desmonta el panel (ej. cambian de pestana)
+  useEffect(() => stopChimeLoop, []);
 
   const handleStatusChange = (orderId, newStatus) => {
     dataStore.updateOrderStatus(orderId, newStatus);
@@ -156,6 +212,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
             {newOrderToast.receipt_url && (
               <button
                 onClick={() => {
+                  stopChimeLoop();
                   setSelectedReceipt({ url: newOrderToast.receipt_url, clientName: newOrderToast.client_name, orderId: newOrderToast.id });
                   setNewOrderToast(null);
                 }}
@@ -166,7 +223,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
               </button>
             )}
             <button
-              onClick={() => setNewOrderToast(null)}
+              onClick={() => { stopChimeLoop(); setNewOrderToast(null); }}
               style={{ background: 'transparent', border: '1px solid #475569', color: '#94A3B8', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}
             >
               Descartar (revisar en la tabla)
@@ -613,7 +670,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
         );
 
         return (
-          <div style={{
+          <div className="print-ticket-modal-backdrop" style={{
             position: 'fixed',
             top: 0,
             left: 0,
@@ -627,7 +684,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
             justifyContent: 'center',
             padding: '20px'
           }}>
-            <div style={{
+            <div className="print-ticket-modal-card" style={{
               backgroundColor: '#FFFFFF',
               borderRadius: '12px',
               maxWidth: '680px',
@@ -820,6 +877,27 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
           }
           .no-print {
             display: none !important;
+          }
+          /* El modal de vista previa tiene scroll interno (overflow: auto)
+             con altura limitada a la pantalla, y position:relative lo
+             convierte en el "contenedor" del ticket absoluto. Sin esto,
+             al imprimir/guardar como PDF el navegador solo captura lo que
+             entraba en el scroll en ese momento (se cortaba el pedido). */
+          .print-ticket-modal-backdrop {
+            position: static !important;
+            background: none !important;
+            backdrop-filter: none !important;
+            padding: 0 !important;
+            display: block !important;
+          }
+          .print-ticket-modal-card {
+            position: static !important;
+            max-height: none !important;
+            overflow: visible !important;
+            box-shadow: none !important;
+            max-width: none !important;
+            width: 100% !important;
+            padding: 0 !important;
           }
           #printable-order-ticket, #printable-order-ticket * {
             visibility: visible !important;
