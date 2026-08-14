@@ -520,6 +520,24 @@ class DataStore {
     return this.products.filter(p => p.is_offer);
   }
 
+  getFeaturedOffer() {
+    return this.products.find(p => p.is_featured) || null;
+  }
+
+  // Solo puede haber UNA oferta destacada a la vez (para que no se pierda
+  // entre las demas), asi que al marcar una nueva se desmarca la anterior.
+  async setFeaturedProduct(id) {
+    const previousFeatured = this.products.find(p => p.is_featured && p.id !== id);
+    if (previousFeatured) {
+      await this.updateProduct(previousFeatured.id, { is_featured: false });
+    }
+    await this.updateProduct(id, { is_featured: true });
+  }
+
+  async unsetFeaturedProduct(id) {
+    await this.updateProduct(id, { is_featured: false });
+  }
+
   // Stock & Price Updates
   async updateProduct(id, updates) {
     const existingP = this.products.find(p => p.id === id);

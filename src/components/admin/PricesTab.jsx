@@ -1,15 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { Save, Percent, TrendingUp, RefreshCw } from 'lucide-react';
+import { Save, Percent, TrendingUp, RefreshCw, Tag, Star } from 'lucide-react';
 
-export default function PricesTab({ 
-  products, 
+export default function PricesTab({
+  products,
   allProductsCount,
-  searchFilter, 
-  setSearchFilter, 
+  searchFilter,
+  setSearchFilter,
   onUpdatePrice,
-  onUpdatePricePercentage 
+  onUpdatePricePercentage,
+  onToggleOffer,
+  onSetFeatured,
+  onUnsetFeatured
 }) {
   // Mass percentage state
   const [bulkPct, setBulkPct] = useState('');
@@ -239,6 +242,7 @@ export default function PricesTab({
             <th>Precio de Lista ($)</th>
             <th>Precio Mayorista ($)</th>
             <th>Calculadora de Aumento %</th>
+            <th>Oferta</th>
             <th>Acción</th>
           </tr>
         </thead>
@@ -341,6 +345,43 @@ export default function PricesTab({
                         <RefreshCw size={13} />
                       </button>
                     )}
+                  </div>
+                </td>
+
+                {/* Oferta / Destacada */}
+                <td>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <button
+                      type="button"
+                      onClick={() => onToggleOffer(p.id, !p.is_offer)}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '4px',
+                        padding: '4px 8px', fontSize: '0.74rem', fontWeight: 700,
+                        borderRadius: '6px',
+                        border: p.is_offer ? '1px solid #EA580C' : '1px solid #CBD5E1',
+                        backgroundColor: p.is_offer ? '#FFF7ED' : '#FFFFFF',
+                        color: p.is_offer ? '#C2410C' : '#64748B',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <Tag size={12} /> {p.is_offer ? 'En oferta' : 'Marcar oferta'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => (p.is_featured ? onUnsetFeatured(p.id) : onSetFeatured(p.id))}
+                      title="Solo puede haber una oferta destacada a la vez"
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '4px',
+                        padding: '4px 8px', fontSize: '0.74rem', fontWeight: 700,
+                        borderRadius: '6px',
+                        border: p.is_featured ? '1px solid #B45309' : '1px solid #CBD5E1',
+                        backgroundColor: p.is_featured ? '#FEF3C7' : '#FFFFFF',
+                        color: p.is_featured ? '#92400E' : '#64748B',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <Star size={12} fill={p.is_featured ? '#92400E' : 'none'} /> {p.is_featured ? 'Destacada ★' : 'Destacar'}
+                    </button>
                   </div>
                 </td>
 

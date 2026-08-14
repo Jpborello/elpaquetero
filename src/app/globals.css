@@ -386,6 +386,117 @@ button {
   gap: 24px;
 }
 
+/* Oferta Destacada: banner fijo, distinto del carrusel rotativo, para que
+   la UNA promo que el admin elige empujar no se pierda entre las demas. */
+.featured-offer-banner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  background: linear-gradient(120deg, #1D1815 0%, #3A1F12 55%, #7A2E0A 100%);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  margin-bottom: 24px;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(122, 46, 10, 0.35);
+  border: 1px solid rgba(255, 90, 31, 0.35);
+}
+
+.featured-offer-glow {
+  position: absolute;
+  top: -40%;
+  right: -8%;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(255, 90, 31, 0.35) 0%, rgba(255, 90, 31, 0) 70%);
+  pointer-events: none;
+  animation: featured-glow-pulse 4s ease-in-out infinite;
+}
+
+@keyframes featured-glow-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+.featured-offer-img {
+  position: relative;
+  z-index: 1;
+  width: 190px;
+  height: 190px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.featured-offer-info {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-width: 0;
+}
+
+.featured-offer-tag {
+  display: inline-flex;
+  align-items: center;
+  background: var(--gradient-brand);
+  color: #FFF;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-gold);
+  animation: featured-tag-pulse 2s ease-in-out infinite;
+}
+
+@keyframes featured-tag-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+.featured-offer-title {
+  color: #FFF;
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.25;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.featured-offer-desc {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  max-width: 560px;
+}
+
+.featured-offer-price {
+  font-size: 1.7rem;
+  font-weight: 900;
+  color: var(--accent-gold-light);
+}
+
+@media (max-width: 640px) {
+  .featured-offer-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px;
+  }
+  .featured-offer-img {
+    width: 100%;
+    height: 200px;
+  }
+  .featured-offer-title {
+    font-size: 1.3rem;
+  }
+}
+
 .carousel-box {
   background: var(--bg-card);
   border-radius: var(--radius-lg);
@@ -403,6 +514,13 @@ button {
   display: flex;
   align-items: center;
   gap: 24px;
+  position: relative;
+  animation: carousel-fade-in 0.5s ease;
+}
+
+@keyframes carousel-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .carousel-img {

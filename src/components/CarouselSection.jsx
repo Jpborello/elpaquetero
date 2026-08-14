@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Flame, ChevronLeft, ChevronRight, ShoppingCart, Tag } from 'lucide-react';
+import { Flame, ChevronLeft, ChevronRight, ShoppingCart, Tag, Sparkles } from 'lucide-react';
 
-export default function CarouselSection({ offers, topSeller, onAddToCart, onOpenDetail }) {
+export default function CarouselSection({ offers, featuredOffer, topSeller, onAddToCart, onOpenDetail }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Combine offers into slides
@@ -28,14 +28,53 @@ export default function CarouselSection({ offers, topSeller, onAddToCart, onOpen
 
   return (
     <section id="ofertas" className="carousel-section-container">
+
+      {/* Oferta Destacada: la UNA promo que el admin eligio empujar, fija y
+          bien grande arriba de todo, para que no se pierda entre las demas */}
+      {featuredOffer && (
+        <div className="featured-offer-banner">
+          <div className="featured-offer-glow" />
+          <img
+            src={featuredOffer.image_url}
+            alt={featuredOffer.name}
+            className="featured-offer-img"
+            onClick={() => onOpenDetail && onOpenDetail(featuredOffer)}
+            title="Ver detalle del producto"
+          />
+          <div className="featured-offer-info">
+            <span className="featured-offer-tag">
+              <Sparkles size={13} style={{ marginRight: '5px' }} /> Oferta Destacada
+            </span>
+            <h3
+              className="featured-offer-title"
+              onClick={() => onOpenDetail && onOpenDetail(featuredOffer)}
+              title="Ver detalle del producto"
+            >
+              {featuredOffer.name}
+            </h3>
+            {featuredOffer.description && (
+              <p className="featured-offer-desc">{featuredOffer.description}</p>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '18px' }}>
+              <span className="featured-offer-price">
+                ${featuredOffer.wholesale_price?.toLocaleString('es-AR')}
+              </span>
+              <button onClick={() => onAddToCart(featuredOffer)} className="btn-hero-primary">
+                <ShoppingCart size={16} /> Pedir esta Oferta
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="carousel-card-grid">
-        
+
         {/* Left Side: Offers & News Auto-Carousel */}
         <div className="carousel-box">
-          <div className="carousel-slide-content" style={{ position: 'relative' }}>
-            <img 
-              src={currentSlide.image_url} 
-              alt={currentSlide.name} 
+          <div className="carousel-slide-content" key={currentSlide.id}>
+            <img
+              src={currentSlide.image_url}
+              alt={currentSlide.name}
               className="carousel-img"
               onClick={() => onOpenDetail && onOpenDetail(currentSlide)}
               title="Ver detalle del producto"
@@ -62,9 +101,9 @@ export default function CarouselSection({ offers, topSeller, onAddToCart, onOpen
             </span>
             <div className="carousel-info">
               <span className="carousel-tag">
-                <Tag size={12} style={{ marginRight: '4px' }} /> Novedad & Oferta Especial
+                <Tag size={12} style={{ marginRight: '4px' }} /> Novedad & Oferta
               </span>
-              <h3 
+              <h3
                 className="carousel-title"
                 onClick={() => onOpenDetail && onOpenDetail(currentSlide)}
                 title="Ver detalle del producto"
@@ -73,13 +112,13 @@ export default function CarouselSection({ offers, topSeller, onAddToCart, onOpen
                 {currentSlide.name}
               </h3>
               <p className="carousel-desc">{currentSlide.description}</p>
-              
+
               <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                 <span className="price-wholesale-label">
                   ${currentSlide.wholesale_price?.toLocaleString('es-AR')}
                 </span>
-                <button 
-                  onClick={() => onAddToCart(currentSlide)} 
+                <button
+                  onClick={() => onAddToCart(currentSlide)}
                   className="btn-primary"
                 >
                   <ShoppingCart size={16} /> Pedir en Oferta
@@ -91,8 +130,8 @@ export default function CarouselSection({ offers, topSeller, onAddToCart, onOpen
           <div className="carousel-controls">
             <div className="carousel-dots">
               {slides.map((_, idx) => (
-                <div 
-                  key={idx} 
+                <div
+                  key={idx}
                   className={`dot ${idx === currentIndex ? 'active' : ''}`}
                   onClick={() => setCurrentIndex(idx)}
                 />
@@ -100,14 +139,14 @@ export default function CarouselSection({ offers, topSeller, onAddToCart, onOpen
             </div>
 
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button 
-                onClick={() => setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length)} 
+              <button
+                onClick={() => setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length)}
                 className="qty-btn"
               >
                 <ChevronLeft size={16} />
               </button>
-              <button 
-                onClick={() => setCurrentIndex((prev) => (prev + 1) % slides.length)} 
+              <button
+                onClick={() => setCurrentIndex((prev) => (prev + 1) % slides.length)}
                 className="qty-btn"
               >
                 <ChevronRight size={16} />
@@ -124,15 +163,15 @@ export default function CarouselSection({ offers, topSeller, onAddToCart, onOpen
             </div>
 
             <div>
-              <img 
-                src={topSeller.image_url} 
-                alt={topSeller.name} 
+              <img
+                src={topSeller.image_url}
+                alt={topSeller.name}
                 className="top-seller-img"
                 onClick={() => onOpenDetail && onOpenDetail(topSeller)}
                 title="Ver detalle del producto"
                 style={{ cursor: 'pointer' }}
               />
-              <h4 
+              <h4
                 className="top-seller-title"
                 onClick={() => onOpenDetail && onOpenDetail(topSeller)}
                 title="Ver detalle del producto"

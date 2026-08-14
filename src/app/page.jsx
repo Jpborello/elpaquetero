@@ -219,7 +219,8 @@ export default function Home() {
     return matchesCategory && matchesSubcategory && matchesSearch;
   });
 
-  const offers = dataStore.getOffers();
+  const featuredOffer = dataStore.getFeaturedOffer();
+  const offers = dataStore.getOffers().filter((p) => p.id !== featuredOffer?.id);
   const topSeller = dataStore.getTopSellingProduct();
 
   // Mismo top 5 que ya usa el admin en Metricas ("Mayor Rotacion"), para que
@@ -300,8 +301,9 @@ export default function Home() {
       />
 
       {/* Carousel Section (Offers & Top Seller) */}
-      <CarouselSection 
+      <CarouselSection
         offers={offers}
+        featuredOffer={featuredOffer}
         topSeller={topSeller}
         onAddToCart={handleAddToCart}
         onOpenDetail={setDetailProduct}

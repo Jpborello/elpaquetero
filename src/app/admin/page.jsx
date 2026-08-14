@@ -216,6 +216,21 @@ export default function AdminPage() {
     showSuccessNotice(`Precios incrementados un ${percentage}% correctamente.`);
   };
 
+  const handleToggleOffer = (id, isOffer) => {
+    dataStore.updateProduct(id, { is_offer: isOffer });
+    showSuccessNotice(isOffer ? 'Producto marcado en oferta.' : 'Producto sacado de oferta.');
+  };
+
+  const handleSetFeatured = (id) => {
+    dataStore.setFeaturedProduct(id);
+    showSuccessNotice('✓ Oferta Destacada actualizada. Ya se ve en el banner principal de la web.');
+  };
+
+  const handleUnsetFeatured = (id) => {
+    dataStore.unsetFeaturedProduct(id);
+    showSuccessNotice('Oferta Destacada quitada.');
+  };
+
   const handleAddCategory = (name, subcategories) => {
     dataStore.addCategory(name, subcategories);
     showSuccessNotice(`Categoría "${name}" agregada con éxito.`);
@@ -621,6 +636,9 @@ export default function AdminPage() {
           setSearchFilter={setSearchFilter}
           onUpdatePrice={handlePriceUpdate}
           onUpdatePricePercentage={handlePricePercentageUpdate}
+          onToggleOffer={handleToggleOffer}
+          onSetFeatured={handleSetFeatured}
+          onUnsetFeatured={handleUnsetFeatured}
         />
       )}
 
