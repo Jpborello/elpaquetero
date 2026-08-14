@@ -812,9 +812,12 @@ class DataStore {
       }
     }
 
-    // Update sales_count and stock for products
+    // Update sales_count and stock for products (se salta los items
+    // "fuera de catalogo" cargados a mano, que no existen en this.products)
     cartItems.forEach(item => {
-      this.decrementStockAfterSale(item.product.id, item.quantity);
+      if (this.products.some(p => p.id === item.product.id)) {
+        this.decrementStockAfterSale(item.product.id, item.quantity);
+      }
     });
 
     // Add cash movement

@@ -26,6 +26,8 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
   const [clientSearchQuery, setClientSearchQuery] = useState('');
   const [productSearchQuery, setProductSearchQuery] = useState('');
   const [newOrderItems, setNewOrderItems] = useState([]);
+  const [showCustomProductForm, setShowCustomProductForm] = useState(false);
+  const [customProduct, setCustomProduct] = useState({ name: '', price: '', size: '', color: '', quantity: 1 });
 
   // Real-time Sound & Visual Alert State
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -179,6 +181,8 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
     setNewOrderItems([]);
     setClientSearchQuery('');
     setProductSearchQuery('');
+    setShowCustomProductForm(false);
+    setCustomProduct({ name: '', price: '', size: '', color: '', quantity: 1 });
     setShowCreateOrder(true);
   };
 
@@ -228,6 +232,36 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
       }];
     });
     setProductSearchQuery('');
+  };
+
+  // Producto que todavia no esta cargado en el sistema (ej. mercaderia
+  // nueva). Se agrega con el mismo shape { product, quantity, variantKey }
+  // que un producto de catalogo, para que comanda, edicion y CSV lo traten igual.
+  const handleAddCustomProduct = () => {
+    const name = customProduct.name.trim();
+    const price = parseFloat(customProduct.price);
+    const quantity = Math.max(1, parseInt(customProduct.quantity, 10) || 1);
+    if (!name || !price || price <= 0) {
+      alert('Cargá un nombre y un precio válido para el producto.');
+      return;
+    }
+    const customId = `custom-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+    setNewOrderItems((prev) => [...prev, {
+      product: {
+        id: customId,
+        name,
+        wholesale_price: price,
+        price,
+        selectedSize: customProduct.size.trim() || null,
+        selectedColor: customProduct.color.trim() || null,
+        isCustom: true
+      },
+      quantity,
+      variantKey: customId
+    }]);
+    setCustomProduct({ name: '', price: '', size: '', color: '', quantity: 1 });
+    setShowCustomProductForm(false);
   };
 
   const handleChangeOrderItemVariant = (idx, field, value) => {
@@ -964,6 +998,69 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                   ))}
                 </div>
               )}
+
+              {!showCustomProductForm ? (
+                <button
+                  type="button"
+                  onClick={() => setShowCustomProductForm(true)}
+                  style={{ background: 'none', border: 'none', color: '#2563EB', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: '8px 2px' }}
+                >
+                  + Agregar producto que no está en el sistema
+                </button>
+              ) : (
+                <div style={{ marginTop: '8px', padding: '12px', border: '1px dashed #94A3B8', borderRadius: '8px', backgroundColor: '#F8FAFC' }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '8px' }}>
+                    Producto fuera de catálogo
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '8px' }}>
+                    <input
+                      type="text"
+                      placeholder="Nombre del producto"
+                      value={customProduct.name}
+                      onChange={(e) => setCustomProduct((p) => ({ ...p, name: e.target.value }))}
+                      style={{ padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }}
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="Precio unitario"
+                      value={customProduct.price}
+                      onChange={(e) => setCustomProduct((p) => ({ ...p, price: e.target.value }))}
+                      style={{ padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Talle (opcional)"
+                      value={customProduct.size}
+                      onChange={(e) => setCustomProduct((p) => ({ ...p, size: e.target.value }))}
+                      style={{ padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Color (opcional)"
+                      value={customProduct.color}
+                      onChange={(e) => setCustomProduct((p) => ({ ...p, color: e.target.value }))}
+                      style={{ padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }}
+                    />
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="Cantidad"
+                      value={customProduct.quantity}
+                      onChange={(e) => setCustomProduct((p) => ({ ...p, quantity: e.target.value }))}
+                      style={{ padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
+                    <button type="button" onClick={() => setShowCustomProductForm(false)} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>
+                      Cancelar
+                    </button>
+                    <button type="button" onClick={handleAddCustomProduct} className="btn-primary" style={{ padding: '6px 14px', fontSize: '0.8rem', backgroundColor: '#059669', borderColor: '#059669' }}>
+                      Agregar al Pedido
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Items agregados */}
@@ -974,8 +1071,19 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                 newOrderItems.map((item, idx) => (
                   <div key={item.variantKey || idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px', border: '1px solid var(--border-color)', borderRadius: '8px', flexWrap: 'wrap' }}>
                     <div style={{ flex: 1, minWidth: '140px' }}>
-                      <div style={{ fontWeight: 700, fontSize: '0.86rem', color: 'var(--text-main)' }}>{item.product?.name}</div>
-                      <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>${newOrderItemPrice(item).toLocaleString('es-AR')} c/u</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.86rem', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {item.product?.name}
+                        {item.product?.isCustom && (
+                          <span style={{ fontSize: '0.66rem', fontWeight: 800, color: '#B45309', backgroundColor: '#FEF3C7', padding: '1px 6px', borderRadius: '4px' }}>
+                            FUERA DE CATÁLOGO
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                        ${newOrderItemPrice(item).toLocaleString('es-AR')} c/u
+                        {item.product?.isCustom && (item.product.selectedSize || item.product.selectedColor) &&
+                          ` · ${[item.product.selectedSize ? `Talle ${item.product.selectedSize}` : null, item.product.selectedColor].filter(Boolean).join(' · ')}`}
+                      </div>
                     </div>
 
                     {item.availableSizes?.length > 0 && (
