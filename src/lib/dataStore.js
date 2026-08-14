@@ -310,7 +310,18 @@ class DataStore {
     this.setTransferDetails({ alias1: newAlias });
   }
 
-  // Visits Counter (Global y en tiempo real)
+  // Visits Counter (Hoy / Semana / Mes / Total, via tabla page_visits)
+  applyVisitStats(data) {
+    if (!data || typeof data.total !== 'number') return;
+    this.visitStats = { today: data.today || 0, week: data.week || 0, month: data.month || 0 };
+    this.visitCount = data.total;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('elpaquetero_visit_count', data.total.toString());
+      localStorage.setItem('elpaquetero_visit_stats', JSON.stringify(this.visitStats));
+    }
+    this.notify();
+  }
+
   recordVisit() {
     if (typeof window === 'undefined') return;
     try {
@@ -318,13 +329,7 @@ class DataStore {
         sessionStorage.setItem('elpaquetero_visit_counted', '1');
         fetch('/api/visit', { method: 'POST' })
           .then(res => res.json())
-          .then(data => {
-            if (data && typeof data.count === 'number') {
-              this.visitCount = data.count;
-              localStorage.setItem('elpaquetero_visit_count', data.count.toString());
-              this.notify();
-            }
-          })
+          .then(data => this.applyVisitStats(data))
           .catch(() => {});
       } else {
         this.fetchVisitCountFromSupabase();
@@ -338,22 +343,24 @@ class DataStore {
     if (typeof window === 'undefined') return;
     try {
       const res = await fetch('/api/visit');
-      if (res.ok) {
-        const data = await res.json();
-        if (data && typeof data.count === 'number') {
-          this.visitCount = data.count;
-          localStorage.setItem('elpaquetero_visit_count', data.count.toString());
-          this.notify();
-        }
-      }
+      if (res.ok) this.applyVisitStats(await res.json());
     } catch (err) {}
   }
 
   getVisitCount() {
     if (typeof window !== 'undefined' && !this.visitCount) {
-      this.visitCount = parseInt(localStorage.getItem('elpaquetero_visit_count') || '156', 10);
+      this.visitCount = parseInt(localStorage.getItem('elpaquetero_visit_count') || '0', 10);
     }
-    return this.visitCount || 156;
+    return this.visitCount || 0;
+  }
+
+  getVisitStats() {
+    if (typeof window !== 'undefined' && !this.visitStats) {
+      try {
+        this.visitStats = JSON.parse(localStorage.getItem('elpaquetero_visit_stats') || 'null');
+      } catch (e) {}
+    }
+    return this.visitStats || { today: 0, week: 0, month: 0 };
   }
 
   getCategories() {
@@ -1028,13 +1035,25 @@ class DataStore {
 
     const paidOrders = this.orders.filter(o => o.status === 'aprobado' || o.status === 'enviado');
 
-    const sumOrdersSince = (sinceTs) => paidOrders
-      .filter(o => new Date(o.created_at).getTime() >= sinceTs)
-      .reduce((sum, o) => sum + (o.total_amount || 0), 0);
+    const ordersSince = (sinceTs) => paidOrders.filter(o => new Date(o.created_at).getTime() >= sinceTs);
+    const sumOrdersSince = (sinceTs) => ordersSince(sinceTs).reduce((sum, o) => sum + (o.total_amount || 0), 0);
 
     const dailyCash = sumOrdersSince(startOfDay);
     const weeklyCash = sumOrdersSince(startOfWeek);
     const monthlyCash = sumOrdersSince(startOfMonth);
+
+    const ordersCountToday = ordersSince(startOfDay).length;
+    const ordersCountWeek = ordersSince(startOfWeek).length;
+    const ordersCountMonth = ordersSince(startOfMonth).length;
+
+    const visitStats = this.getVisitStats();
+    const conversionRate = (ordersCount, visits) => (visits > 0 ? (ordersCount / visits) * 100 : 0);
+
+    const ordersByStatus = this.orders.reduce((acc, o) => {
+      const status = o.status || 'pendiente';
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {});
 
     const topRotationProducts = [...this.products]
       .sort((a, b) => b.sales_count - a.sales_count)
@@ -1049,6 +1068,14 @@ class DataStore {
       topRotationProducts,
       totalStockCount,
       visitCount: this.getVisitCount(),
+      visitToday: visitStats.today,
+      visitWeek: visitStats.week,
+      visitMonth: visitStats.month,
+      conversionToday: conversionRate(ordersCountToday, visitStats.today),
+      conversionWeek: conversionRate(ordersCountWeek, visitStats.week),
+      conversionMonth: conversionRate(ordersCountMonth, visitStats.month),
+      avgOrderValue: ordersCountMonth > 0 ? monthlyCash / ordersCountMonth : 0,
+      ordersByStatus,
       totalOrders: this.orders.length
     };
   }

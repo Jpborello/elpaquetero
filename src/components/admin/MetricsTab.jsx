@@ -1,6 +1,16 @@
 'use client';
 
-import { Calendar, TrendingUp, Eye } from 'lucide-react';
+import { Calendar, TrendingUp, Eye, Percent, Wallet, ListChecks } from 'lucide-react';
+
+const ORDER_STATUS_META = {
+  pendiente: { label: 'Pendiente', bg: '#FEF3C7', color: '#92400E' },
+  comprobante_subido: { label: 'Comprobante Subido', bg: '#EDE9FE', color: '#6D28D9' },
+  aprobado: { label: 'Aprobado', bg: '#ECFDF5', color: '#047857' },
+  enviado: { label: 'Enviado', bg: '#EFF6FF', color: '#1D4ED8' },
+  cancelado: { label: 'Cancelado', bg: '#FEE2E2', color: '#B91C1C' }
+};
+
+const formatPercent = (value) => `${(value || 0).toLocaleString('es-AR', { maximumFractionDigits: 1 })}%`;
 
 export default function MetricsTab({ metrics }) {
   return (
@@ -44,12 +54,83 @@ export default function MetricsTab({ metrics }) {
 
         <div className="metric-card" style={{ borderLeft: '4px solid #2563EB' }}>
           <div className="metric-label">
-            <Eye size={14} style={{ display: 'inline', marginRight: '4px', color: '#2563EB' }} /> Visitas a la Web
+            <Eye size={14} style={{ display: 'inline', marginRight: '4px', color: '#2563EB' }} /> Visitas Totales
           </div>
           <div className="metric-value" style={{ color: '#2563EB' }}>
             👁️ {metrics.visitCount?.toLocaleString('es-AR') || 0}
           </div>
         </div>
+
+        <div className="metric-card">
+          <div className="metric-label">
+            <Wallet size={14} style={{ display: 'inline', marginRight: '4px' }} /> Ticket Promedio (Mes)
+          </div>
+          <div className="metric-value">
+            ${Math.round(metrics.avgOrderValue || 0).toLocaleString('es-AR')}
+          </div>
+        </div>
+      </div>
+
+      {/* Conversion Funnel: Visitas -> Pedidos Aprobados, por periodo */}
+      <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: '32px 0 16px 0' }}>
+        <Percent size={20} style={{ display: 'inline', marginRight: '6px', color: 'var(--accent-emerald)' }} />
+        Conversión (Visitas → Pedidos Aprobados)
+      </h2>
+
+      <div className="metrics-cards-grid">
+        <div className="metric-card">
+          <div className="metric-label">Conversión Hoy</div>
+          <div className="metric-value">{formatPercent(metrics.conversionToday)}</div>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+            {metrics.visitToday || 0} visitas hoy
+          </div>
+        </div>
+
+        <div className="metric-card">
+          <div className="metric-label">Conversión Semana</div>
+          <div className="metric-value">{formatPercent(metrics.conversionWeek)}</div>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+            {metrics.visitWeek || 0} visitas esta semana
+          </div>
+        </div>
+
+        <div className="metric-card">
+          <div className="metric-label">Conversión Mes</div>
+          <div className="metric-value">{formatPercent(metrics.conversionMonth)}</div>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+            {metrics.visitMonth || 0} visitas este mes
+          </div>
+        </div>
+      </div>
+
+      {/* Pedidos agrupados por estado, para ver donde se traban */}
+      <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: '32px 0 16px 0' }}>
+        <ListChecks size={20} style={{ display: 'inline', marginRight: '6px', color: 'var(--accent-emerald)' }} />
+        Pedidos por Estado
+      </h2>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '8px' }}>
+        {Object.entries(ORDER_STATUS_META).map(([status, meta]) => (
+          <div
+            key={status}
+            style={{
+              backgroundColor: meta.bg,
+              color: meta.color,
+              padding: '10px 16px',
+              borderRadius: 'var(--radius-md)',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            {meta.label}
+            <span style={{ fontWeight: 900, fontSize: '1rem' }}>
+              {metrics.ordersByStatus?.[status] || 0}
+            </span>
+          </div>
+        ))}
       </div>
 
       {/* Product Rotation Ranking */}

@@ -703,17 +703,8 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
 
       {/* UNIVERSAL PRINTABLE ORDER TICKET / COMANDA MODAL */}
       {selectedPrintOrder && (() => {
-        const itemCount = selectedPrintOrder.items?.length || 0;
-        // Pedidos chicos: las 2 copias van lado a lado en la misma hoja A4.
-        // Pedidos con muchos items: cada copia en su propia hoja, para no
-        // achicar la tabla y perder legibilidad para el armador.
-        const useSideBySide = itemCount > 0 && itemCount <= 6;
-        const layoutClass = useSideBySide ? 'side-by-side' : 'stacked-pages';
-
-        const renderTicketBody = (copyLabel) => (
+        const renderTicketBody = () => (
           <>
-            <div className="copy-label-stamp">{copyLabel}</div>
-
             {/* Header */}
             <div className="ticket-header">
               <h1 className="company-title">EL PAQUETERO</h1>
@@ -909,24 +900,9 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                 </div>
               </div>
 
-              {selectedPrintOrder.status === 'aprobado' && (
-                <div className="no-print" style={{ fontSize: '0.78rem', color: '#059669', fontWeight: 700, marginBottom: '16px' }}>
-                  🖨️ Se van a imprimir 2 copias (Armador y Cliente) — {useSideBySide ? 'lado a lado en la misma hoja A4' : 'cada una en su propia hoja, por la cantidad de prendas del pedido'}.
-                </div>
-              )}
-
               {/* PRINTABLE TICKET CONTENT AREA - UNIVERSAL HIGH CONTRAST FORMAT */}
               <div id="printable-order-ticket">
-                {/* Vista previa en pantalla: una sola copia, para revisar antes de imprimir */}
-                <div className="screen-only-ticket">
-                  {renderTicketBody('VISTA PREVIA')}
-                </div>
-
-                {/* Lo que realmente sale impreso: 2 copias, en el layout que corresponda */}
-                <div className={`print-duplicate-wrap ${layoutClass}`}>
-                  <div className="ticket-copy">{renderTicketBody('COPIA ARMADOR — DEPÓSITO')}</div>
-                  <div className="ticket-copy">{renderTicketBody('COPIA CLIENTE')}</div>
-                </div>
+                {renderTicketBody()}
               </div>
             </div>
           </div>
@@ -1040,16 +1016,6 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
           border-radius: 4px;
           font-size: 0.78rem;
         }
-        .copy-label-stamp {
-          display: none;
-        }
-
-        /* La copia doble (Armador + Cliente) solo existe para impresion.
-           En pantalla se ve una unica vista previa normal. */
-        .print-duplicate-wrap {
-          display: none;
-        }
-
         /* PRINT MEDIA DIRECTIVES (UNIVERSAL COMPATIBILITY) */
         @media print {
           body * {
@@ -1100,67 +1066,6 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
           }
           .ticket-table th {
             background-color: transparent !important;
-          }
-
-          /* En pantalla se oculta la vista previa unica; en impresion se
-             oculta y en su lugar se muestran las 2 copias reales. */
-          .screen-only-ticket {
-            display: none !important;
-          }
-          .print-duplicate-wrap {
-            display: flex !important;
-          }
-          .copy-label-stamp {
-            display: block !important;
-            font-size: 0.7rem;
-            font-weight: 900;
-            letter-spacing: 0.5px;
-            text-align: center;
-            background-color: #0F172A !important;
-            color: #FFFFFF !important;
-            padding: 3px 6px;
-            border-radius: 3px;
-            margin-bottom: 6px;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-          }
-
-          /* Pedido chico: 2 copias lado a lado en la misma hoja A4 */
-          .print-duplicate-wrap.side-by-side {
-            flex-direction: row;
-            align-items: flex-start;
-          }
-          .print-duplicate-wrap.side-by-side .ticket-copy {
-            width: 50%;
-            box-sizing: border-box;
-            padding: 0 10px;
-          }
-          .print-duplicate-wrap.side-by-side .ticket-copy:first-child {
-            border-right: 2px dashed #64748B;
-          }
-          .print-duplicate-wrap.side-by-side .ticket-table {
-            font-size: 0.66rem;
-          }
-          .print-duplicate-wrap.side-by-side .company-title {
-            font-size: 1.15rem;
-          }
-          .print-duplicate-wrap.side-by-side .grand-total {
-            font-size: 1.1rem;
-          }
-          .print-duplicate-wrap.side-by-side .client-info-box,
-          .print-duplicate-wrap.side-by-side .warehouse-checks {
-            font-size: 0.72rem;
-          }
-
-          /* Pedido con varios items: cada copia en su propia hoja A4 completa */
-          .print-duplicate-wrap.stacked-pages {
-            flex-direction: column;
-          }
-          .print-duplicate-wrap.stacked-pages .ticket-copy {
-            width: 100%;
-          }
-          .print-duplicate-wrap.stacked-pages .ticket-copy:first-child {
-            page-break-after: always;
           }
         }
       `}</style>
