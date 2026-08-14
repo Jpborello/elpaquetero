@@ -585,6 +585,28 @@ class DataStore {
     }
   }
 
+  // Reversa de decrementStockAfterSale: se llama cuando un pedido se
+  // cancela, para devolver el stock que se habia descontado al crearlo
+  // (el descuento pasa al crear el pedido, no cuando se aprueba el pago).
+  restoreStockAfterCancel(id, qty) {
+    if (!qty || qty <= 0) return;
+
+    this.products = this.products.map(p => {
+      if (p.id !== id) return p;
+      return {
+        ...p,
+        stock: (p.stock || 0) + qty,
+        sales_count: Math.max(0, (p.sales_count || 0) - qty)
+      };
+    });
+    this.saveProductsToLocalStorage();
+    this.notify();
+
+    if (supabase) {
+      supabase.rpc('restore_product_stock', { p_product_id: id, p_qty: qty }).then(() => {}).catch(() => {});
+    }
+  }
+
   updatePrice(id, newPrice, newWholesalePrice) {
     this.updateProduct(id, { 
       price: parseFloat(newPrice) || 0, 
@@ -872,11 +894,25 @@ class DataStore {
   }
 
   updateOrderStatus(orderId, newStatus) {
+    const existingOrder = this.orders.find(o => o.id === orderId);
+    const wasAlreadyCancelled = existingOrder?.status === 'cancelado';
+
     this.orders = this.orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o);
     this.notify();
 
     if (supabase) {
       supabase.from('orders').update({ status: newStatus }).eq('id', orderId).then(() => {}).catch(() => {});
+    }
+
+    // El stock se descuenta al CREAR el pedido, no al aprobar el pago, asi
+    // que si se cancela hay que devolverlo (solo la primera vez que pasa a
+    // cancelado, para no duplicar la devolucion si lo cancelan de nuevo).
+    if (newStatus === 'cancelado' && !wasAlreadyCancelled && existingOrder?.items) {
+      existingOrder.items.forEach((item) => {
+        if (item.product?.id && this.products.some((p) => p.id === item.product.id)) {
+          this.restoreStockAfterCancel(item.product.id, item.quantity);
+        }
+      });
     }
   }
 

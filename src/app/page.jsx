@@ -14,7 +14,8 @@ import WholesaleBanner from '@/components/WholesaleBanner';
 import TrustBar from '@/components/TrustBar';
 import ProductDetailModal from '@/components/ProductDetailModal';
 import { dataStore, CATEGORIES } from '@/lib/dataStore';
-import { Store, Phone, MapPin, Instagram } from 'lucide-react';
+import { Store, Phone, MapPin, Instagram, PackageSearch } from 'lucide-react';
+import Link from 'next/link';
 
 const CART_STORAGE_KEY = 'elpaquetero_cart';
 const PRODUCTS_PER_PAGE = 24;
@@ -221,6 +222,16 @@ export default function Home() {
   const offers = dataStore.getOffers();
   const topSeller = dataStore.getTopSellingProduct();
 
+  // Mismo top 5 que ya usa el admin en Metricas ("Mayor Rotacion"), para que
+  // el sello "Mas Vendido" en la grilla coincida con ese ranking.
+  const topSellingIds = new Set(
+    [...products]
+      .filter((p) => (p.sales_count || 0) > 0)
+      .sort((a, b) => b.sales_count - a.sales_count)
+      .slice(0, 5)
+      .map((p) => p.id)
+  );
+
   const totalCartItemsCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const cartSubtotal = cartItems.reduce((sum, item) => {
     const p = item.product.wholesale_price || item.product.price || 0;
@@ -314,6 +325,7 @@ export default function Home() {
           onAddToCart={handleAddToCart}
           isWholesaleQualified={isWholesaleQualified}
           onOpenDetail={setDetailProduct}
+          topSellingIds={topSellingIds}
         />
 
         {filteredProducts.length > 0 && (
@@ -429,6 +441,9 @@ export default function Home() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Phone size={16} /> 341 532-6592</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><MapPin size={16} /> Camilo Aldao 2715 esq. ex Godoy (Rosario - Santa Fe)</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Store size={16} /> Atención Lunes a Sábado de 8:00 a 16:30 hs</div>
+              <Link href="/pedido" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-gold-light)', fontWeight: 700, textDecoration: 'none' }}>
+                <PackageSearch size={16} /> Rastreá tu Pedido
+              </Link>
             </div>
           </div>
 

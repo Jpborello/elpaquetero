@@ -712,10 +712,18 @@ button {
   transform: scale(1.05);
 }
 
-.card-badge-offer {
+.card-badges-topleft {
   position: absolute;
   top: 10px;
   left: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  z-index: 3;
+}
+
+.card-badge-offer {
   background-color: var(--accent-crimson);
   color: #FFF;
   font-size: 0.7rem;
@@ -723,6 +731,17 @@ button {
   padding: 3px 8px;
   border-radius: var(--radius-sm);
   text-transform: uppercase;
+}
+
+.card-badge-bestseller {
+  background-color: #B45309;
+  color: #FFF;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .card-badge-wholesale {

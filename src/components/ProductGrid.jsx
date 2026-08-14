@@ -6,7 +6,7 @@ import { ShoppingCart, Sparkles, Palette, Share2, Check } from 'lucide-react';
 import { getProductColors } from '@/lib/catalogData';
 import { shareProduct } from '@/lib/shareProduct';
 
-export default function ProductGrid({ products, onAddToCart, isWholesaleQualified = false, onOpenDetail }) {
+export default function ProductGrid({ products, onAddToCart, isWholesaleQualified = false, onOpenDetail, topSellingIds }) {
   // Store selected size/color per product id: { [productId]: string }
   const [selectedSizes, setSelectedSizes] = useState({});
   const [selectedColors, setSelectedColors] = useState({});
@@ -89,7 +89,10 @@ export default function ProductGrid({ products, onAddToCart, isWholesaleQualifie
                 ⭐ EL PAQUETERO
               </div>
 
-              {product.is_offer && <span className="card-badge-offer">Oferta</span>}
+              <div className="card-badges-topleft">
+                {product.is_offer && <span className="card-badge-offer">Oferta</span>}
+                {topSellingIds?.has(product.id) && <span className="card-badge-bestseller">🔥 Más Vendido</span>}
+              </div>
               <span className="card-badge-wholesale">
                 Precio Mayorista
               </span>

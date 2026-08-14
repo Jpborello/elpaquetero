@@ -181,6 +181,8 @@ export default function CartDrawer({
       message += `📌 *Comprobante de pago adjuntado en sistema.*\n`;
     }
 
+    message += `\n🔎 Podés rastrear tu pedido en cualquier momento en: https://www.elpaquetero.com.ar/pedido (con tu N° de pedido y tu teléfono)\n`;
+
     // Check Business Hours (Mon-Sat 8:00 to 16:30 Argentina Time)
     try {
       const now = new Date();
