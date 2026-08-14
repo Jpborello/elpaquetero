@@ -63,6 +63,11 @@ export default function Home() {
     deepLinkHandledRef.current = true;
   }, [products]);
 
+  // Cada combinacion de producto + talle + color es una linea de carrito
+  // distinta, para no perder el talle/color elegido cuando el cliente agrega
+  // varias variantes del mismo producto.
+  const getVariantKey = (product) => `${product.id}::${product.selectedSize || ''}::${product.selectedColor || ''}`;
+
   // Restaurar el carrito guardado (una vez que ya tenemos productos para
   // validar contra precio/stock actual) para que no se pierda al refrescar.
   useEffect(() => {
@@ -73,9 +78,10 @@ export default function Home() {
         const savedTuples = JSON.parse(raw);
         const restored = (Array.isArray(savedTuples) ? savedTuples : [])
           .map((t) => {
-            const product = products.find((p) => p.id === t.id);
-            if (!product) return null;
-            return { product: { ...product, selectedSize: t.selectedSize || null }, quantity: t.quantity || 1 };
+            const baseProduct = products.find((p) => p.id === t.id);
+            if (!baseProduct) return null;
+            const product = { ...baseProduct, selectedSize: t.selectedSize || null, selectedColor: t.selectedColor || null };
+            return { product, quantity: t.quantity || 1, variantKey: getVariantKey(product) };
           })
           .filter(Boolean);
         if (restored.length > 0) setCartItems(restored);
@@ -100,7 +106,8 @@ export default function Home() {
       const tuples = cartItems.map((item) => ({
         id: item.product.id,
         quantity: item.quantity,
-        selectedSize: item.product.selectedSize || null
+        selectedSize: item.product.selectedSize || null,
+        selectedColor: item.product.selectedColor || null
       }));
       window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(tuples));
     } catch (e) {
@@ -109,11 +116,6 @@ export default function Home() {
   }, [cartItems, cartHydrated]);
 
   // Cart operations
-  // Cada combinacion de producto + talle + color es una linea de carrito
-  // distinta, para no perder el talle/color elegido cuando el cliente agrega
-  // varias variantes del mismo producto.
-  const getVariantKey = (product) => `${product.id}::${product.selectedSize || ''}::${product.selectedColor || ''}`;
-
   const handleAddToCart = (product) => {
     const variantKey = getVariantKey(product);
     setCartItems((prev) => {

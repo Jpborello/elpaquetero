@@ -736,7 +736,9 @@ class DataStore {
   }
 
   // Create Order & Generate Raffle Tickets for REGISTERED purchases >= $50.000
-  createOrder(cartItems, clientDetails) {
+  // setActiveOrder=false para pedidos armados por el admin (no es la sesion
+  // del cliente, no tiene que pisarle el "pedido activo" del carrito propio).
+  createOrder(cartItems, clientDetails, { setActiveOrder = true } = {}) {
     const total = cartItems.reduce((sum, item) => {
       const itemPrice = item.product.wholesale_price || item.product.price || 0;
       return sum + (itemPrice * item.quantity);
@@ -775,9 +777,11 @@ class DataStore {
     };
 
     // Store active order in memory and localStorage so it never disappears
-    this.activeOrder = order;
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('elpaquetero_active_order', JSON.stringify(order));
+    if (setActiveOrder) {
+      this.activeOrder = order;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('elpaquetero_active_order', JSON.stringify(order));
+      }
     }
 
     // Save client info to wholesale_clients

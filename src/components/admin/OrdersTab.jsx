@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { RefreshCw, Image as ImageIcon, ExternalLink, X, Eye, Download, Trash2, Printer, Bell, BellOff, CheckCircle2, Sparkles, Pencil, Minus, Plus } from 'lucide-react';
+import { RefreshCw, Image as ImageIcon, ExternalLink, X, Eye, Download, Trash2, Printer, Bell, BellOff, CheckCircle2, Sparkles, Pencil, Minus, Plus, UserPlus } from 'lucide-react';
 import { dataStore } from '@/lib/dataStore';
+import { getProductColors } from '@/lib/catalogData';
 
 // Techo de repeticiones del timbre para que no suene para siempre si
 // el pedido se queda sin atender (10 veces cada 6s = 1 minuto de aviso).
@@ -17,6 +18,14 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
   // Edicion de pedido (sacar/bajar cantidad de productos y recalcular el total)
   const [editingOrder, setEditingOrder] = useState(null);
   const [editItems, setEditItems] = useState([]);
+
+  // Crear pedido manual (ej. cliente que ya compro y ahora pide mas por
+  // telefono/WhatsApp, sin pasar por el checkout de la web)
+  const [showCreateOrder, setShowCreateOrder] = useState(false);
+  const [newOrderClient, setNewOrderClient] = useState({ name: '', phone: '', dni: '', locality: '', address: '', deliveryMethod: 'envio', isRegistered: false });
+  const [clientSearchQuery, setClientSearchQuery] = useState('');
+  const [productSearchQuery, setProductSearchQuery] = useState('');
+  const [newOrderItems, setNewOrderItems] = useState([]);
 
   // Real-time Sound & Visual Alert State
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -161,6 +170,111 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
     setCleanNotice(`✓ Pedido #${editingOrder.id} modificado. Nuevo total: $${newTotal.toLocaleString('es-AR')}.`);
     setTimeout(() => setCleanNotice(''), 5000);
     closeEditOrder();
+  };
+
+  // Crear pedido manual desde el admin (ej. clienta que ya compro antes y
+  // ahora pide mas por telefono, sin pasar por el checkout de la web)
+  const openCreateOrder = () => {
+    setNewOrderClient({ name: '', phone: '', dni: '', locality: '', address: '', deliveryMethod: 'envio', isRegistered: false });
+    setNewOrderItems([]);
+    setClientSearchQuery('');
+    setProductSearchQuery('');
+    setShowCreateOrder(true);
+  };
+
+  const closeCreateOrder = () => setShowCreateOrder(false);
+
+  const matchingClients = clientSearchQuery.trim().length >= 2
+    ? dataStore.getClientsWithStats().filter((c) =>
+        c.name?.toLowerCase().includes(clientSearchQuery.toLowerCase()) ||
+        c.phone?.includes(clientSearchQuery)
+      ).slice(0, 6)
+    : [];
+
+  const handleSelectExistingClient = (client) => {
+    setNewOrderClient((prev) => ({
+      ...prev,
+      name: client.name || '',
+      phone: client.phone || '',
+      dni: client.dni && client.dni !== 'Sin especificar' ? client.dni : '',
+      locality: client.locality && client.locality !== 'Sin especificar' ? client.locality : '',
+      isRegistered: Boolean(client.is_registered)
+    }));
+    setClientSearchQuery('');
+  };
+
+  const matchingProducts = productSearchQuery.trim().length >= 2
+    ? dataStore.getProducts().filter((p) => p.name?.toLowerCase().includes(productSearchQuery.toLowerCase())).slice(0, 8)
+    : [];
+
+  const handleAddProductToOrder = (product) => {
+    const availableSizes = Array.isArray(product.sizes) ? product.sizes : [];
+    const availableColors = getProductColors(product) || [];
+    const selectedSize = availableSizes[0] || null;
+    const selectedColor = availableColors[0] || null;
+    const variantKey = `${product.id}::${selectedSize || ''}::${selectedColor || ''}`;
+
+    setNewOrderItems((prev) => {
+      const existing = prev.find((it) => it.variantKey === variantKey);
+      if (existing) {
+        return prev.map((it) => (it.variantKey === variantKey ? { ...it, quantity: it.quantity + 1 } : it));
+      }
+      return [...prev, {
+        product: { ...product, selectedSize, selectedColor },
+        quantity: 1,
+        variantKey,
+        availableSizes,
+        availableColors
+      }];
+    });
+    setProductSearchQuery('');
+  };
+
+  const handleChangeOrderItemVariant = (idx, field, value) => {
+    setNewOrderItems((prev) => prev.map((it, i) => {
+      if (i !== idx) return it;
+      const updatedProduct = { ...it.product, [field]: value };
+      return { ...it, product: updatedProduct, variantKey: `${updatedProduct.id}::${updatedProduct.selectedSize || ''}::${updatedProduct.selectedColor || ''}` };
+    }));
+  };
+
+  const handleNewOrderQtyChange = (idx, qty) => {
+    const safeQty = Math.max(0, Number.isFinite(qty) ? qty : 0);
+    setNewOrderItems((prev) => prev.map((it, i) => (i === idx ? { ...it, quantity: safeQty } : it)));
+  };
+
+  const handleRemoveNewOrderItem = (idx) => {
+    setNewOrderItems((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const newOrderItemPrice = (item) => item.product?.wholesale_price || item.product?.price || 0;
+  const newOrderTotal = newOrderItems.reduce((sum, it) => sum + newOrderItemPrice(it) * (it.quantity || 0), 0);
+
+  const handleSubmitCreateOrder = () => {
+    const { name, phone, dni, locality, address, deliveryMethod, isRegistered } = newOrderClient;
+    if (!name.trim() || !phone.trim() || !dni.trim() || !locality.trim()) {
+      alert('Completá nombre, teléfono, DNI/CUIT y localidad del cliente.');
+      return;
+    }
+    const cleanedItems = newOrderItems.filter((it) => (it.quantity || 0) > 0);
+    if (cleanedItems.length === 0) {
+      alert('Agregá al menos un producto al pedido.');
+      return;
+    }
+
+    const order = dataStore.createOrder(cleanedItems, {
+      name: name.trim(),
+      phone: phone.trim(),
+      dni: dni.trim(),
+      locality: locality.trim(),
+      address: address.trim(),
+      isRegistered,
+      deliveryMethod: deliveryMethod === 'envio' ? 'Envío a Domicilio / Transporte' : 'Retiro por Sucursal (Camilo Aldao 2715)'
+    }, { setActiveOrder: false });
+
+    setCleanNotice(`✓ Pedido ${order.id} creado para ${name.trim()}. Total: $${order.total_amount.toLocaleString('es-AR')}.`);
+    setTimeout(() => setCleanNotice(''), 5000);
+    closeCreateOrder();
   };
 
   const handleExportCSV = () => {
@@ -362,7 +476,15 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
         </div>
 
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <button 
+          <button
+            onClick={openCreateOrder}
+            className="btn-primary"
+            style={{ fontSize: '0.82rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#059669', borderColor: '#059669' }}
+          >
+            <UserPlus size={14} /> Crear Pedido Manual
+          </button>
+
+          <button
             onClick={handleExportCSV}
             className="btn-secondary"
             style={{ fontSize: '0.82rem', padding: '6px 12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
@@ -695,6 +817,230 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                 style={{ padding: '8px 18px', fontSize: '0.85rem', backgroundColor: '#059669', borderColor: '#059669' }}
               >
                 Guardar Cambios
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CREAR PEDIDO MANUAL (cliente que pide por telefono/WhatsApp) */}
+      {showCreateOrder && (
+        <div className="no-print" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <div style={{
+            backgroundColor: '#FFFFFF',
+            borderRadius: '12px',
+            maxWidth: '680px',
+            width: '100%',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            padding: '24px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)',
+            position: 'relative'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                  Crear Pedido Manual
+                </h3>
+                <p style={{ fontSize: '0.82rem', color: '#64748B', margin: '4px 0 0' }}>
+                  Para pedidos que llegan por teléfono o WhatsApp, o para sumarle productos a una clienta que ya compró.
+                </p>
+              </div>
+              <button
+                onClick={closeCreateOrder}
+                style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', flexShrink: 0 }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Datos del cliente */}
+            <div style={{ marginTop: '16px' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>
+                Buscar cliente ya registrado (nombre o teléfono)
+              </label>
+              <input
+                type="text"
+                value={clientSearchQuery}
+                onChange={(e) => setClientSearchQuery(e.target.value)}
+                placeholder="Ej: María, o 3415..."
+                style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }}
+              />
+              {matchingClients.length > 0 && (
+                <div style={{ border: '1px solid var(--border-color)', borderRadius: '8px', marginTop: '4px', overflow: 'hidden' }}>
+                  {matchingClients.map((c) => (
+                    <button
+                      key={c.phone || c.name}
+                      type="button"
+                      onClick={() => handleSelectExistingClient(c)}
+                      style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 10px', fontSize: '0.82rem', background: '#FFF', border: 'none', borderBottom: '1px solid #F1F5F9', cursor: 'pointer' }}
+                    >
+                      <strong>{c.name}</strong> — {c.phone} {c.locality ? `· ${c.locality}` : ''}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '12px' }}>
+              <div>
+                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>Nombre completo</label>
+                <input type="text" value={newOrderClient.name} onChange={(e) => setNewOrderClient((p) => ({ ...p, name: e.target.value }))} style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>Teléfono</label>
+                <input type="text" value={newOrderClient.phone} onChange={(e) => setNewOrderClient((p) => ({ ...p, phone: e.target.value }))} style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>DNI / CUIT</label>
+                <input type="text" value={newOrderClient.dni} onChange={(e) => setNewOrderClient((p) => ({ ...p, dni: e.target.value }))} style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>Localidad</label>
+                <input type="text" value={newOrderClient.locality} onChange={(e) => setNewOrderClient((p) => ({ ...p, locality: e.target.value }))} style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }} />
+              </div>
+            </div>
+
+            <div style={{ marginTop: '10px' }}>
+              <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>Método de entrega</label>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <label style={{ fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                  <input type="radio" checked={newOrderClient.deliveryMethod === 'envio'} onChange={() => setNewOrderClient((p) => ({ ...p, deliveryMethod: 'envio' }))} />
+                  🚚 Envío a Domicilio
+                </label>
+                <label style={{ fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                  <input type="radio" checked={newOrderClient.deliveryMethod === 'retiro'} onChange={() => setNewOrderClient((p) => ({ ...p, deliveryMethod: 'retiro' }))} />
+                  🏬 Retiro por Sucursal
+                </label>
+              </div>
+              {newOrderClient.deliveryMethod === 'envio' && (
+                <input
+                  type="text"
+                  value={newOrderClient.address}
+                  onChange={(e) => setNewOrderClient((p) => ({ ...p, address: e.target.value }))}
+                  placeholder="Dirección de envío"
+                  style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box', marginTop: '6px' }}
+                />
+              )}
+            </div>
+
+            {/* Buscador de productos */}
+            <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '1px solid #E2E8F0' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>
+                Buscar producto para agregar
+              </label>
+              <input
+                type="text"
+                value={productSearchQuery}
+                onChange={(e) => setProductSearchQuery(e.target.value)}
+                placeholder="Ej: remera, jean, campera..."
+                style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }}
+              />
+              {matchingProducts.length > 0 && (
+                <div style={{ border: '1px solid var(--border-color)', borderRadius: '8px', marginTop: '4px', overflow: 'hidden' }}>
+                  {matchingProducts.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => handleAddProductToOrder(p)}
+                      style={{ display: 'flex', justifyContent: 'space-between', width: '100%', textAlign: 'left', padding: '8px 10px', fontSize: '0.82rem', background: '#FFF', border: 'none', borderBottom: '1px solid #F1F5F9', cursor: 'pointer' }}
+                    >
+                      <span>{p.name}</span>
+                      <strong style={{ color: '#059669' }}>${(p.wholesale_price || p.price)?.toLocaleString('es-AR')}</strong>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Items agregados */}
+            <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {newOrderItems.length === 0 ? (
+                <p style={{ fontSize: '0.85rem', color: '#94A3B8', textAlign: 'center', padding: '16px' }}>Todavía no agregaste productos.</p>
+              ) : (
+                newOrderItems.map((item, idx) => (
+                  <div key={item.variantKey || idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px', border: '1px solid var(--border-color)', borderRadius: '8px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, minWidth: '140px' }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.86rem', color: 'var(--text-main)' }}>{item.product?.name}</div>
+                      <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>${newOrderItemPrice(item).toLocaleString('es-AR')} c/u</div>
+                    </div>
+
+                    {item.availableSizes?.length > 0 && (
+                      <select
+                        value={item.product.selectedSize || ''}
+                        onChange={(e) => handleChangeOrderItemVariant(idx, 'selectedSize', e.target.value)}
+                        style={{ padding: '5px 6px', fontSize: '0.78rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}
+                      >
+                        {item.availableSizes.map((s) => <option key={s} value={s}>Talle {s}</option>)}
+                      </select>
+                    )}
+
+                    {item.availableColors?.length > 0 && (
+                      <select
+                        value={item.product.selectedColor || ''}
+                        onChange={(e) => handleChangeOrderItemVariant(idx, 'selectedColor', e.target.value)}
+                        style={{ padding: '5px 6px', fontSize: '0.78rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}
+                      >
+                        {item.availableColors.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    )}
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <button type="button" onClick={() => handleNewOrderQtyChange(idx, (item.quantity || 0) - 1)} className="btn-secondary" style={{ width: '26px', height: '26px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Minus size={13} />
+                      </button>
+                      <input
+                        type="number"
+                        min="0"
+                        value={item.quantity || 0}
+                        onChange={(e) => handleNewOrderQtyChange(idx, parseInt(e.target.value, 10) || 0)}
+                        style={{ width: '44px', textAlign: 'center', padding: '4px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}
+                      />
+                      <button type="button" onClick={() => handleNewOrderQtyChange(idx, (item.quantity || 0) + 1)} className="btn-secondary" style={{ width: '26px', height: '26px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Plus size={13} />
+                      </button>
+                    </div>
+
+                    <div style={{ width: '80px', textAlign: 'right', fontWeight: 800, fontSize: '0.86rem', color: '#059669' }}>
+                      ${(newOrderItemPrice(item) * (item.quantity || 0)).toLocaleString('es-AR')}
+                    </div>
+
+                    <button type="button" onClick={() => handleRemoveNewOrderItem(idx)} title="Sacar del pedido" style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', padding: '4px', display: 'flex' }}>
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '2px solid #0F172A', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>TOTAL:</span>
+              <span style={{ fontSize: '1.3rem', fontWeight: 900, color: '#059669' }}>${newOrderTotal.toLocaleString('es-AR')}</span>
+            </div>
+
+            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button onClick={closeCreateOrder} className="btn-secondary" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
+                Cancelar
+              </button>
+              <button
+                onClick={handleSubmitCreateOrder}
+                className="btn-primary"
+                style={{ padding: '8px 18px', fontSize: '0.85rem', backgroundColor: '#059669', borderColor: '#059669' }}
+              >
+                Crear Pedido
               </button>
             </div>
           </div>

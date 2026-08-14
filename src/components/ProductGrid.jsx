@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { ShoppingCart, Sparkles, Palette, Share2, Check } from 'lucide-react';
 import { getProductColors } from '@/lib/catalogData';
 import { shareProduct } from '@/lib/shareProduct';
@@ -55,9 +56,11 @@ export default function ProductGrid({ products, onAddToCart, isWholesaleQualifie
               onClick={() => onOpenDetail && onOpenDetail(product)}
               title="Ver detalle del producto"
             >
-              <img
+              <Image
                 src={product.image_url}
                 alt={product.name}
+                fill
+                sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 280px"
                 className="product-img"
                 onError={(e) => {
                   e.target.src = '/elpaquetero_imagenes/Logo 2.jpeg';

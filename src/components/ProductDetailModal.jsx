@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { X, ShoppingCart, Tag, Palette, Share2, Check } from 'lucide-react';
 import useCloseOnBack from '@/lib/useCloseOnBack';
 import { getProductColors } from '@/lib/catalogData';
@@ -70,9 +71,12 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
             onClick={() => setIsZoomed(true)}
             title="Toca o haz clic para expandir imagen"
           >
-            <img
+            <Image
               src={product.image_url}
               alt={product.name}
+              fill
+              sizes="(max-width: 720px) 100vw, 500px"
+              style={{ objectFit: 'cover' }}
               onError={(e) => { e.target.src = '/elpaquetero_imagenes/Logo 2.jpeg'; }}
             />
             {/* Bottom-Right Price Patch Overlay */}
