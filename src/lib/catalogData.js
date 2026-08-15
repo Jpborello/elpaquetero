@@ -928,7 +928,7 @@ export const CATALOG_PRODUCTS = [
     stock: 100,
     sizes: ADULT_SIZES,
     stock_per_size: createStockPerSize(ADULT_SIZES, 20),
-    image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Mujer/PANTALONES/0014_CALZA_OXFORD_DAMA.webp',
+    image_url: '/elpaquetero_imagenes/Logo 2.jpeg',
     description: 'Remera de algodón jersey 24/1 con estampado frontal.',
     is_offer: true,
     is_top_seller: false
