@@ -1,17 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { ShoppingBag, User, Menu, X, Shield, Search } from 'lucide-react';
+import { ShoppingBag, User, Menu, X, Shield } from 'lucide-react';
 import Link from 'next/link';
 
-export default function Header({ 
-  cartCount, 
-  onOpenCart, 
-  onOpenAuth, 
-  currentUser, 
-  onLogout,
-  searchQuery,
-  setSearchQuery 
+export default function Header({
+  cartCount,
+  onOpenCart,
+  onOpenAuth,
+  currentUser,
+  onLogout
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -35,19 +33,6 @@ export default function Header({
             <div className="brand-subtitle">Indumentaria Mayorista</div>
           </div>
         </Link>
-
-        {/* Search Bar */}
-        <div className="header-search" style={{ position: 'relative' }}>
-          <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-          <input
-            type="text"
-            placeholder="Buscar por prenda, modelo o categoría..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="form-input"
-            style={{ paddingLeft: '38px', borderRadius: 'var(--radius-full)' }}
-          />
-        </div>
 
         {/* Desktop Nav Links */}
         <nav className="header-nav">

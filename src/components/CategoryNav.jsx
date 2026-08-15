@@ -1,21 +1,33 @@
 'use client';
 
-export default function CategoryNav({ 
-  categories, 
-  selectedCategory, 
+import { Search } from 'lucide-react';
+
+export default function CategoryNav({
+  categories,
+  selectedCategory,
   onSelectCategory,
   selectedSubcategory,
-  onSelectSubcategory 
+  onSelectSubcategory,
+  searchQuery,
+  setSearchQuery
 }) {
   const activeCategoryObj = categories.find(c => c.id === selectedCategory);
 
   return (
     <div id="catalogo" style={{ marginBottom: '24px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
         <h2 style={{ fontSize: '1.6rem', fontWeight: 800 }}>Nuestras Categorías Mayoristas</h2>
-        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-          Mostrando productos de alta calidad
-        </span>
+        <div style={{ position: 'relative', width: '100%', maxWidth: '360px' }}>
+          <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          <input
+            type="text"
+            placeholder="Buscar por prenda, modelo o categoría..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="form-input"
+            style={{ paddingLeft: '38px', borderRadius: 'var(--radius-full)', width: '100%' }}
+          />
+        </div>
       </div>
 
       {/* Main Categories Bar */}

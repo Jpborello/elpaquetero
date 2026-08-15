@@ -242,14 +242,12 @@ export default function Home() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       {/* Header Navigation */}
-      <Header 
+      <Header
         cartCount={totalCartItemsCount}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenAuth={() => setIsAuthOpen(true)}
         currentUser={currentUser}
         onLogout={handleLogout}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
       />
 
       {/* Wholesale Threshold Banner */}
@@ -319,6 +317,8 @@ export default function Home() {
           onSelectCategory={setSelectedCategory}
           selectedSubcategory={selectedSubcategory}
           onSelectSubcategory={setSelectedSubcategory}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
         />
 
         <ProductGrid
