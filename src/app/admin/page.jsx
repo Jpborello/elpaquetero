@@ -214,6 +214,11 @@ export default function AdminPage() {
     showSuccessNotice('Stock actualizado correctamente.');
   };
 
+  const handleUpdateSizesColors = async (id, { sizes, stock_per_size, colors }) => {
+    await dataStore.updateProduct(id, { sizes, stock_per_size, colors });
+    showSuccessNotice('Talles y colores actualizados correctamente.');
+  };
+
   const handlePriceUpdate = (id, newPrice, newWholesalePrice) => {
     dataStore.updatePrice(id, newPrice, newWholesalePrice);
     showSuccessNotice('Precio actualizado correctamente.');
@@ -269,12 +274,19 @@ export default function AdminPage() {
     showSuccessNotice('Imagen del producto actualizada.');
   };
 
-  const filteredProducts = products.filter(p => 
-    searchFilter === '' || 
-    p.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
-    p.category.toLowerCase().includes(searchFilter.toLowerCase()) ||
-    (p.code && p.code.includes(searchFilter))
-  );
+  const normalizeSearch = (str) =>
+    (str || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+
+  const filteredProducts = products.filter(p => {
+    if (searchFilter === '') return true;
+    const needle = normalizeSearch(searchFilter);
+    return (
+      normalizeSearch(p.name).includes(needle) ||
+      normalizeSearch(p.category).includes(needle) ||
+      normalizeSearch(p.subcategory).includes(needle) ||
+      (p.code && normalizeSearch(p.code).includes(needle))
+    );
+  });
 
   if (checkingSession) {
     return (
@@ -633,6 +645,7 @@ export default function AdminPage() {
           searchFilter={searchFilter}
           setSearchFilter={setSearchFilter}
           onUpdateStock={handleStockUpdate}
+          onUpdateSizesColors={handleUpdateSizesColors}
         />
       )}
 

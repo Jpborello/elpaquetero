@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Save, Layers } from 'lucide-react';
+import { Save, Layers, Settings2, X, Plus } from 'lucide-react';
+import { getProductColors } from '@/lib/catalogData';
 
-export default function StockTab({ products, searchFilter, setSearchFilter, onUpdateStock }) {
+export default function StockTab({ products, searchFilter, setSearchFilter, onUpdateStock, onUpdateSizesColors }) {
   // Local state for stock per size per product
   const [sizeStockState, setSizeStockState] = useState({});
+  const [managingProduct, setManagingProduct] = useState(null);
 
   const handleSizeStockChange = (productId, size, val) => {
     const num = parseInt(val, 10) || 0;
@@ -46,6 +48,7 @@ export default function StockTab({ products, searchFilter, setSearchFilter, onUp
             <th>Talles Disponibles</th>
             <th>Stock Total</th>
             <th>Modificar Stock</th>
+            <th>Talles y Colores</th>
           </tr>
         </thead>
         <tbody>
@@ -114,7 +117,7 @@ export default function StockTab({ products, searchFilter, setSearchFilter, onUp
                       className="form-input" 
                       style={{ width: '90px', padding: '6px 10px', fontWeight: 700 }} 
                     />
-                    <button 
+                    <button
                       onClick={() => {
                         const val = document.getElementById(`stock-${p.id}`).value;
                         onUpdateStock(p.id, val);
@@ -126,11 +129,197 @@ export default function StockTab({ products, searchFilter, setSearchFilter, onUp
                     </button>
                   </div>
                 </td>
+
+                {/* Gestionar talles y colores */}
+                <td>
+                  <button
+                    onClick={() => setManagingProduct(p)}
+                    className="btn-secondary"
+                    style={{ padding: '6px 12px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <Settings2 size={14} /> Gestionar
+                  </button>
+                </td>
               </tr>
             );
           })}
         </tbody>
       </table>
+
+      {managingProduct && (
+        <SizeColorManagerModal
+          product={managingProduct}
+          onClose={() => setManagingProduct(null)}
+          onSave={onUpdateSizesColors}
+        />
+      )}
+    </div>
+  );
+}
+
+function SizeColorManagerModal({ product, onClose, onSave }) {
+  const [sizes, setSizes] = useState(Array.isArray(product.sizes) ? [...product.sizes] : []);
+  const [stockPerSize, setStockPerSize] = useState({ ...(product.stock_per_size || {}) });
+  const [colors, setColors] = useState(getProductColors(product));
+  const [newSize, setNewSize] = useState('');
+  const [newSizeStock, setNewSizeStock] = useState('20');
+  const [newColor, setNewColor] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleRemoveSize = (size) => {
+    setSizes((prev) => prev.filter((s) => s !== size));
+  };
+
+  const handleAddSize = () => {
+    const trimmed = newSize.trim();
+    if (!trimmed || sizes.includes(trimmed)) return;
+    setSizes((prev) => [...prev, trimmed]);
+    setStockPerSize((prev) => ({ ...prev, [trimmed]: parseInt(newSizeStock, 10) || 0 }));
+    setNewSize('');
+    setNewSizeStock('20');
+  };
+
+  const handleRemoveColor = (color) => {
+    setColors((prev) => prev.filter((c) => c !== color));
+  };
+
+  const handleAddColor = () => {
+    const trimmed = newColor.trim();
+    if (!trimmed || colors.includes(trimmed)) return;
+    setColors((prev) => [...prev, trimmed]);
+    setNewColor('');
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    // Solo dejamos en stock_per_size los talles que siguen habilitados,
+    // para no arrastrar numeros viejos de talles ya sacados.
+    const cleanStockPerSize = {};
+    sizes.forEach((s) => {
+      cleanStockPerSize[s] = stockPerSize[s] ?? 0;
+    });
+    await onSave(product.id, { sizes, stock_per_size: cleanStockPerSize, colors });
+    setIsSaving(false);
+    onClose();
+  };
+
+  return (
+    <div className="modal-backdrop active" onClick={onClose}>
+      <div className="modal-box" style={{ maxWidth: '520px' }} onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className="qty-btn" style={{ position: 'absolute', top: '14px', right: '14px' }}>
+          <X size={18} />
+        </button>
+
+        <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '4px' }}>
+          <Layers size={18} style={{ display: 'inline', marginRight: '6px', verticalAlign: '-3px' }} />
+          Talles y Colores
+        </h3>
+        <p style={{ fontSize: '0.85rem', color: '#64748B', marginBottom: '18px' }}>{product.name}</p>
+
+        {/* SIZES */}
+        <div style={{ marginBottom: '20px' }}>
+          <label className="form-label">Talles habilitados en la web</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
+            {sizes.length === 0 && (
+              <span style={{ fontSize: '0.8rem', color: '#94A3B8', fontStyle: 'italic' }}>
+                Sin talles (se vende como talle único)
+              </span>
+            )}
+            {sizes.map((s) => (
+              <span
+                key={s}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                  padding: '5px 10px', borderRadius: '20px',
+                  backgroundColor: '#F1F5F9', border: '1px solid #CBD5E1',
+                  fontSize: '0.82rem', fontWeight: 700
+                }}
+              >
+                {s}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveSize(s)}
+                  title="Sacar este talle"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#DC2626', display: 'flex', padding: 0 }}
+                >
+                  <X size={13} />
+                </button>
+              </span>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <input
+              type="text"
+              placeholder="Nuevo talle (ej: XXXL)"
+              value={newSize}
+              onChange={(e) => setNewSize(e.target.value)}
+              className="form-input"
+              style={{ flex: 1, padding: '7px 10px', fontSize: '0.85rem' }}
+            />
+            <input
+              type="number"
+              placeholder="Stock"
+              value={newSizeStock}
+              onChange={(e) => setNewSizeStock(e.target.value)}
+              className="form-input"
+              style={{ width: '80px', padding: '7px 10px', fontSize: '0.85rem' }}
+            />
+            <button type="button" onClick={handleAddSize} className="btn-secondary" style={{ padding: '7px 12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <Plus size={14} /> Agregar
+            </button>
+          </div>
+        </div>
+
+        {/* COLORS */}
+        <div style={{ marginBottom: '22px' }}>
+          <label className="form-label">Colores habilitados en la web</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
+            {colors.map((c) => (
+              <span
+                key={c}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                  padding: '5px 10px', borderRadius: '20px',
+                  backgroundColor: '#F1F5F9', border: '1px solid #CBD5E1',
+                  fontSize: '0.82rem', fontWeight: 700
+                }}
+              >
+                {c}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveColor(c)}
+                  title="Sacar este color"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#DC2626', display: 'flex', padding: 0 }}
+                >
+                  <X size={13} />
+                </button>
+              </span>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <input
+              type="text"
+              placeholder="Nuevo color (ej: Turquesa)"
+              value={newColor}
+              onChange={(e) => setNewColor(e.target.value)}
+              className="form-input"
+              style={{ flex: 1, padding: '7px 10px', fontSize: '0.85rem' }}
+            />
+            <button type="button" onClick={handleAddColor} className="btn-secondary" style={{ padding: '7px 12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <Plus size={14} /> Agregar
+            </button>
+          </div>
+        </div>
+
+        <button
+          onClick={handleSave}
+          disabled={isSaving}
+          className="btn-primary"
+          style={{ width: '100%', padding: '11px', justifyContent: 'center', opacity: isSaving ? 0.7 : 1 }}
+        >
+          <Save size={16} /> {isSaving ? 'Guardando...' : 'Guardar Talles y Colores'}
+        </button>
+      </div>
     </div>
   );
 }

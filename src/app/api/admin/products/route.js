@@ -16,8 +16,8 @@ export async function POST(req) {
         return NextResponse.json({ error: 'Faltan parámetros id o updates' }, { status: 400 });
       }
 
-      const { sizes, stock_per_size, code, ...dbFields } = updates;
-      
+      const { code, ...dbFields } = updates;
+
       const { data, error } = await supabaseAdmin
         .from('products')
         .update(dbFields)
