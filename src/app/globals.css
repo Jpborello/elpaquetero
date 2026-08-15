@@ -1599,7 +1599,11 @@ button {
     grid-template-columns: 1fr;
   }
   .product-detail-img-wrapper {
-    min-height: 200px;
+    min-height: unset;
+    aspect-ratio: 3 / 4;
+  }
+  .product-detail-img-wrapper img {
+    object-fit: contain;
   }
 }
 

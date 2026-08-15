@@ -76,7 +76,6 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
               alt={product.name}
               fill
               sizes="(max-width: 720px) 100vw, 500px"
-              style={{ objectFit: 'cover' }}
               onError={(e) => { e.target.src = '/elpaquetero_imagenes/Logo 2.jpeg'; }}
             />
             {/* Bottom-Right Price Patch Overlay */}
