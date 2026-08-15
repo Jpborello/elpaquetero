@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Trash2, Plus, Minus, Send, ShoppingBag, Truck, Store, Upload, CheckCircle2, UserCheck, Sparkles, Tag, Copy, Check, CreditCard, Clock, Edit3, RotateCcw } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ShoppingBag, Truck, Store, Upload, CheckCircle2, UserCheck, Sparkles, Tag, Copy, Check, CreditCard, Clock, Edit3, RotateCcw } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { dataStore } from '@/lib/dataStore';
 import useCloseOnBack from '@/lib/useCloseOnBack';
@@ -151,64 +151,6 @@ export default function CartDrawer({
     setIsFinishedSuccess(true);
   };
 
-  const handleSendToWhatsApp = () => {
-    if (!displayOrder) return;
-    const targetId = displayOrder.id;
-
-    let message = `*NUEVO PEDIDO MAYORISTA - EL PAQUETERO*\n`;
-    message += `*Orden N°:* ${displayOrder.id}\n`;
-    message += `*Cliente:* ${displayOrder.client_name}\n`;
-    message += `*DNI/CUIT:* ${displayOrder.client_dni}\n`;
-    message += `*Teléfono:* ${displayOrder.client_phone}\n`;
-    message += `*Localidad:* ${displayOrder.client_locality}\n`;
-    message += `*Entrega:* ${displayOrder.delivery_method === 'envio' ? '🚚 Envío a Domicilio' : '🏬 Retiro por Sucursal'}\n\n`;
-
-    message += `*DETALLE DEL PEDIDO:*\n`;
-
-    (displayOrder.items || []).forEach((item, idx) => {
-      const itemUnitPrice = item.product.wholesale_price || item.product.price || 0;
-      const itemTotal = itemUnitPrice * item.quantity;
-      const sizeVal = item.product?.selectedSize || item.selectedSize;
-      const colorVal = item.product?.selectedColor || item.selectedColor;
-      const optionsArr = [sizeVal ? `Talle: ${sizeVal}` : null, colorVal ? `Color: ${colorVal}` : null].filter(Boolean);
-      const detailsTag = optionsArr.length > 0 ? ` [${optionsArr.join(' • ')}]` : '';
-      message += `${idx + 1}. ${item.product.name}${detailsTag} (x${item.quantity}) - $${itemTotal.toLocaleString('es-AR')}\n`;
-    });
-
-    message += `\n*TOTAL MAYORISTA:* $${displayOrder.total_amount.toLocaleString('es-AR')}\n`;
-    
-    if (receiptUploaded || displayOrder.receipt_url) {
-      message += `📌 *Comprobante de pago adjuntado en sistema.*\n`;
-    }
-
-    message += `\n🔎 Podés rastrear tu pedido en cualquier momento en: https://www.elpaquetero.com.ar/pedido (con tu N° de pedido y tu teléfono)\n`;
-
-    // Check Business Hours (Mon-Sat 8:00 to 16:30 Argentina Time)
-    try {
-      const now = new Date();
-      const argStr = now.toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' });
-      const argDate = new Date(argStr);
-      const day = argDate.getDay();
-      const mins = argDate.getHours() * 60 + argDate.getMinutes();
-      const isBusinessHours = day !== 0 && mins >= 480 && mins <= 990;
-
-      if (!isBusinessHours) {
-        message += `\n📌 *Horario de Atención:* Lunes a Sábados de 8:00 a 16:30 hs. Tu pedido fue recibido y te contactaremos a primera hora. ¡Muchas gracias!\n`;
-      }
-    } catch (e) {}
-
-    const encodedMsg = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/5493415326592?text=${encodedMsg}`;
-    window.open(whatsappUrl, '_blank');
-
-    setCompletedOrderId(targetId);
-    dataStore.clearActiveOrder();
-    setCreatedOrder(null);
-    setReceiptImage(null);
-    setReceiptUploaded(false);
-    setIsFinishedSuccess(true);
-  };
-
   const handleModifyOrCancelOrder = () => {
     if (displayOrder?.items && onRestoreCart) {
       onRestoreCart(displayOrder.items);
@@ -328,7 +270,7 @@ export default function CartDrawer({
                     <strong>Aprobación de Pago:</strong> Una vez verificado tu comprobante por nuestro equipo, tu pedido se marcará como <em>Aprobado</em> para su armado.
                   </li>
                   <li>
-                    <strong>Contacto por WhatsApp:</strong> Un representante de ventas se pondrá en contacto con vos en pocos minutos para coordinar la entrega o envío.
+                    <strong>Contacto:</strong> Un representante de ventas se pondrá en contacto con vos en pocos minutos por el Chat Online para coordinar la entrega o envío.
                   </li>
                 </ul>
               </div>
@@ -512,7 +454,7 @@ export default function CartDrawer({
                 )}
 
                 <p style={{ fontSize: '0.78rem', color: '#1E40AF', margin: 0, fontWeight: 600, lineHeight: 1.3 }}>
-                  Podés adjuntar tu comprobante de pago subiendo la foto desde esta pantalla o enviárnoslo por WhatsApp junto con tu pedido.
+                  Podés adjuntar tu comprobante de pago subiendo la foto desde esta pantalla.
                 </p>
               </div>
 
@@ -586,9 +528,19 @@ export default function CartDrawer({
                 )}
               </div>
 
-              <button onClick={handleSendToWhatsApp} className="btn-hero-primary" style={{ width: '100%', marginBottom: '12px' }}>
-                <Send size={18} style={{ display: 'inline', marginRight: '6px' }} /> 💬 Finalizar y Enviar por WhatsApp
-              </button>
+              <div style={{
+                backgroundColor: '#FFFBEB',
+                border: '1px solid #FDE68A',
+                borderRadius: '10px',
+                padding: '12px 14px',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                color: '#B45309',
+                marginBottom: '12px',
+                textAlign: 'left'
+              }}>
+                ⚠️ Estamos teniendo unos inconvenientes con WhatsApp. Ponete en contacto mediante el Chat Online.
+              </div>
 
               <button 
                 type="button"

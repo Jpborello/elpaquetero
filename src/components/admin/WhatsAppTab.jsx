@@ -1,21 +1,23 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { 
-  MessageSquare, 
-  Send, 
-  Bot, 
-  UserCheck, 
-  Search, 
-  Settings, 
-  RefreshCw, 
-  CheckCheck, 
-  Sparkles, 
-  PhoneCall, 
-  Power, 
+import {
+  MessageSquare,
+  Send,
+  Bot,
+  UserCheck,
+  Search,
+  Settings,
+  RefreshCw,
+  CheckCheck,
+  Sparkles,
+  PhoneCall,
+  Power,
   Lock,
   Eye,
-  EyeOff
+  EyeOff,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 
 export default function WhatsAppTab() {
@@ -37,6 +39,39 @@ export default function WhatsAppTab() {
   const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
 
   const messagesEndRef = useRef(null);
+
+  // Sound alert for new incoming messages
+  const [isSoundEnabled, setIsSoundEnabled] = useState(true);
+  const soundEnabledRef = useRef(true);
+  const prevUnreadRef = useRef(0);
+  const lastMsgIdRef = useRef(null);
+
+  useEffect(() => {
+    soundEnabledRef.current = isSoundEnabled;
+  }, [isSoundEnabled]);
+
+  const playNotificationSound = () => {
+    if (!soundEnabledRef.current) return;
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioCtx();
+      const now = ctx.currentTime;
+      [880, 1108].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0001, now + i * 0.15);
+        gain.gain.exponentialRampToValueAtTime(0.25, now + i * 0.15 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.15 + 0.25);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + i * 0.15);
+        osc.stop(now + i * 0.15 + 0.3);
+      });
+      setTimeout(() => ctx.close(), 700);
+    } catch (e) {}
+  };
 
   // Load Chats list on mount
   useEffect(() => {
@@ -64,6 +99,11 @@ export default function WhatsAppTab() {
       const res = await fetch('/api/admin/whatsapp');
       const data = await res.json();
       if (data.success && Array.isArray(data.chats)) {
+        const newUnreadTotal = data.chats.reduce((sum, c) => sum + (c.unread_count || 0), 0);
+        if (isBackground && newUnreadTotal > prevUnreadRef.current) {
+          playNotificationSound();
+        }
+        prevUnreadRef.current = newUnreadTotal;
         setChats(data.chats);
         if (!selectedPhone && data.chats.length > 0) {
           setSelectedPhone(data.chats[0].phone);
@@ -84,6 +124,13 @@ export default function WhatsAppTab() {
       const res = await fetch(`/api/admin/whatsapp?phone=${encodeURIComponent(phone)}`);
       const data = await res.json();
       if (data.success && Array.isArray(data.messages)) {
+        if (data.messages.length > 0) {
+          const lastMsg = data.messages[data.messages.length - 1];
+          if (isBackground && lastMsg.id !== lastMsgIdRef.current && lastMsg.sender === 'client') {
+            playNotificationSound();
+          }
+          lastMsgIdRef.current = lastMsg.id;
+        }
         setMessages(data.messages);
       }
       // Mark as read
@@ -238,8 +285,17 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button 
-            onClick={() => fetchChats()} 
+          <button
+            onClick={() => setIsSoundEnabled(prev => !prev)}
+            title={isSoundEnabled ? 'Silenciar alerta sonora de mensajes nuevos' : 'Activar alerta sonora de mensajes nuevos'}
+            className="btn-secondary"
+            style={{ padding: '6px 12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            {isSoundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
+          </button>
+
+          <button
+            onClick={() => fetchChats()}
             className="btn-secondary" 
             style={{ padding: '6px 12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
