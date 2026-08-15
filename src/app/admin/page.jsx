@@ -179,9 +179,17 @@ export default function AdminPage() {
         .subscribe();
     }
 
+    // Red de seguridad: si el realtime no llega a disparar (sesion vieja,
+    // reconexion del socket, etc.), este polling se asegura de que los
+    // pedidos nuevos aparezcan solos sin depender de un refresh manual.
+    const ordersPollInterval = setInterval(() => {
+      dataStore.fetchOrdersFromSupabase();
+    }, 15000);
+
     return () => {
       unsubscribe();
       if (ordersChannel) supabase.removeChannel(ordersChannel);
+      clearInterval(ordersPollInterval);
     };
   }, [isAuthenticated]);
 
