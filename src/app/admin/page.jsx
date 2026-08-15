@@ -219,6 +219,11 @@ export default function AdminPage() {
     showSuccessNotice('Talles y colores actualizados correctamente.');
   };
 
+  const handleToggleActive = async (id, currentIsActive) => {
+    await dataStore.updateProduct(id, { is_active: !currentIsActive });
+    showSuccessNotice(!currentIsActive ? 'Producto activado: ya se muestra en la web.' : 'Producto desactivado: ya no se muestra en la web.');
+  };
+
   const handlePriceUpdate = (id, newPrice, newWholesalePrice) => {
     dataStore.updatePrice(id, newPrice, newWholesalePrice);
     showSuccessNotice('Precio actualizado correctamente.');
@@ -646,6 +651,7 @@ export default function AdminPage() {
           setSearchFilter={setSearchFilter}
           onUpdateStock={handleStockUpdate}
           onUpdateSizesColors={handleUpdateSizesColors}
+          onToggleActive={handleToggleActive}
         />
       )}
 

@@ -215,7 +215,7 @@ export default function Home() {
       normalizeStr(product.subcategory).includes(normSearch) ||
       normalizeStr(product.description).includes(normSearch);
 
-    return matchesCategory && matchesSubcategory && matchesSearch;
+    return product.is_active !== false && matchesCategory && matchesSubcategory && matchesSearch;
   });
 
   const featuredOffer = dataStore.getFeaturedOffer();

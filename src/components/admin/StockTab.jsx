@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Save, Layers, Settings2, X, Plus } from 'lucide-react';
 import { getProductColors } from '@/lib/catalogData';
 
-export default function StockTab({ products, searchFilter, setSearchFilter, onUpdateStock, onUpdateSizesColors }) {
+export default function StockTab({ products, searchFilter, setSearchFilter, onUpdateStock, onUpdateSizesColors, onToggleActive }) {
   // Local state for stock per size per product
   const [sizeStockState, setSizeStockState] = useState({});
   const [managingProduct, setManagingProduct] = useState(null);
@@ -45,6 +45,7 @@ export default function StockTab({ products, searchFilter, setSearchFilter, onUp
             <th>Imagen</th>
             <th>Prenda / Código</th>
             <th>Categoría</th>
+            <th>Estado</th>
             <th>Talles Disponibles</th>
             <th>Stock Total</th>
             <th>Modificar Stock</th>
@@ -55,14 +56,15 @@ export default function StockTab({ products, searchFilter, setSearchFilter, onUp
           {products.map((p) => {
             const hasSizes = Array.isArray(p.sizes) && p.sizes.length > 0;
             const currentSizeMap = sizeStockState[p.id] || p.stock_per_size || {};
+            const isActive = p.is_active !== false;
 
             return (
-              <tr key={p.id}>
+              <tr key={p.id} style={{ opacity: isActive ? 1 : 0.55 }}>
                 <td>
-                  <img 
-                    src={p.image_url} 
-                    alt="" 
-                    style={{ width: '44px', height: '44px', borderRadius: '6px', objectFit: 'cover', border: '1px solid #E2E8F0' }} 
+                  <img
+                    src={p.image_url}
+                    alt=""
+                    style={{ width: '44px', height: '44px', borderRadius: '6px', objectFit: 'cover', border: '1px solid #E2E8F0' }}
                     onError={(e) => { e.target.src = '/elpaquetero_imagenes/Logo 2.jpeg'; }}
                   />
                 </td>
@@ -76,7 +78,27 @@ export default function StockTab({ products, searchFilter, setSearchFilter, onUp
                   </span>
                   {p.subcategory && <div style={{ fontSize: '0.72rem', color: '#64748B' }}>{p.subcategory}</div>}
                 </td>
-                
+
+                {/* Activar / Desactivar */}
+                <td>
+                  <button
+                    onClick={() => onToggleActive(p.id, isActive)}
+                    title={isActive ? 'Ocultar este producto de la web' : 'Volver a mostrar este producto en la web'}
+                    style={{
+                      padding: '5px 12px',
+                      fontSize: '0.76rem',
+                      fontWeight: 800,
+                      borderRadius: '20px',
+                      border: isActive ? '1px solid #A7F3D0' : '1px solid #FECACA',
+                      backgroundColor: isActive ? '#ECFDF5' : '#FEF2F2',
+                      color: isActive ? '#047857' : '#DC2626',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {isActive ? '● Activo' : '○ Desactivado'}
+                  </button>
+                </td>
+
                 {/* Talles */}
                 <td>
                   {hasSizes ? (

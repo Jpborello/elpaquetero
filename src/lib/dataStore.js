@@ -520,15 +520,17 @@ class DataStore {
   }
 
   getTopSellingProduct() {
-    return [...this.products].sort((a, b) => b.sales_count - a.sales_count)[0];
+    return [...this.products]
+      .filter(p => p.is_active !== false)
+      .sort((a, b) => b.sales_count - a.sales_count)[0];
   }
 
   getOffers() {
-    return this.products.filter(p => p.is_offer);
+    return this.products.filter(p => p.is_offer && p.is_active !== false);
   }
 
   getFeaturedOffer() {
-    return this.products.find(p => p.is_featured) || null;
+    return this.products.find(p => p.is_featured && p.is_active !== false) || null;
   }
 
   // Solo puede haber UNA oferta destacada a la vez (para que no se pierda
