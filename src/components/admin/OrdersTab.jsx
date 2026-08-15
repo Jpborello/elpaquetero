@@ -140,6 +140,14 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
     setTimeout(() => setCleanNotice(''), 4000);
   };
 
+  const handleDeleteOrder = async (ord) => {
+    const stockNote = ord.status !== 'cancelado' ? ' El stock de los productos se va a reincorporar automáticamente.' : '';
+    if (!confirm(`¿Eliminar definitivamente el pedido #${ord.id} de ${ord.client_name}? Esta acción no se puede deshacer.${stockNote}`)) return;
+    await dataStore.deleteOrder(ord.id);
+    setCleanNotice(`✓ Pedido #${ord.id} eliminado.`);
+    setTimeout(() => setCleanNotice(''), 4000);
+  };
+
   const openEditOrder = (ord) => {
     setEditingOrder(ord);
     setEditItems((ord.items || []).map((it) => ({ ...it })));
@@ -635,6 +643,13 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                         style={{ padding: '6px 10px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                       >
                         <Pencil size={14} /> Editar
+                      </button>
+                      <button
+                        onClick={() => handleDeleteOrder(ord)}
+                        title="Eliminar pedido definitivamente"
+                        style={{ padding: '6px 10px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', color: '#DC2626', cursor: 'pointer' }}
+                      >
+                        <Trash2 size={14} /> Eliminar
                       </button>
                     </div>
                   </td>

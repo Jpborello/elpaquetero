@@ -934,6 +934,29 @@ class DataStore {
     }
   }
 
+  // Borra un pedido definitivamente (ej. pedidos de prueba). Si el pedido
+  // no estaba ya cancelado, devuelve el stock primero (mismo criterio que
+  // al cancelar) para no dejar unidades "perdidas" en el conteo.
+  async deleteOrder(orderId) {
+    const existingOrder = this.orders.find((o) => o.id === orderId);
+    if (!existingOrder) return;
+
+    if (existingOrder.status !== 'cancelado' && existingOrder.items) {
+      existingOrder.items.forEach((item) => {
+        if (item.product?.id && this.products.some((p) => p.id === item.product.id)) {
+          this.restoreStockAfterCancel(item.product.id, item.quantity);
+        }
+      });
+    }
+
+    this.orders = this.orders.filter((o) => o.id !== orderId);
+    this.notify();
+
+    if (supabase) {
+      await supabase.from('orders').delete().eq('id', orderId);
+    }
+  }
+
   // Modificar los productos/cantidades de un pedido ya creado (ej. sacar
   // prendas sin stock) y recalcular el total al mismo precio mayorista
   // con el que se cobra en el carrito. Devuelve el nuevo total.
