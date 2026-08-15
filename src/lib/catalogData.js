@@ -3175,7 +3175,7 @@ export const CATALOG_PRODUCTS = [
     stock_per_size: createStockPerSize(['1', '2', '3', '4', '5', '6'], 8),
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Mujeres/PANTALONES/CALZA_BATIK_S_FRIZA_DAMA.webp',
     description: 'Calza de friza con estampado batik tie dye surtido, del talle 1 al 6.',
-    is_offer: false,
+    is_offer: true,
     is_top_seller: false
   },
   {
@@ -3191,7 +3191,7 @@ export const CATALOG_PRODUCTS = [
     stock_per_size: createStockPerSize(['1', '2', '3', '4', '5', '6'], 8),
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Mujeres/PANTALONES/CALZA_OXFORD_S_FRIZA_DAMA.webp',
     description: 'Calza oxford de friza color negro, del talle 1 al 6.',
-    is_offer: false,
+    is_offer: true,
     is_top_seller: false
   },
   {
@@ -3207,7 +3207,7 @@ export const CATALOG_PRODUCTS = [
     stock_per_size: createStockPerSize(['2', '3', '4', '5', '6'], 8),
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Mujeres/PANTALONES/PANTALON_HAWAI_DAMA.webp',
     description: 'Pantalón jogger Hawai con puño y cordón ajustable, del talle 2 al 6.',
-    is_offer: false,
+    is_offer: true,
     is_top_seller: false
   },
   {
@@ -3223,7 +3223,7 @@ export const CATALOG_PRODUCTS = [
     stock_per_size: createStockPerSize(['1', '2', '3', '4', '5', '6'], 8),
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Mujeres/PANTALONES/PANTALON_WAFFLE_DAMA.webp',
     description: 'Pantalón de friza textura waffle con bolsillos, del talle 1 al 6.',
-    is_offer: false,
+    is_offer: true,
     is_top_seller: false
   },
   {
@@ -3239,7 +3239,7 @@ export const CATALOG_PRODUCTS = [
     stock_per_size: {},
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Mujeres/REMERAS/REMERA_ALGODON_BOXI_FIT_DAMA.webp',
     description: 'Remera oversize boxy fit de algodón con estampa universitaria, talle único.',
-    is_offer: false,
+    is_offer: true,
     is_top_seller: false
   },
   {
@@ -3255,7 +3255,7 @@ export const CATALOG_PRODUCTS = [
     stock_per_size: createStockPerSize(['6', '8', '10', '12', '14', '16', '18'], 6),
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Infantil/REMERA_ALGODON_DOBLE_ESTAMPA_NINA.webp',
     description: 'Remera de algodón con doble estampa frente y espalda, del talle 6 al 18.',
-    is_offer: false,
+    is_offer: true,
     is_top_seller: false
   },
   {
@@ -3271,7 +3271,7 @@ export const CATALOG_PRODUCTS = [
     stock_per_size: createStockPerSize(['6', '8', '10', '12', '14', '16', '18'], 6),
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Infantil/REMERA_ALGODON_DOBLE_ESTAMPA_NINO.webp',
     description: 'Remera de algodón con doble estampa frente y espalda, del talle 6 al 18.',
-    is_offer: false,
+    is_offer: true,
     is_top_seller: false
   },
   {
@@ -3287,7 +3287,7 @@ export const CATALOG_PRODUCTS = [
     stock_per_size: createStockPerSize(['6', '7', '8', '9'], 10),
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Hombres/REMERAS/REMERA_ALGODON_PEINADO_ESPECIAL.webp',
     description: 'Remera de algodón peinado premium con logos de marcas surtidas, talles especiales del 6 al 9.',
-    is_offer: false,
+    is_offer: true,
     is_top_seller: false
   },
   {
@@ -3303,7 +3303,7 @@ export const CATALOG_PRODUCTS = [
     stock_per_size: createStockPerSize(['S', 'M', 'L', 'XL', 'XXL'], 10),
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Hombres/REMERAS/REMERA_ALGODON_PEINADO_HOMBRE.webp',
     description: 'Remera básica de algodón peinado, del talle S al XXL.',
-    is_offer: false,
+    is_offer: true,
     is_top_seller: false
   },
   {
@@ -3319,7 +3319,7 @@ export const CATALOG_PRODUCTS = [
     stock_per_size: createStockPerSize(['1', '2', '3', '4', '5'], 10),
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Hombres/REMERAS/REMERA_DEPORTIVA_HOMBRE.webp',
     description: 'Remera deportiva de secado rápido, del talle 1 al 5.',
-    is_offer: false,
+    is_offer: true,
     is_top_seller: false
   },
   {
@@ -3335,7 +3335,7 @@ export const CATALOG_PRODUCTS = [
     stock_per_size: createStockPerSize(['1', '2', '3', '4', '5'], 10),
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Hombres/REMERAS/REMERA_ESTAMPADA_HOMBRE.webp',
     description: 'Remera estampada de algodón, del talle 1 al 5.',
-    is_offer: false,
+    is_offer: true,
     is_top_seller: false
   },
   {
@@ -3351,7 +3351,7 @@ export const CATALOG_PRODUCTS = [
     stock_per_size: createStockPerSize(['3', '4', '5', '6', '7', '8'], 8),
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Mujeres/REMERAS/REMERA_MODAL_VISCOSA_DAMA.webp',
     description: 'Remera de modal viscosa, del talle 3 al 8.',
-    is_offer: false,
+    is_offer: true,
     is_top_seller: false
   },
   {
@@ -3367,7 +3367,7 @@ export const CATALOG_PRODUCTS = [
     stock_per_size: createStockPerSize(['3', '4', '5', '6', '7'], 8),
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Mujeres/REMERAS/REMERA_MORLEY_MODAL_DAMA.webp',
     description: 'Remera morley modal básica, del talle 3 al 7.',
-    is_offer: false,
+    is_offer: true,
     is_top_seller: false
   },
   {
@@ -3383,7 +3383,7 @@ export const CATALOG_PRODUCTS = [
     stock_per_size: createStockPerSize(['1', '2', '3', '4', '5'], 10),
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Mujeres/REMERAS/REMERAS_DEPORTIVAS_DAMA.webp',
     description: 'Remera deportiva dama de secado rápido, del talle 1 al 5.',
-    is_offer: false,
+    is_offer: true,
     is_top_seller: false
   },
   {
@@ -3399,7 +3399,7 @@ export const CATALOG_PRODUCTS = [
     stock_per_size: {},
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Mujeres/REMERAS/REMERON_ALGODON_DAMA.webp',
     description: 'Remerón oversize de algodón con estampa, talle único.',
-    is_offer: false,
+    is_offer: true,
     is_top_seller: false
   },
   {
@@ -3415,7 +3415,7 @@ export const CATALOG_PRODUCTS = [
     stock_per_size: {},
     image_url: 'https://pgipeujafjwhqjobcjzw.supabase.co/storage/v1/object/public/Productos/Hombres/ROPA_INTERIOR/SOQUETES_HOMBRE.webp',
     description: 'Pack cerrado x12 pares de soquetes surtidos (negro, blanco, gris). Precio por pack completo.',
-    is_offer: false,
+    is_offer: true,
     is_top_seller: false
   }
 ];
