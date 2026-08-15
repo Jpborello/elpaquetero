@@ -1527,9 +1527,6 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
             margin: 0 !important;
             border: none !important;
             box-shadow: none !important;
-            /* Siempre blanco y negro al imprimir, sin importar si el usuario
-               elige "Color" en el dialogo de impresion del navegador. */
-            filter: grayscale(100%) !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
