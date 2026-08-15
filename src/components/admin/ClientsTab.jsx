@@ -6,11 +6,13 @@ import { Search, Crown, Ticket, MapPin, Phone, FileText } from 'lucide-react';
 export default function ClientsTab({ clients }) {
   const [searchFilter, setSearchFilter] = useState('');
 
-  const filteredClients = clients.filter(c => 
-    c.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
+  const normalizeSearch = (str) => (str || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+
+  const filteredClients = clients.filter(c =>
+    normalizeSearch(c.name).includes(normalizeSearch(searchFilter)) ||
     (c.dni && c.dni.includes(searchFilter)) ||
     (c.phone && c.phone.includes(searchFilter)) ||
-    (c.locality && c.locality.toLowerCase().includes(searchFilter.toLowerCase()))
+    (c.locality && normalizeSearch(c.locality).includes(normalizeSearch(searchFilter)))
   );
 
   return (

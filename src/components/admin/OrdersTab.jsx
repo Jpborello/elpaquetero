@@ -196,9 +196,11 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
 
   const closeCreateOrder = () => setShowCreateOrder(false);
 
+  const normalizeSearch = (str) => (str || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+
   const matchingClients = clientSearchQuery.trim().length >= 2
     ? dataStore.getClientsWithStats().filter((c) =>
-        c.name?.toLowerCase().includes(clientSearchQuery.toLowerCase()) ||
+        normalizeSearch(c.name).includes(normalizeSearch(clientSearchQuery)) ||
         c.phone?.includes(clientSearchQuery)
       ).slice(0, 6)
     : [];
@@ -216,7 +218,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
   };
 
   const matchingProducts = productSearchQuery.trim().length >= 2
-    ? dataStore.getProducts().filter((p) => p.name?.toLowerCase().includes(productSearchQuery.toLowerCase())).slice(0, 8)
+    ? dataStore.getProducts().filter((p) => normalizeSearch(p.name).includes(normalizeSearch(productSearchQuery))).slice(0, 8)
     : [];
 
   const handleAddProductToOrder = (product) => {
