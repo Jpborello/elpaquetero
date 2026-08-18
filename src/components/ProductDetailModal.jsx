@@ -75,6 +75,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
               src={product.image_url}
               alt={product.name}
               fill
+              unoptimized
               sizes="(max-width: 720px) 100vw, 500px"
               onError={(e) => { e.target.src = '/elpaquetero_imagenes/Logo 2.jpeg'; }}
             />

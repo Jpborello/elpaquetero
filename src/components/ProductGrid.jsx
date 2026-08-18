@@ -60,6 +60,7 @@ export default function ProductGrid({ products, onAddToCart, isWholesaleQualifie
                 src={product.image_url}
                 alt={product.name}
                 fill
+                unoptimized
                 sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 280px"
                 className="product-img"
                 onError={(e) => {
