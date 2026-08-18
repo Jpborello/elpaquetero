@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { MapPin, Phone, ArrowLeft, ShoppingCart } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { getProductColors } from '@/lib/catalogData';
-import { extractIdFromSlug, buildProductSlug } from '@/lib/productSlug';
+import { buildProductSlug } from '@/lib/productSlug';
 import ShareProductButton from '@/components/ShareProductButton';
 
 const SITE_URL = 'https://www.elpaquetero.com.ar';
@@ -13,8 +13,26 @@ const SITE_URL = 'https://www.elpaquetero.com.ar';
 // viene armado desde el servidor, para que Google y las vistas previas de
 // WhatsApp/redes vean el contenido sin depender de que se ejecute JS.
 async function getProduct(slug) {
-  const id = extractIdFromSlug(slug);
-  if (!id) return null;
+  if (!slug) return null;
+
+  // Los ids del catalogo suelen ser "prefijo-numero" (ej "p-0040"), pero
+  // algunos productos tienen una version actualizada con un sufijo extra
+  // (ej "p-0040-new", un producto distinto con su propio precio/stock).
+  // Por eso no alcanza con tomar los primeros dos segmentos del slug:
+  // buscamos, entre todos los ids activos, el que sea el prefijo MAS LARGO
+  // que calce con el slug completo, para no confundir "p-0040" con
+  // "p-0040-new" cuando el link comparte este ultimo.
+  const { data: candidates } = await supabase
+    .from('products')
+    .select('id')
+    .eq('is_active', true);
+  if (!candidates) return null;
+
+  const matches = candidates.filter((p) => slug === p.id || slug.startsWith(`${p.id}-`));
+  if (matches.length === 0) return null;
+  matches.sort((a, b) => b.id.length - a.id.length);
+  const id = matches[0].id;
+
   const { data } = await supabase
     .from('products')
     .select('*')
