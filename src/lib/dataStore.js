@@ -915,8 +915,13 @@ class DataStore {
 
     this.notify();
 
+    // Se sube desde el checkout sin sesion de admin: la tabla orders bloquea
+    // el UPDATE directo para usuarios anonimos por RLS, asi que se persiste
+    // via una funcion SQL con permiso especial (mismo patron que el stock).
     if (supabase) {
-      supabase.from('orders').update({ receipt_url: receiptUrl }).eq('id', orderId).then(() => {}).catch(() => {});
+      supabase.rpc('update_order_receipt', { p_order_id: orderId, p_receipt_url: receiptUrl })
+        .then(({ error }) => { if (error) console.warn('Error guardando comprobante:', error); })
+        .catch((err) => console.warn('Error guardando comprobante:', err));
     }
   }
 
