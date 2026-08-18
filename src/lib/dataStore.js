@@ -966,10 +966,32 @@ class DataStore {
     }
   }
 
-  // Modificar los productos/cantidades de un pedido ya creado (ej. sacar
-  // prendas sin stock) y recalcular el total al mismo precio mayorista
-  // con el que se cobra en el carrito. Devuelve el nuevo total.
+  // Modificar los productos/cantidades de un pedido ya creado (sacar,
+  // agregar o cambiar cantidades) y recalcular el total al mismo precio
+  // mayorista con el que se cobra en el carrito. Devuelve el nuevo total.
   updateOrderItems(orderId, newItems) {
+    const existingOrder = this.orders.find(o => o.id === orderId);
+
+    // Ajustar el stock segun la diferencia de cantidades por producto (si el
+    // pedido esta cancelado el stock ya fue devuelto al cancelar, asi que no
+    // se vuelve a tocar aca).
+    if (existingOrder && existingOrder.status !== 'cancelado') {
+      const qtyByProduct = (items) => (items || []).reduce((acc, it) => {
+        const id = it.product?.id;
+        if (id) acc[id] = (acc[id] || 0) + (it.quantity || 0);
+        return acc;
+      }, {});
+      const oldQty = qtyByProduct(existingOrder.items);
+      const newQty = qtyByProduct(newItems);
+      const productIds = new Set([...Object.keys(oldQty), ...Object.keys(newQty)]);
+      productIds.forEach((id) => {
+        if (!this.products.some((p) => p.id === id)) return; // producto fuera de catalogo, sin stock que ajustar
+        const delta = (newQty[id] || 0) - (oldQty[id] || 0);
+        if (delta > 0) this.decrementStockAfterSale(id, delta);
+        else if (delta < 0) this.restoreStockAfterCancel(id, -delta);
+      });
+    }
+
     const total = newItems.reduce((sum, item) => {
       const itemPrice = item.product.wholesale_price || item.product.price || 0;
       return sum + (itemPrice * item.quantity);

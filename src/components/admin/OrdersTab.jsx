@@ -15,9 +15,12 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
   const [selectedPrintOrder, setSelectedPrintOrder] = useState(null);
   const [cleanNotice, setCleanNotice] = useState('');
 
-  // Edicion de pedido (sacar/bajar cantidad de productos y recalcular el total)
+  // Edicion de pedido (agregar/sacar/bajar cantidad de productos y recalcular el total)
   const [editingOrder, setEditingOrder] = useState(null);
   const [editItems, setEditItems] = useState([]);
+  const [editProductSearchQuery, setEditProductSearchQuery] = useState('');
+  const [showEditCustomProductForm, setShowEditCustomProductForm] = useState(false);
+  const [editCustomProduct, setEditCustomProduct] = useState({ name: '', price: '', size: '', color: '', quantity: 1 });
 
   // Crear pedido manual (ej. cliente que ya compro y ahora pide mas por
   // telefono/WhatsApp, sin pasar por el checkout de la web)
@@ -151,11 +154,16 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
   const openEditOrder = (ord) => {
     setEditingOrder(ord);
     setEditItems((ord.items || []).map((it) => ({ ...it })));
+    setEditProductSearchQuery('');
+    setShowEditCustomProductForm(false);
+    setEditCustomProduct({ name: '', price: '', size: '', color: '', quantity: 1 });
   };
 
   const closeEditOrder = () => {
     setEditingOrder(null);
     setEditItems([]);
+    setEditProductSearchQuery('');
+    setShowEditCustomProductForm(false);
   };
 
   const handleEditQtyChange = (idx, qty) => {
@@ -276,6 +284,70 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
 
   const handleChangeOrderItemVariant = (idx, field, value) => {
     setNewOrderItems((prev) => prev.map((it, i) => {
+      if (i !== idx) return it;
+      const updatedProduct = { ...it.product, [field]: value };
+      return { ...it, product: updatedProduct, variantKey: `${updatedProduct.id}::${updatedProduct.selectedSize || ''}::${updatedProduct.selectedColor || ''}` };
+    }));
+  };
+
+  // Buscador de productos para sumar al pedido que se esta editando (mismo
+  // patron que el buscador de "Crear Pedido Manual", pero escribe en editItems).
+  const matchingEditProducts = editProductSearchQuery.trim().length >= 2
+    ? dataStore.getProducts().filter((p) => normalizeSearch(p.name).includes(normalizeSearch(editProductSearchQuery))).slice(0, 8)
+    : [];
+
+  const handleAddProductToEditOrder = (product) => {
+    const availableSizes = Array.isArray(product.sizes) ? product.sizes : [];
+    const availableColors = getProductColors(product) || [];
+    const selectedSize = availableSizes[0] || null;
+    const selectedColor = availableColors[0] || null;
+    const variantKey = `${product.id}::${selectedSize || ''}::${selectedColor || ''}`;
+
+    setEditItems((prev) => {
+      const existing = prev.find((it) => it.variantKey === variantKey);
+      if (existing) {
+        return prev.map((it) => (it.variantKey === variantKey ? { ...it, quantity: it.quantity + 1 } : it));
+      }
+      return [...prev, {
+        product: { ...product, selectedSize, selectedColor },
+        quantity: 1,
+        variantKey,
+        availableSizes,
+        availableColors
+      }];
+    });
+    setEditProductSearchQuery('');
+  };
+
+  const handleAddCustomProductToEdit = () => {
+    const name = editCustomProduct.name.trim();
+    const price = parseFloat(editCustomProduct.price);
+    const quantity = Math.max(1, parseInt(editCustomProduct.quantity, 10) || 1);
+    if (!name || !price || price <= 0) {
+      alert('Cargá un nombre y un precio válido para el producto.');
+      return;
+    }
+    const customId = `custom-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+    setEditItems((prev) => [...prev, {
+      product: {
+        id: customId,
+        name,
+        wholesale_price: price,
+        price,
+        selectedSize: editCustomProduct.size.trim() || null,
+        selectedColor: editCustomProduct.color.trim() || null,
+        isCustom: true
+      },
+      quantity,
+      variantKey: customId
+    }]);
+    setEditCustomProduct({ name: '', price: '', size: '', color: '', quantity: 1 });
+    setShowEditCustomProductForm(false);
+  };
+
+  const handleChangeEditItemVariant = (idx, field, value) => {
+    setEditItems((prev) => prev.map((it, i) => {
       if (i !== idx) return it;
       const updatedProduct = { ...it.product, [field]: value };
       return { ...it, product: updatedProduct, variantKey: `${updatedProduct.id}::${updatedProduct.selectedSize || ''}::${updatedProduct.selectedColor || ''}` };
@@ -779,7 +851,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                   Editar Pedido #{editingOrder.id}
                 </h3>
                 <p style={{ fontSize: '0.82rem', color: '#64748B', margin: '4px 0 0' }}>
-                  Cliente: <strong>{editingOrder.client_name}</strong> — cambiá cantidades o sacá productos y el total se recalcula solo.
+                  Cliente: <strong>{editingOrder.client_name}</strong> — agregá, cambiá cantidades o sacá productos y el total se recalcula solo.
                 </p>
               </div>
               <button
@@ -790,7 +862,99 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
               </button>
             </div>
 
-            <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {/* Buscador de productos para sumar al pedido */}
+            <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid #E2E8F0' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>
+                Buscar producto para agregar al pedido
+              </label>
+              <input
+                type="text"
+                value={editProductSearchQuery}
+                onChange={(e) => setEditProductSearchQuery(e.target.value)}
+                placeholder="Ej: remera, jean, campera..."
+                style={{ width: '100%', padding: '8px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }}
+              />
+              {matchingEditProducts.length > 0 && (
+                <div style={{ border: '1px solid var(--border-color)', borderRadius: '8px', marginTop: '4px', overflow: 'hidden' }}>
+                  {matchingEditProducts.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => handleAddProductToEditOrder(p)}
+                      style={{ display: 'flex', justifyContent: 'space-between', width: '100%', textAlign: 'left', padding: '8px 10px', fontSize: '0.82rem', background: '#FFF', border: 'none', borderBottom: '1px solid #F1F5F9', cursor: 'pointer' }}
+                    >
+                      <span>{p.name}</span>
+                      <strong style={{ color: '#059669' }}>${(p.wholesale_price || p.price)?.toLocaleString('es-AR')}</strong>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {!showEditCustomProductForm ? (
+                <button
+                  type="button"
+                  onClick={() => setShowEditCustomProductForm(true)}
+                  style={{ background: 'none', border: 'none', color: '#2563EB', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: '8px 2px' }}
+                >
+                  + Agregar producto que no está en el sistema
+                </button>
+              ) : (
+                <div style={{ marginTop: '8px', padding: '12px', border: '1px dashed #94A3B8', borderRadius: '8px', backgroundColor: '#F8FAFC' }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '8px' }}>
+                    Producto fuera de catálogo
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '8px' }}>
+                    <input
+                      type="text"
+                      placeholder="Nombre del producto"
+                      value={editCustomProduct.name}
+                      onChange={(e) => setEditCustomProduct((p) => ({ ...p, name: e.target.value }))}
+                      style={{ padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }}
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="Precio unitario"
+                      value={editCustomProduct.price}
+                      onChange={(e) => setEditCustomProduct((p) => ({ ...p, price: e.target.value }))}
+                      style={{ padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Talle (opcional)"
+                      value={editCustomProduct.size}
+                      onChange={(e) => setEditCustomProduct((p) => ({ ...p, size: e.target.value }))}
+                      style={{ padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Color (opcional)"
+                      value={editCustomProduct.color}
+                      onChange={(e) => setEditCustomProduct((p) => ({ ...p, color: e.target.value }))}
+                      style={{ padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }}
+                    />
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="Cantidad"
+                      value={editCustomProduct.quantity}
+                      onChange={(e) => setEditCustomProduct((p) => ({ ...p, quantity: e.target.value }))}
+                      style={{ padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
+                    <button type="button" onClick={() => setShowEditCustomProductForm(false)} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>
+                      Cancelar
+                    </button>
+                    <button type="button" onClick={handleAddCustomProductToEdit} className="btn-primary" style={{ padding: '6px 14px', fontSize: '0.8rem', backgroundColor: '#059669', borderColor: '#059669' }}>
+                      Agregar al Pedido
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {editItems.length === 0 ? (
                 <p style={{ fontSize: '0.85rem', color: '#94A3B8', textAlign: 'center', padding: '20px' }}>Sin productos. Agregá al menos uno o cancelá esta edición.</p>
               ) : (
@@ -799,15 +963,35 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                   const size = item.product?.selectedSize || item.selectedSize || '-';
                   const color = item.product?.selectedColor || item.selectedColor || 'Surtido';
                   return (
-                    <div key={item.variantKey || idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
+                    <div key={item.variantKey || idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px', border: '1px solid var(--border-color)', borderRadius: '8px', flexWrap: 'wrap' }}>
+                      <div style={{ flex: 1, minWidth: '140px' }}>
                         <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {item.product?.name}
                         </div>
                         <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
-                          Talle {size} · {color} · ${unitPrice.toLocaleString('es-AR')} c/u
+                          {item.availableSizes?.length > 0 || item.availableColors?.length > 0 ? `$${unitPrice.toLocaleString('es-AR')} c/u` : `Talle ${size} · ${color} · $${unitPrice.toLocaleString('es-AR')} c/u`}
                         </div>
                       </div>
+
+                      {item.availableSizes?.length > 0 && (
+                        <select
+                          value={item.product.selectedSize || ''}
+                          onChange={(e) => handleChangeEditItemVariant(idx, 'selectedSize', e.target.value)}
+                          style={{ padding: '5px 6px', fontSize: '0.78rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}
+                        >
+                          {item.availableSizes.map((s) => <option key={s} value={s}>Talle {s}</option>)}
+                        </select>
+                      )}
+
+                      {item.availableColors?.length > 0 && (
+                        <select
+                          value={item.product.selectedColor || ''}
+                          onChange={(e) => handleChangeEditItemVariant(idx, 'selectedColor', e.target.value)}
+                          style={{ padding: '5px 6px', fontSize: '0.78rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}
+                        >
+                          {item.availableColors.map((c) => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      )}
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <button
