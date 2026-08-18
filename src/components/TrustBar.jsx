@@ -16,7 +16,7 @@ const ITEMS = [
   {
     icon: Store,
     title: 'Retirá en Nuestro Local',
-    subtitle: 'Camilo Aldao 2715, Rosario'
+    subtitle: 'Camilo Aldao 2715, Rosario — con este frío, te recibimos con un café calentito ☕'
   },
   {
     icon: MessagesSquare,
