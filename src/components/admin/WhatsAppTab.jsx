@@ -17,7 +17,8 @@ import {
   Eye,
   EyeOff,
   Volume2,
-  VolumeX
+  VolumeX,
+  ArrowLeft
 } from 'lucide-react';
 
 export default function WhatsAppTab() {
@@ -272,19 +273,19 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
   );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 180px)', minHeight: '600px', background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
-      
+    <div className="whatsapp-tab-root" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 180px)', minHeight: '600px', background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
+
       {/* Top Action Bar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', background: '#0F172A', color: '#FFFFFF', borderBottom: '1px solid #1E293B' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', padding: '12px 20px', background: '#0F172A', color: '#FFFFFF', borderBottom: '1px solid #1E293B' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <MessageSquare className="text-gold" size={22} />
           <div>
             <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800 }}>WhatsApp CRM & Bot de IA</h3>
-            <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>Bandeja de Entrada & Atención Inteligente con OpenRouter</span>
+            <span className="whatsapp-subtitle" style={{ fontSize: '0.75rem', color: '#94A3B8' }}>Bandeja de Entrada & Atención Inteligente con OpenRouter</span>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <button
             onClick={() => setIsSoundEnabled(prev => !prev)}
             title={isSoundEnabled ? 'Silenciar alerta sonora de mensajes nuevos' : 'Activar alerta sonora de mensajes nuevos'}
@@ -324,10 +325,10 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
       </div>
 
       {/* Main Split Layout */}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        
+      <div className="whatsapp-split-layout" data-has-chat={selectedChat ? 'true' : 'false'} style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+
         {/* LEFT SIDEBAR: Chats List */}
-        <div style={{ width: '320px', background: 'var(--bg-main)', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column' }}>
+        <div className="whatsapp-sidebar" style={{ width: '320px', background: 'var(--bg-main)', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column' }}>
           {/* Search Box */}
           <div style={{ padding: '12px', borderBottom: '1px solid var(--border-color)' }}>
             <div style={{ position: 'relative' }}>
@@ -409,25 +410,36 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
         </div>
 
         {/* RIGHT PANEL: Active Chat Conversation */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--bg-card)' }}>
+        <div className="whatsapp-conversation-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--bg-card)' }}>
           {selectedChat ? (
             <>
               {/* Chat Header */}
-              <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-main)' }}>
-                <div>
-                  <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                    {selectedChat.client_name || selectedChat.phone}
-                  </h4>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    {selectedChat.channel === 'web' ? (
-                      <>🌐 Chat Web (visitante del sitio)</>
-                    ) : (
-                      <>WhatsApp: <strong>{selectedChat.phone}</strong></>
-                    )}
-                  </span>
+              <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', background: 'var(--bg-main)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPhone(null)}
+                    className="whatsapp-back-button"
+                    aria-label="Volver a la lista de chats"
+                    style={{ display: 'none', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-main)', padding: '4px', flexShrink: 0 }}
+                  >
+                    <ArrowLeft size={20} />
+                  </button>
+                  <div style={{ minWidth: 0 }}>
+                    <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {selectedChat.client_name || selectedChat.phone}
+                    </h4>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      {selectedChat.channel === 'web' ? (
+                        <>🌐 Chat Web (visitante del sitio)</>
+                      ) : (
+                        <>WhatsApp: <strong>{selectedChat.phone}</strong></>
+                      )}
+                    </span>
+                  </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
                   {/* Toggle Bot for this chat */}
                   <button 
                     onClick={() => handleToggleBot(selectedChat.phone, selectedChat.bot_enabled !== false)}
@@ -632,6 +644,38 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
           </div>
         </div>
       )}
+
+      {/* En celular no entran las dos columnas (lista + conversacion) lado a
+          lado, asi que se muestra una por vez, como WhatsApp Web: la lista
+          por default, y al elegir un chat pasa a mostrar solo la conversacion
+          con un boton de volver. */}
+      <style jsx>{`
+        @media (max-width: 768px) {
+          .whatsapp-tab-root {
+            height: calc(100vh - 140px) !important;
+            min-height: 500px !important;
+          }
+          .whatsapp-subtitle {
+            display: none;
+          }
+          .whatsapp-split-layout {
+            flex-direction: column;
+          }
+          .whatsapp-sidebar {
+            width: 100% !important;
+            border-right: none !important;
+          }
+          .whatsapp-split-layout[data-has-chat='true'] .whatsapp-sidebar {
+            display: none !important;
+          }
+          .whatsapp-split-layout[data-has-chat='false'] .whatsapp-conversation-panel {
+            display: none !important;
+          }
+          .whatsapp-back-button {
+            display: flex !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
