@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Lock, ShieldCheck, ArrowLeft, KeyRound, Loader2, CreditCard } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
@@ -46,6 +46,89 @@ export default function AdminPage() {
   const [mpTransfers, setMpTransfers] = useState([]);
   const [mpConfigured, setMpConfigured] = useState(false);
   const [mpLoading, setMpLoading] = useState(false);
+
+  // Notificaciones del navegador para mensajes nuevos de clientes (WhatsApp/chat
+  // web), sin importar en que pestana del admin este parado. La pestana de
+  // WhatsApp ya tiene su propio sonido mientras esta abierta; esto la
+  // complementa avisando incluso estando en Pedidos, Stock, etc.
+  const [notifPermission, setNotifPermission] = useState(undefined);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setNotifPermission(Notification.permission);
+    }
+  }, []);
+
+  const handleRequestNotif = async () => {
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+    const result = await Notification.requestPermission();
+    setNotifPermission(result);
+  };
+
+  // Referencia a la pestana activa para leerla dentro del listener de
+  // realtime sin tener que re-suscribirse cada vez que cambia.
+  const activeTabRef = useRef(activeTab);
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
+
+  // Aviso via notificacion del navegador cuando entra un mensaje nuevo de un
+  // cliente (WhatsApp o chat web), sin importar en que pestana del admin este
+  // parado. Si ya esta mirando la pestana de WhatsApp con la ventana
+  // enfocada, el sonido propio de esa pestana ya avisa, asi que no duplica.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+
+    const notifyNewMessage = (chatPhone, content) => {
+      if (Notification.permission !== 'granted') return;
+      if (activeTabRef.current === 'whatsapp' && !document.hidden) return;
+      try {
+        const n = new Notification('Nuevo mensaje de cliente — El Paquetero', {
+          body: `${chatPhone || 'Cliente'}: ${(content || '').slice(0, 150)}`,
+          icon: '/elpaquetero_imagenes/logo.webp',
+          tag: 'elpaquetero-nuevo-mensaje'
+        });
+        n.onclick = () => {
+          window.focus();
+          setActiveTab('whatsapp');
+          n.close();
+        };
+      } catch (e) {}
+    };
+
+    let messagesChannel = null;
+    if (supabase) {
+      messagesChannel = supabase
+        .channel('admin-whatsapp-messages-realtime')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'whatsapp_messages', filter: 'sender=eq.client' }, (payload) => {
+          notifyNewMessage(payload.new.chat_phone, payload.new.content);
+        })
+        .subscribe();
+    }
+
+    // Red de seguridad: si el realtime no llega a disparar, este polling
+    // detecta el aumento de mensajes sin leer y avisa igual.
+    let prevUnreadTotal = null;
+    const unreadPollInterval = setInterval(async () => {
+      try {
+        const res = await fetch('/api/admin/whatsapp');
+        const data = await res.json();
+        if (!data.success || !Array.isArray(data.chats)) return;
+        const total = data.chats.reduce((sum, c) => sum + (c.unread_count || 0), 0);
+        if (prevUnreadTotal !== null && total > prevUnreadTotal) {
+          const chatWithNew = data.chats.find((c) => c.unread_count > 0);
+          notifyNewMessage(chatWithNew?.client_name || chatWithNew?.phone, chatWithNew?.last_message);
+        }
+        prevUnreadTotal = total;
+      } catch (e) {}
+    }, 15000);
+
+    return () => {
+      if (messagesChannel) supabase.removeChannel(messagesChannel);
+      clearInterval(unreadPollInterval);
+    };
+  }, [isAuthenticated]);
 
   // Check active Supabase Auth session on mount
   useEffect(() => {
@@ -416,7 +499,12 @@ export default function AdminPage() {
   // RENDER FULL ADMIN DASHBOARD IF AUTHENTICATED WITH SUPABASE AUTH
   return (
     <div style={{ paddingBottom: '60px' }}>
-      <AdminHeader onLogout={handleAdminLogout} visitCount={metrics.visitCount} />
+      <AdminHeader
+        onLogout={handleAdminLogout}
+        visitCount={metrics.visitCount}
+        notifPermission={notifPermission}
+        onRequestNotif={handleRequestNotif}
+      />
 
       {editSuccessMsg && (
         <div style={{ 
