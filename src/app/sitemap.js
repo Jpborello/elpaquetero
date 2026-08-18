@@ -1,13 +1,14 @@
 import { supabase } from '@/lib/supabaseClient';
 import { buildProductSlug } from '@/lib/productSlug';
+import { slugify } from '@/lib/slugify';
 
 const SITE_URL = 'https://www.elpaquetero.com.ar';
 
 export default async function sitemap() {
-  const { data: products } = await supabase
-    .from('products')
-    .select('id, name, updated_at')
-    .eq('is_active', true);
+  const [{ data: products }, { data: categories }] = await Promise.all([
+    supabase.from('products').select('id, name, category, subcategory, updated_at').eq('is_active', true),
+    supabase.from('categories').select('id').not('id', 'like', '_config_%')
+  ]);
 
   const productEntries = (products || []).map((p) => ({
     url: `${SITE_URL}/producto/${buildProductSlug(p)}`,
@@ -16,6 +17,35 @@ export default async function sitemap() {
     priority: 0.8
   }));
 
+  // Solo se listan categorias/subcategorias que tienen al menos un producto
+  // activo, para no mandarle a Google paginas vacias.
+  const categoryIds = new Set((categories || []).map((c) => c.id));
+  const withProducts = new Set();
+  const subWithProducts = new Set();
+  (products || []).forEach((p) => {
+    if (categoryIds.has(p.category)) {
+      withProducts.add(p.category);
+      if (p.subcategory) subWithProducts.add(`${p.category}/${p.subcategory}`);
+    }
+  });
+
+  const categoryEntries = Array.from(withProducts).map((catId) => ({
+    url: `${SITE_URL}/categoria/${slugify(catId)}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly',
+    priority: 0.7
+  }));
+
+  const subcategoryEntries = Array.from(subWithProducts).map((key) => {
+    const [catId, sub] = key.split('/');
+    return {
+      url: `${SITE_URL}/categoria/${slugify(catId)}/${slugify(sub)}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.6
+    };
+  });
+
   return [
     {
       url: SITE_URL,
@@ -23,6 +53,8 @@ export default async function sitemap() {
       changeFrequency: 'daily',
       priority: 1
     },
+    ...categoryEntries,
+    ...subcategoryEntries,
     ...productEntries
   ];
 }

@@ -5,14 +5,9 @@
 // Asi un link ya compartido sigue funcionando aunque el nombre del
 // producto cambie despues.
 
-export function slugifyName(name) {
-  return (name || '')
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
+import { slugify } from './slugify';
+
+export const slugifyName = slugify;
 
 export function buildProductSlug(product) {
   const namePart = slugifyName(product?.name);
@@ -21,13 +16,4 @@ export function buildProductSlug(product) {
 
 export function getProductUrlPath(product) {
   return `/producto/${buildProductSlug(product)}`;
-}
-
-// Los ids del catalogo tienen la forma "p-0050": prefijo de letras + guion
-// + numero. Se toman los primeros dos segmentos del slug como el id real.
-export function extractIdFromSlug(slug) {
-  if (!slug) return null;
-  const parts = slug.split('-');
-  if (parts.length < 2) return slug;
-  return `${parts[0]}-${parts[1]}`;
 }
