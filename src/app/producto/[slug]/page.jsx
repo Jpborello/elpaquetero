@@ -64,7 +64,7 @@ export async function generateMetadata({ params }) {
       siteName: 'El Paquetero',
       title: `${title} | El Paquetero`,
       description,
-      images: product.image_url ? [{ url: product.image_url, width: 800, height: 1000, alt: product.name }] : undefined
+      images: product.image_url ? [{ url: product.image_url, width: 800, height: 1000, alt: product.name, type: 'image/webp' }] : undefined
     },
     twitter: {
       card: 'summary_large_image',

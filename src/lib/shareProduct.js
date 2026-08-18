@@ -17,7 +17,12 @@ export async function shareProduct(product) {
 
   if (typeof navigator !== 'undefined' && navigator.share) {
     try {
-      await navigator.share({ title: 'El Paquetero', text, url });
+      // Se manda SOLO el link (sin "text" acompañando): WhatsApp y la
+      // mayoria de las apps generan la tarjeta con foto/titulo/precio a
+      // partir del Open Graph de la pagina unicamente cuando el mensaje es
+      // un link "limpio" — mezclado con texto libre, muchas veces no llegan
+      // a armar la vista previa con imagen.
+      await navigator.share({ title: 'El Paquetero', url });
       return 'shared';
     } catch (e) {
       if (e?.name === 'AbortError') return 'cancelled';
@@ -27,6 +32,8 @@ export async function shareProduct(product) {
 
   if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
     try {
+      // Al copiar al portapapeles no hay tarjeta con imagen posible, asi que
+      // ahi si conviene ir con el texto descriptivo + el link.
       await navigator.clipboard.writeText(`${text}\n${url}`);
       return 'copied';
     } catch (e) {
