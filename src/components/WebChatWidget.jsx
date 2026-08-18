@@ -161,7 +161,7 @@ export default function WebChatWidget() {
       </button>
 
       {isOpen && (
-        <div style={{
+        <div className="webchat-panel" style={{
           position: 'fixed',
           bottom: '152px',
           right: '24px',
@@ -192,7 +192,7 @@ export default function WebChatWidget() {
                 placeholder="Tu nombre"
                 value={clientName}
                 onChange={(e) => setClientName(e.target.value)}
-                style={{ padding: '9px 12px', fontSize: '0.88rem', borderRadius: '10px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-main)' }}
+                style={{ padding: '9px 12px', fontSize: '16px', borderRadius: '10px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-main)' }}
               />
               <button
                 type="submit"
@@ -248,7 +248,7 @@ export default function WebChatWidget() {
                   placeholder="Escribí tu mensaje..."
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
-                  style={{ flex: 1, padding: '9px 12px', fontSize: '0.85rem', borderRadius: '10px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-main)' }}
+                  style={{ flex: 1, padding: '9px 12px', fontSize: '16px', borderRadius: '10px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-main)' }}
                 />
                 <button
                   type="submit"
@@ -262,6 +262,25 @@ export default function WebChatWidget() {
           )}
         </div>
       )}
+
+      {/* En pantallas chicas el 100vh/100vw de arriba no coincide con lo que
+          realmente se ve (la barra del navegador del celular se muestra/oculta
+          y cambia el viewport), asi que el chat pasa a ocupar toda la pantalla
+          en vez de ser una cajita flotante con margenes calculados. */}
+      <style jsx>{`
+        @media (max-width: 480px) {
+          .webchat-panel {
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100% !important;
+            height: 100dvh !important;
+            max-height: 100dvh !important;
+            border-radius: 0 !important;
+          }
+        }
+      `}</style>
     </>
   );
 }
