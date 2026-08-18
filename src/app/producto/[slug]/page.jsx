@@ -5,6 +5,7 @@ import { MapPin, Phone, ArrowLeft, ShoppingCart } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { getProductColors } from '@/lib/catalogData';
 import { extractIdFromSlug, buildProductSlug } from '@/lib/productSlug';
+import ShareProductButton from '@/components/ShareProductButton';
 
 const SITE_URL = 'https://www.elpaquetero.com.ar';
 
@@ -181,13 +182,16 @@ export default async function ProductPage({ params }) {
               <p className="price-hint">Mínimo de compra: $50.000 en pedidos por la web.</p>
             </div>
 
-            <Link
-              href={`/?producto=${encodeURIComponent(product.id)}`}
-              className="btn-primary"
-              style={{ marginTop: '18px', justifyContent: 'center', backgroundColor: 'var(--accent-gold)', color: '#FFF' }}
-            >
-              <ShoppingCart size={18} /> Comprar este producto
-            </Link>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '18px' }}>
+              <Link
+                href={`/?producto=${encodeURIComponent(product.id)}`}
+                className="btn-primary"
+                style={{ justifyContent: 'center', backgroundColor: 'var(--accent-gold)', color: '#FFF' }}
+              >
+                <ShoppingCart size={18} /> Comprar este producto
+              </Link>
+              <ShareProductButton product={{ id: product.id, name: product.name, wholesale_price: product.wholesale_price, price: product.price }} />
+            </div>
           </div>
         </div>
       </main>

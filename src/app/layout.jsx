@@ -99,7 +99,7 @@ const localBusinessJsonLd = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <head>
         {/* Aplica el tema guardado ANTES de pintar la pagina, para que no se
             vea un flash de tema claro y despues salte a oscuro. */}
