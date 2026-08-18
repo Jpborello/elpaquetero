@@ -310,16 +310,16 @@ export default function AdminPage() {
         alignItems: 'center', 
         justifyContent: 'center', 
         padding: '40px 20px',
-        backgroundColor: '#F8FAFC'
+        backgroundColor: 'var(--bg-page)'
       }}>
-        <div style={{ 
-          width: '100%', 
-          maxWidth: '440px', 
-          backgroundColor: '#FFFFFF', 
-          borderRadius: '12px', 
-          padding: '36px 30px', 
+        <div style={{
+          width: '100%',
+          maxWidth: '440px',
+          backgroundColor: 'var(--bg-card)',
+          borderRadius: '12px',
+          padding: '36px 30px',
           boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #E2E8F0'
+          border: '1px solid var(--border-color)'
         }}>
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
             <div style={{ 
@@ -335,8 +335,8 @@ export default function AdminPage() {
             }}>
               <Lock size={28} />
             </div>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F172A' }}>Panel de Administración</h2>
-            <p style={{ fontSize: '0.85rem', color: '#64748B', marginTop: '4px' }}>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)' }}>Panel de Administración</h2>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '4px' }}>
               Autenticación oficial con Supabase Auth
             </p>
           </div>
@@ -358,7 +358,7 @@ export default function AdminPage() {
 
           <form onSubmit={handleAdminLogin}>
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
                 Correo Electrónico de Administrador
               </label>
               <input 
@@ -372,7 +372,7 @@ export default function AdminPage() {
             </div>
 
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
                 Contraseña de Administrador
               </label>
               <input 
@@ -403,8 +403,8 @@ export default function AdminPage() {
             </button>
           </form>
 
-          <div style={{ marginTop: '20px', textAlign: 'center', borderTop: '1px solid #F1F5F9', paddingTop: '16px' }}>
-            <Link href="/" style={{ fontSize: '0.82rem', color: '#64748B', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+          <div style={{ marginTop: '20px', textAlign: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
+            <Link href="/" style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
               <ArrowLeft size={14} /> Volver a la Tienda Principal
             </Link>
           </div>
@@ -498,7 +498,7 @@ export default function AdminPage() {
                     fontFamily: 'monospace',
                     borderRadius: '8px',
                     border: '2px solid #BFDBFE',
-                    backgroundColor: '#F8FAFC'
+                    backgroundColor: 'var(--bg-surface-elevated)'
                   }}
                   required
                 />
@@ -521,7 +521,7 @@ export default function AdminPage() {
                     fontFamily: 'monospace',
                     borderRadius: '8px',
                     border: '2px solid #BFDBFE',
-                    backgroundColor: '#F8FAFC'
+                    backgroundColor: 'var(--bg-surface-elevated)'
                   }}
                 />
               </div>
@@ -585,12 +585,12 @@ export default function AdminPage() {
           {/* Customer Preview Card */}
           <div style={{
             marginTop: '28px',
-            backgroundColor: '#F8FAFC',
-            border: '1px solid #E2E8F0',
+            backgroundColor: 'var(--bg-surface-elevated)',
+            border: '1px solid var(--border-color)',
             borderRadius: '12px',
             padding: '16px'
           }}>
-            <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', marginBottom: '10px' }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '10px' }}>
               👁️ Vista previa de cómo lo verán tus clientes en el carrito:
             </div>
             <div style={{

@@ -67,7 +67,7 @@ export default function PricesTab({
           <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main, #1E293B)', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <TrendingUp size={22} style={{ color: '#2563EB' }} /> Gestión y Aumento de Precios
           </h2>
-          <p style={{ fontSize: '0.85rem', color: '#64748B', marginTop: '2px' }}>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '2px' }}>
             Actualiza los valores de tus productos de forma individual o aplica aumentos porcentuales masivos.
           </p>
         </div>
@@ -82,17 +82,17 @@ export default function PricesTab({
       </div>
 
       {/* Card: Aumento Masivo por Porcentaje */}
-      <div style={{ 
-        backgroundColor: '#F8FAFC', 
-        border: '1px solid #E2E8F0', 
-        borderRadius: '12px', 
+      <div style={{
+        backgroundColor: 'var(--bg-surface-elevated)',
+        border: '1px solid var(--border-color)',
+        borderRadius: '12px',
         padding: '18px 20px', 
         marginBottom: '24px',
         boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
           <Percent size={18} style={{ color: '#2563EB', fontWeight: 'bold' }} />
-          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: '#0F172A' }}>
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
             Aumento Masivo por Porcentaje
           </h3>
         </div>
@@ -100,7 +100,7 @@ export default function PricesTab({
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center' }}>
           {/* Porcentaje Input */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569' }}>Porcentaje (%)</label>
+            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)' }}>Porcentaje (%)</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <input 
                 type="number"
@@ -111,13 +111,13 @@ export default function PricesTab({
                 className="form-input"
                 style={{ width: '110px', fontWeight: 700, fontSize: '0.95rem', padding: '7px 10px' }}
               />
-              <span style={{ fontWeight: 800, color: '#334155' }}>%</span>
+              <span style={{ fontWeight: 800, color: 'var(--text-main)' }}>%</span>
             </div>
           </div>
 
           {/* Presets rápido */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569' }}>Ajuste rápido</label>
+            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)' }}>Ajuste rápido</label>
             <div style={{ display: 'flex', gap: '4px' }}>
               {[5, 10, 15, 20, 25].map(val => (
                 <button
@@ -129,9 +129,9 @@ export default function PricesTab({
                     fontSize: '0.78rem',
                     fontWeight: 700,
                     borderRadius: '6px',
-                    border: bulkPct === val.toString() ? '1px solid #2563EB' : '1px solid #CBD5E1',
-                    backgroundColor: bulkPct === val.toString() ? '#EFF6FF' : '#FFFFFF',
-                    color: bulkPct === val.toString() ? '#1D4ED8' : '#334155',
+                    border: bulkPct === val.toString() ? '1px solid #2563EB' : '1px solid var(--border-color)',
+                    backgroundColor: bulkPct === val.toString() ? '#EFF6FF' : 'var(--bg-card)',
+                    color: bulkPct === val.toString() ? '#1D4ED8' : 'var(--text-main)',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease'
                   }}
@@ -144,7 +144,7 @@ export default function PricesTab({
 
           {/* Destino de Precios */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569' }}>Aplicar en</label>
+            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)' }}>Aplicar en</label>
             <select
               value={bulkTarget}
               onChange={(e) => setBulkTarget(e.target.value)}
@@ -159,7 +159,7 @@ export default function PricesTab({
 
           {/* Alcance (Filtro o Todos) */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569' }}>Alcance</label>
+            <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)' }}>Alcance</label>
             <select
               value={bulkScope}
               onChange={(e) => setBulkScope(e.target.value)}
@@ -216,8 +216,8 @@ export default function PricesTab({
                   type="button"
                   onClick={() => setShowConfirm(false)}
                   style={{
-                    backgroundColor: '#E2E8F0',
-                    color: '#334155',
+                    backgroundColor: 'var(--bg-surface-elevated)',
+                    color: 'var(--text-main)',
                     border: 'none',
                     borderRadius: '6px',
                     padding: '6px 10px',
@@ -254,7 +254,7 @@ export default function PricesTab({
               <tr key={p.id}>
                 <td style={{ fontWeight: 700, minWidth: '180px' }}>
                   <div>{p.name}</div>
-                  <span style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 500 }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 500 }}>
                     {p.category} {p.subcategory ? `• ${p.subcategory}` : ''}
                   </span>
                 </td>
@@ -296,7 +296,7 @@ export default function PricesTab({
                         className="form-input"
                         style={{ width: '70px', padding: '4px 6px', fontSize: '0.82rem', textAlign: 'center' }}
                       />
-                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569' }}>%</span>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)' }}>%</span>
                     </div>
 
                     <div style={{ display: 'flex', gap: '3px' }}>
@@ -310,9 +310,9 @@ export default function PricesTab({
                             fontSize: '0.72rem',
                             fontWeight: 700,
                             borderRadius: '4px',
-                            border: '1px solid #CBD5E1',
-                            backgroundColor: currentPct === val.toString() ? '#EFF6FF' : '#F8FAFC',
-                            color: currentPct === val.toString() ? '#1D4ED8' : '#475569',
+                            border: '1px solid var(--border-color)',
+                            backgroundColor: currentPct === val.toString() ? '#EFF6FF' : 'var(--bg-surface-elevated)',
+                            color: currentPct === val.toString() ? '#1D4ED8' : 'var(--text-muted)',
                             cursor: 'pointer'
                           }}
                         >
@@ -335,7 +335,7 @@ export default function PricesTab({
                         style={{
                           background: 'none',
                           border: 'none',
-                          color: '#94A3B8',
+                          color: 'var(--text-muted)',
                           cursor: 'pointer',
                           padding: '2px',
                           display: 'flex',
@@ -358,9 +358,9 @@ export default function PricesTab({
                         display: 'inline-flex', alignItems: 'center', gap: '4px',
                         padding: '4px 8px', fontSize: '0.74rem', fontWeight: 700,
                         borderRadius: '6px',
-                        border: p.is_offer ? '1px solid #EA580C' : '1px solid #CBD5E1',
-                        backgroundColor: p.is_offer ? '#FFF7ED' : '#FFFFFF',
-                        color: p.is_offer ? '#C2410C' : '#64748B',
+                        border: p.is_offer ? '1px solid #EA580C' : '1px solid var(--border-color)',
+                        backgroundColor: p.is_offer ? '#FFF7ED' : 'var(--bg-card)',
+                        color: p.is_offer ? '#C2410C' : 'var(--text-muted)',
                         cursor: 'pointer'
                       }}
                     >
@@ -374,9 +374,9 @@ export default function PricesTab({
                         display: 'inline-flex', alignItems: 'center', gap: '4px',
                         padding: '4px 8px', fontSize: '0.74rem', fontWeight: 700,
                         borderRadius: '6px',
-                        border: p.is_featured ? '1px solid #B45309' : '1px solid #CBD5E1',
-                        backgroundColor: p.is_featured ? '#FEF3C7' : '#FFFFFF',
-                        color: p.is_featured ? '#92400E' : '#64748B',
+                        border: p.is_featured ? '1px solid #B45309' : '1px solid var(--border-color)',
+                        backgroundColor: p.is_featured ? '#FEF3C7' : 'var(--bg-card)',
+                        color: p.is_featured ? '#92400E' : 'var(--text-muted)',
                         cursor: 'pointer'
                       }}
                     >

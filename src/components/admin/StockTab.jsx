@@ -24,8 +24,8 @@ export default function StockTab({ products, searchFilter, setSearchFilter, onUp
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
         <div>
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F172A' }}>Control e Inventario de Stock por Talle</h2>
-          <p style={{ fontSize: '0.85rem', color: '#64748B', margin: 0 }}>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)' }}>Control e Inventario de Stock por Talle</h2>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
             Gestiona las existencias totales y la distribución del stock por talle para indumentaria.
           </p>
         </div>
@@ -64,19 +64,19 @@ export default function StockTab({ products, searchFilter, setSearchFilter, onUp
                   <img
                     src={p.image_url}
                     alt=""
-                    style={{ width: '44px', height: '44px', borderRadius: '6px', objectFit: 'cover', border: '1px solid #E2E8F0' }}
+                    style={{ width: '44px', height: '44px', borderRadius: '6px', objectFit: 'cover', border: '1px solid var(--border-color)' }}
                     onError={(e) => { e.target.src = '/elpaquetero_imagenes/Logo 2.jpeg'; }}
                   />
                 </td>
                 <td style={{ fontWeight: 700 }}>
                   <div>{p.name}</div>
-                  {p.code && <span style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>Cód: {p.code}</span>}
+                  {p.code && <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>Cód: {p.code}</span>}
                 </td>
                 <td>
                   <span style={{ backgroundColor: '#EFF6FF', color: '#1D4ED8', padding: '2px 8px', borderRadius: '4px', fontSize: '0.78rem', fontWeight: 600 }}>
                     {p.category}
                   </span>
-                  {p.subcategory && <div style={{ fontSize: '0.72rem', color: '#64748B' }}>{p.subcategory}</div>}
+                  {p.subcategory && <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{p.subcategory}</div>}
                 </td>
 
                 {/* Activar / Desactivar */}
@@ -104,21 +104,21 @@ export default function StockTab({ products, searchFilter, setSearchFilter, onUp
                   {hasSizes ? (
                     <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', maxWidth: '240px' }}>
                       {p.sizes.map(size => (
-                        <div key={size} style={{ 
-                          backgroundColor: '#F8FAFC', 
-                          border: '1px solid #CBD5E1', 
-                          borderRadius: '4px', 
-                          padding: '2px 6px', 
+                        <div key={size} style={{
+                          backgroundColor: 'var(--bg-surface-elevated)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '4px',
+                          padding: '2px 6px',
                           fontSize: '0.72rem',
                           textAlign: 'center'
                         }}>
-                          <span style={{ fontWeight: 800, color: '#1E293B' }}>{size}:</span>{' '}
+                          <span style={{ fontWeight: 800, color: 'var(--text-main)' }}>{size}:</span>{' '}
                           <span style={{ color: '#059669', fontWeight: 700 }}>{currentSizeMap[size] ?? 20} un.</span>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <span style={{ fontSize: '0.75rem', color: '#94A3B8', fontStyle: 'italic' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
                       Sin talles (Blanquería)
                     </span>
                   )}
@@ -236,14 +236,14 @@ function SizeColorManagerModal({ product, onClose, onSave }) {
           <Layers size={18} style={{ display: 'inline', marginRight: '6px', verticalAlign: '-3px' }} />
           Talles y Colores
         </h3>
-        <p style={{ fontSize: '0.85rem', color: '#64748B', marginBottom: '18px' }}>{product.name}</p>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '18px' }}>{product.name}</p>
 
         {/* SIZES */}
         <div style={{ marginBottom: '20px' }}>
           <label className="form-label">Talles habilitados en la web</label>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
             {sizes.length === 0 && (
-              <span style={{ fontSize: '0.8rem', color: '#94A3B8', fontStyle: 'italic' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
                 Sin talles (se vende como talle único)
               </span>
             )}
@@ -253,7 +253,7 @@ function SizeColorManagerModal({ product, onClose, onSave }) {
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '6px',
                   padding: '5px 10px', borderRadius: '20px',
-                  backgroundColor: '#F1F5F9', border: '1px solid #CBD5E1',
+                  backgroundColor: 'var(--bg-surface-elevated)', border: '1px solid var(--border-color)',
                   fontSize: '0.82rem', fontWeight: 700
                 }}
               >
@@ -302,7 +302,7 @@ function SizeColorManagerModal({ product, onClose, onSave }) {
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '6px',
                   padding: '5px 10px', borderRadius: '20px',
-                  backgroundColor: '#F1F5F9', border: '1px solid #CBD5E1',
+                  backgroundColor: 'var(--bg-surface-elevated)', border: '1px solid var(--border-color)',
                   fontSize: '0.82rem', fontWeight: 700
                 }}
               >

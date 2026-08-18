@@ -176,7 +176,7 @@ export default function WebChatWidget() {
           flexDirection: 'column',
           overflow: 'hidden'
         }}>
-          <div style={{ padding: '14px 16px', background: '#0F172A', color: '#FFFFFF' }}>
+          <div style={{ padding: '14px 16px', background: 'var(--bg-surface-dark)', color: 'var(--text-on-dark)' }}>
             <div style={{ fontWeight: 800, fontSize: '0.95rem' }}>El Paquetero</div>
             <div style={{ fontSize: '0.72rem', color: '#94A3B8' }}>Te respondemos al toque</div>
           </div>
@@ -221,7 +221,7 @@ export default function WebChatWidget() {
                           maxWidth: '80%',
                           padding: '9px 12px',
                           borderRadius: '12px',
-                          background: isClient ? 'var(--accent-gold)' : (isBot ? '#F1F5F9' : '#DBEAFE'),
+                          background: isClient ? 'var(--accent-gold)' : (isBot ? 'var(--bg-surface-elevated)' : 'var(--accent-secondary-light)'),
                           color: isClient ? '#FFFFFF' : 'var(--text-main)',
                           fontSize: '0.85rem',
                           lineHeight: 1.4,

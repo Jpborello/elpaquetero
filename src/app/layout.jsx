@@ -100,6 +100,24 @@ const localBusinessJsonLd = {
 export default function RootLayout({ children }) {
   return (
     <html lang="es">
+      <head>
+        {/* Aplica el tema guardado ANTES de pintar la pagina, para que no se
+            vea un flash de tema claro y despues salte a oscuro. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var saved = localStorage.getItem('elpaquetero_theme');
+                  if (saved === 'light' || saved === 'dark') {
+                    document.documentElement.setAttribute('data-theme', saved);
+                  }
+                } catch (e) {}
+              })();
+            `
+          }}
+        />
+      </head>
       <body>
         <script
           type="application/ld+json"

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ShoppingBag, User, Menu, X, Shield } from 'lucide-react';
 import Link from 'next/link';
+import ThemeToggle from './ThemeToggle';
 
 export default function Header({
   cartCount,
@@ -43,6 +44,7 @@ export default function Header({
 
         {/* Actions (Auth & Cart) */}
         <div className="header-actions">
+          <ThemeToggle />
           {currentUser ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontSize: '0.88rem', fontWeight: 600 }}>

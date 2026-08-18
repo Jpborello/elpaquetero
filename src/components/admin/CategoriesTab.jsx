@@ -43,10 +43,10 @@ export default function CategoriesTab({
     <div>
       {/* Header */}
       <div style={{ marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <FolderPlus size={22} style={{ color: '#2563EB' }} /> Gestión de Categorías y Subcategorías
         </h2>
-        <p style={{ fontSize: '0.88rem', color: '#64748B', marginTop: '2px' }}>
+        <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginTop: '2px' }}>
           Crea nuevas categorías de ropa o agrega subcategorías para organizar el catálogo de tu tienda en tiempo real.
         </p>
       </div>
@@ -61,8 +61,8 @@ export default function CategoriesTab({
         
         {/* Form 1: Crear Categoría */}
         <div style={{
-          backgroundColor: '#FFFFFF',
-          border: '1px solid #E2E8F0',
+          backgroundColor: 'var(--bg-card)',
+          border: '1px solid var(--border-color)',
           borderRadius: '12px',
           padding: '20px',
           boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
@@ -71,18 +71,18 @@ export default function CategoriesTab({
             <div style={{ backgroundColor: '#EFF6FF', padding: '8px', borderRadius: '8px', color: '#2563EB', display: 'flex' }}>
               <FolderPlus size={18} />
             </div>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: '#1E293B' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
               Crear Nueva Categoría
             </h3>
           </div>
 
           <form onSubmit={handleCreateCategory} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px' }}>
                 Nombre de la Categoría *
               </label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="Ej: Calzado, Bermudas, Accesorios"
                 value={newCatName}
                 onChange={(e) => setNewCatName(e.target.value)}
@@ -93,7 +93,7 @@ export default function CategoriesTab({
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px' }}>
                 Subcategorías Iniciales (Opcional, separadas por coma)
               </label>
               <input 
@@ -129,8 +129,8 @@ export default function CategoriesTab({
 
         {/* Form 2: Agregar Subcategoría */}
         <div style={{
-          backgroundColor: '#FFFFFF',
-          border: '1px solid #E2E8F0',
+          backgroundColor: 'var(--bg-card)',
+          border: '1px solid var(--border-color)',
           borderRadius: '12px',
           padding: '20px',
           boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
@@ -139,14 +139,14 @@ export default function CategoriesTab({
             <div style={{ backgroundColor: '#F0FDF4', padding: '8px', borderRadius: '8px', color: '#16A34A', display: 'flex' }}>
               <Tag size={18} />
             </div>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: '#1E293B' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
               Agregar Subcategoría
             </h3>
           </div>
 
           <form onSubmit={handleCreateSubcategory} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px' }}>
                 Seleccionar Categoría Padre *
               </label>
               <select
@@ -164,7 +164,7 @@ export default function CategoriesTab({
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px' }}>
                 Nombre de la Subcategoría *
               </label>
               <input 
@@ -203,7 +203,7 @@ export default function CategoriesTab({
 
       {/* Categories List Cards */}
       <div>
-        <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Layers size={18} style={{ color: '#2563EB' }} /> Categorías Activas ({filterableCategories.length})
         </h3>
 
@@ -216,8 +216,8 @@ export default function CategoriesTab({
             <div 
               key={cat.id} 
               style={{
-                backgroundColor: '#FFFFFF',
-                border: '1px solid #E2E8F0',
+                backgroundColor: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
                 borderRadius: '12px',
                 padding: '16px',
                 display: 'flex',
@@ -229,10 +229,10 @@ export default function CategoriesTab({
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
                   <div>
-                    <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                    <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
                       {cat.name}
                     </h4>
-                    <span style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>
                       ID: {cat.id}
                     </span>
                   </div>
@@ -250,7 +250,7 @@ export default function CategoriesTab({
 
                 {/* Subcategories list */}
                 <div style={{ marginTop: '12px' }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
                     Subcategorías ({cat.subcategories ? cat.subcategories.length : 0}):
                   </span>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -262,9 +262,9 @@ export default function CategoriesTab({
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '4px',
-                            backgroundColor: '#F1F5F9',
-                            color: '#334155',
-                            border: '1px solid #CBD5E1',
+                            backgroundColor: 'var(--bg-surface-elevated)',
+                            color: 'var(--text-main)',
+                            border: '1px solid var(--border-color)',
                             padding: '3px 8px',
                             borderRadius: '6px',
                             fontSize: '0.78rem',
@@ -279,7 +279,7 @@ export default function CategoriesTab({
                             style={{
                               background: 'none',
                               border: 'none',
-                              color: '#94A3B8',
+                              color: 'var(--text-muted)',
                               cursor: 'pointer',
                               padding: 0,
                               display: 'flex',
@@ -291,7 +291,7 @@ export default function CategoriesTab({
                         </span>
                       ))
                     ) : (
-                      <span style={{ fontSize: '0.75rem', color: '#94A3B8', italic: 'true' }}>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', italic: 'true' }}>
                         Sin subcategorías agregadas
                       </span>
                     )}
@@ -300,7 +300,7 @@ export default function CategoriesTab({
               </div>
 
               {/* Delete Category Footer Action */}
-              <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #F1F5F9', display: 'flex', justifyContent: 'flex-end' }}>
+              <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'flex-end' }}>
                 {deletingCatId !== cat.id ? (
                   <button
                     type="button"
@@ -308,7 +308,7 @@ export default function CategoriesTab({
                     style={{
                       background: 'none',
                       border: 'none',
-                      color: '#94A3B8',
+                      color: 'var(--text-muted)',
                       fontSize: '0.78rem',
                       fontWeight: 600,
                       cursor: 'pointer',
@@ -347,8 +347,8 @@ export default function CategoriesTab({
                       type="button"
                       onClick={() => setDeletingCatId(null)}
                       style={{
-                        backgroundColor: '#E2E8F0',
-                        color: '#334155',
+                        backgroundColor: 'var(--bg-surface-elevated)',
+                        color: 'var(--text-main)',
                         border: 'none',
                         borderRadius: '4px',
                         padding: '3px 8px',

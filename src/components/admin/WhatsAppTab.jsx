@@ -483,12 +483,12 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
                           maxWidth: '75%',
                           padding: '10px 14px',
                           borderRadius: '14px',
-                          background: isClient 
-                            ? '#E2E8F0' 
-                            : isBot 
-                              ? 'linear-gradient(135deg, #10B981, #059669)' 
+                          background: isClient
+                            ? 'var(--bg-surface-elevated)'
+                            : isBot
+                              ? 'linear-gradient(135deg, #10B981, #059669)'
                               : 'linear-gradient(135deg, #2563EB, #1D4ED8)',
-                          color: isClient ? '#0F172A' : '#FFFFFF',
+                          color: isClient ? 'var(--text-main)' : '#FFFFFF',
                           boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
                           position: 'relative'
                         }}

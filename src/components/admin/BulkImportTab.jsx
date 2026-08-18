@@ -148,10 +148,10 @@ Pantalon Jogging Frizado,Pantalon de Yoguin,Pantalones,16800,90,Pantalón babuch
     <div>
       {/* Top Header */}
       <div style={{ marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <FileSpreadsheet size={24} style={{ color: '#2563EB' }} /> Carga Masiva de Productos (CSV / Excel)
         </h2>
-        <p style={{ fontSize: '0.88rem', color: '#64748B', marginTop: '2px' }}>
+        <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginTop: '2px' }}>
           Sube tus archivos CSV de Excel o copia y pega tus listas de artículos para cargar cientos de productos con sus imágenes y categorías de una sola vez.
         </p>
       </div>
@@ -206,26 +206,26 @@ Pantalon Jogging Frizado,Pantalon de Yoguin,Pantalones,16800,90,Pantalón babuch
         
         {/* Subir Archivo */}
         <div style={{
-          backgroundColor: '#FFFFFF',
-          border: '1px solid #E2E8F0',
+          backgroundColor: 'var(--bg-card)',
+          border: '1px solid var(--border-color)',
           borderRadius: '12px',
           padding: '20px',
           boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
         }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#1E293B', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <UploadCloud size={18} style={{ color: '#2563EB' }} /> Opción A: Subir Archivo CSV o TXT
           </h3>
 
           <div style={{
-            border: '2px dashed #CBD5E1',
+            border: '2px dashed var(--border-color)',
             borderRadius: '10px',
             padding: '24px 16px',
             textAlign: 'center',
-            backgroundColor: '#F8FAFC',
+            backgroundColor: 'var(--bg-surface-elevated)',
             cursor: 'pointer'
           }}>
-            <UploadCloud size={32} style={{ color: '#94A3B8', marginBottom: '8px' }} />
-            <p style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>
+            <UploadCloud size={32} style={{ color: 'var(--text-muted)', marginBottom: '8px' }} />
+            <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>
               Seleccioná un archivo desde tu equipo (.csv, .txt, .tsv)
             </p>
             <input 
@@ -235,16 +235,16 @@ Pantalon Jogging Frizado,Pantalon de Yoguin,Pantalones,16800,90,Pantalón babuch
               id="csv-file-input"
               style={{ display: 'none' }}
             />
-            <label 
+            <label
               htmlFor="csv-file-input"
               style={{
-                backgroundColor: '#FFFFFF',
-                border: '1px solid #CBD5E1',
+                backgroundColor: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
                 borderRadius: '6px',
                 padding: '6px 14px',
                 fontSize: '0.82rem',
                 fontWeight: 700,
-                color: '#1E293B',
+                color: 'var(--text-main)',
                 cursor: 'pointer',
                 display: 'inline-block'
               }}
@@ -256,13 +256,13 @@ Pantalon Jogging Frizado,Pantalon de Yoguin,Pantalones,16800,90,Pantalón babuch
 
         {/* Pegar Texto Directo */}
         <div style={{
-          backgroundColor: '#FFFFFF',
-          border: '1px solid #E2E8F0',
+          backgroundColor: 'var(--bg-card)',
+          border: '1px solid var(--border-color)',
           borderRadius: '12px',
           padding: '20px',
           boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
         }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#1E293B', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <FileSpreadsheet size={18} style={{ color: '#16A34A' }} /> Opción B: Pegar datos copiados de Excel
           </h3>
           
@@ -293,18 +293,18 @@ Pantalon Jogging Frizado,Pantalon de Yoguin,Pantalones,16800,90,Pantalón babuch
       {/* Preview Section */}
       {parsedProducts.length > 0 && (
         <div style={{
-          backgroundColor: '#FFFFFF',
-          border: '1px solid #E2E8F0',
+          backgroundColor: 'var(--bg-card)',
+          border: '1px solid var(--border-color)',
           borderRadius: '12px',
           padding: '20px',
           boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
             <div>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Sparkles size={18} style={{ color: '#EAB308' }} /> Previsualización ({parsedProducts.length} productos detectados)
               </h3>
-              <p style={{ fontSize: '0.8rem', color: '#64748B', margin: '2px 0 0 0' }}>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
                 Se aplicará automáticamente un <strong>40% de descuento mayorista</strong> sobre el precio minorista ingresado.
               </p>
             </div>
@@ -331,7 +331,7 @@ Pantalon Jogging Frizado,Pantalon de Yoguin,Pantalones,16800,90,Pantalón babuch
           </div>
 
           {/* Preview Table */}
-          <div style={{ overflowX: 'auto', maxHeight: '420px', border: '1px solid #F1F5F9', borderRadius: '8px' }}>
+          <div style={{ overflowX: 'auto', maxHeight: '420px', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
             <table className="admin-table" style={{ fontSize: '0.85rem' }}>
               <thead>
                 <tr>
@@ -350,7 +350,7 @@ Pantalon Jogging Frizado,Pantalon de Yoguin,Pantalones,16800,90,Pantalón babuch
                       <img 
                         src={p.image_url} 
                         alt={p.name} 
-                        style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #E2E8F0' }}
+                        style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--border-color)' }}
                         onError={(e) => { e.target.src = '/elpaquetero_imagenes/Logo 2.jpeg'; }}
                       />
                     </td>
@@ -367,7 +367,7 @@ Pantalon Jogging Frizado,Pantalon de Yoguin,Pantalones,16800,90,Pantalón babuch
           </div>
 
           {parsedProducts.length > 50 && (
-            <p style={{ fontSize: '0.78rem', color: '#64748B', textAlign: 'center', marginTop: '10px' }}>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '10px' }}>
               Mostrando los primeros 50 artículos de {parsedProducts.length}. Todos se importarán al hacer clic en Importar.
             </p>
           )}

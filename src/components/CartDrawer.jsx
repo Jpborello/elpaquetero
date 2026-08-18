@@ -253,19 +253,19 @@ export default function CartDrawer({
               })()}
 
               <div style={{
-                backgroundColor: '#F8FAFC',
-                border: '1px solid #E2E8F0',
+                backgroundColor: 'var(--bg-surface-elevated)',
+                border: '1px solid var(--border-color)',
                 borderRadius: '14px',
                 padding: '18px',
                 textAlign: 'left',
                 marginBottom: '24px'
               }}>
-                <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#1E293B', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Clock size={18} style={{ color: '#2563EB' }} />
                   <span>¿Cómo sigue tu pedido?</span>
                 </div>
-                
-                <ul style={{ fontSize: '0.84rem', color: '#475569', margin: 0, paddingLeft: '20px', lineHeight: '1.6' }}>
+
+                <ul style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: 0, paddingLeft: '20px', lineHeight: '1.6' }}>
                   <li style={{ marginBottom: '8px' }}>
                     <strong>Aprobación de Pago:</strong> Una vez verificado tu comprobante por nuestro equipo, tu pedido se marcará como <em>Aprobado</em> para su armado.
                   </li>
@@ -667,7 +667,7 @@ export default function CartDrawer({
                             </span>
                           )}
                           {itemColor && (
-                            <span style={{ fontSize: '0.73rem', backgroundColor: '#F1F5F9', color: '#0F172A', border: '1px solid #CBD5E1', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                            <span style={{ fontSize: '0.73rem', backgroundColor: 'var(--bg-surface-elevated)', color: 'var(--text-main)', border: '1px solid var(--border-color)', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
                               Color: {itemColor}
                             </span>
                           )}
@@ -719,7 +719,7 @@ export default function CartDrawer({
                       alignItems: 'center', 
                       gap: '4px',
                       backgroundColor: deliveryMethod === 'envio' ? 'var(--text-main)' : 'var(--bg-surface-elevated)',
-                      color: deliveryMethod === 'envio' ? '#FFF' : 'var(--text-main)'
+                      color: deliveryMethod === 'envio' ? 'var(--bg-page)' : 'var(--text-main)'
                     }}
                   >
                     <Truck size={18} /> Envío a Domicilio
@@ -737,7 +737,7 @@ export default function CartDrawer({
                       alignItems: 'center', 
                       gap: '4px',
                       backgroundColor: deliveryMethod === 'retiro' ? 'var(--text-main)' : 'var(--bg-surface-elevated)',
-                      color: deliveryMethod === 'retiro' ? '#FFF' : 'var(--text-main)'
+                      color: deliveryMethod === 'retiro' ? 'var(--bg-page)' : 'var(--text-main)'
                     }}
                   >
                     <Store size={18} /> Retiro por Sucursal

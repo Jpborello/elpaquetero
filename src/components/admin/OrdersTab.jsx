@@ -492,7 +492,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
             )}
             <button
               onClick={() => { stopChimeLoop(); setNewOrderToast(null); }}
-              style={{ background: 'transparent', border: '1px solid #475569', color: '#94A3B8', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}
+              style={{ background: 'transparent', border: '1px solid #475569', color: 'var(--text-muted)', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}
             >
               Descartar (revisar en la tabla)
             </button>
@@ -531,9 +531,9 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                backgroundColor: soundEnabled ? '#ECFDF5' : '#F1F5F9',
-                borderColor: soundEnabled ? '#A7F3D0' : '#CBD5E1',
-                color: soundEnabled ? '#047857' : '#64748B'
+                backgroundColor: soundEnabled ? '#ECFDF5' : 'var(--bg-surface-elevated)',
+                borderColor: soundEnabled ? '#A7F3D0' : 'var(--border-color)',
+                color: soundEnabled ? '#047857' : 'var(--text-muted)'
               }}
             >
               {soundEnabled ? <Bell size={15} /> : <BellOff size={15} />}
@@ -583,10 +583,10 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
 
       <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F172A' }}>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)' }}>
             Registro de Órdenes, Comprobantes e Impresión
           </h2>
-          <p style={{ fontSize: '0.85rem', color: '#64748B', margin: 0 }}>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
             Verifica pagos, aprueba pedidos e imprime la comanda de armado para el depósito.
           </p>
         </div>
@@ -619,7 +619,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
       </div>
 
       {orders.length === 0 ? (
-        <div className="no-print" style={{ textAlign: 'center', padding: '50px 20px', background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', border: '1px dashed #CBD5E1' }}>
+        <div className="no-print" style={{ textAlign: 'center', padding: '50px 20px', background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--border-color)' }}>
           <p style={{ color: 'var(--text-muted)', fontWeight: 700, fontSize: '1.1rem' }}>No hay órdenes registradas aún.</p>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginTop: '4px' }}>
             Las nuevas compras realizadas por los clientes aparecerán aquí automáticamente con sus datos, comprobantes y opción de impresión.
@@ -651,7 +651,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                   <td>{ord.client_dni || 'No provisto'}</td>
                   <td>
                     <div style={{ fontWeight: 700 }}>{ord.client_phone}</div>
-                    <span style={{ fontSize: '0.74rem', color: '#64748B', display: 'block' }}>
+                    <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'block' }}>
                       {isDelivery ? `🚚 Envío: ${ord.client_address || ''} (${ord.client_locality || 'Rosario'})` : `🏬 Retiro por Sucursal`}
                     </span>
                   </td>
@@ -670,7 +670,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                         fontSize: '0.78rem',
                         fontWeight: 700,
                         borderRadius: '6px',
-                        border: '1px solid #CBD5E1',
+                        border: '1px solid var(--border-color)',
                         backgroundColor: currentStatus === 'aprobado' ? '#ECFDF5' : (currentStatus === 'enviado' ? '#EFF6FF' : '#FEF3C7'),
                         color: currentStatus === 'aprobado' ? '#047857' : (currentStatus === 'enviado' ? '#1D4ED8' : '#92400E'),
                         cursor: 'pointer'
@@ -694,7 +694,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                         <Eye size={13} /> Comprobante
                       </button>
                     ) : (
-                      <span style={{ fontSize: '0.75rem', color: '#94A3B8', fontStyle: 'italic' }}>Sin comprobante</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Sin comprobante</span>
                     )}
                   </td>
 
@@ -751,7 +751,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
           padding: '20px'
         }}>
           <div style={{
-            backgroundColor: '#FFFFFF',
+            backgroundColor: 'var(--bg-card)',
             borderRadius: '12px',
             maxWidth: '560px',
             width: '100%',
@@ -767,7 +767,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                 position: 'absolute',
                 top: '16px',
                 right: '16px',
-                background: '#F1F5F9',
+                background: 'var(--bg-surface-elevated)',
                 border: 'none',
                 borderRadius: '50%',
                 width: '32px',
@@ -776,20 +776,20 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#475569'
+                color: 'var(--text-muted)'
               }}
             >
               <X size={18} />
             </button>
 
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0F172A', marginBottom: '4px' }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '4px' }}>
               Comprobante de Pago — Orden #{selectedReceipt.orderId}
             </h3>
-            <p style={{ fontSize: '0.85rem', color: '#64748B', marginBottom: '16px' }}>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
               Cliente: <strong>{selectedReceipt.clientName}</strong>
             </p>
 
-            <div style={{ textAlign: 'center', backgroundColor: '#F8FAFC', borderRadius: '8px', padding: '12px', border: '1px solid #E2E8F0' }}>
+            <div style={{ textAlign: 'center', backgroundColor: 'var(--bg-surface-elevated)', borderRadius: '8px', padding: '12px', border: '1px solid var(--border-color)' }}>
               <img 
                 src={selectedReceipt.url} 
                 alt="Comprobante de pago" 
@@ -835,7 +835,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
           padding: '20px'
         }}>
           <div style={{
-            backgroundColor: '#FFFFFF',
+            backgroundColor: 'var(--bg-card)',
             borderRadius: '12px',
             maxWidth: '640px',
             width: '100%',
@@ -847,24 +847,24 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
               <div>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
                   Editar Pedido #{editingOrder.id}
                 </h3>
-                <p style={{ fontSize: '0.82rem', color: '#64748B', margin: '4px 0 0' }}>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>
                   Cliente: <strong>{editingOrder.client_name}</strong> — agregá, cambiá cantidades o sacá productos y el total se recalcula solo.
                 </p>
               </div>
               <button
                 onClick={closeEditOrder}
-                style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', flexShrink: 0 }}
+                style={{ background: 'var(--bg-surface-elevated)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', flexShrink: 0 }}
               >
                 <X size={18} />
               </button>
             </div>
 
             {/* Buscador de productos para sumar al pedido */}
-            <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid #E2E8F0' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>
+            <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid var(--border-color)' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main)', display: 'block', marginBottom: '4px' }}>
                 Buscar producto para agregar al pedido
               </label>
               <input
@@ -881,7 +881,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                       key={p.id}
                       type="button"
                       onClick={() => handleAddProductToEditOrder(p)}
-                      style={{ display: 'flex', justifyContent: 'space-between', width: '100%', textAlign: 'left', padding: '8px 10px', fontSize: '0.82rem', background: '#FFF', border: 'none', borderBottom: '1px solid #F1F5F9', cursor: 'pointer' }}
+                      style={{ display: 'flex', justifyContent: 'space-between', width: '100%', textAlign: 'left', padding: '8px 10px', fontSize: '0.82rem', background: 'var(--bg-card)', border: 'none', borderBottom: '1px solid var(--border-color)', cursor: 'pointer' }}
                     >
                       <span>{p.name}</span>
                       <strong style={{ color: '#059669' }}>${(p.wholesale_price || p.price)?.toLocaleString('es-AR')}</strong>
@@ -899,8 +899,8 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                   + Agregar producto que no está en el sistema
                 </button>
               ) : (
-                <div style={{ marginTop: '8px', padding: '12px', border: '1px dashed #94A3B8', borderRadius: '8px', backgroundColor: '#F8FAFC' }}>
-                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '8px' }}>
+                <div style={{ marginTop: '8px', padding: '12px', border: '1px dashed var(--border-color-strong)', borderRadius: '8px', backgroundColor: 'var(--bg-surface-elevated)' }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
                     Producto fuera de catálogo
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '8px' }}>
@@ -956,7 +956,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
 
             <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {editItems.length === 0 ? (
-                <p style={{ fontSize: '0.85rem', color: '#94A3B8', textAlign: 'center', padding: '20px' }}>Sin productos. Agregá al menos uno o cancelá esta edición.</p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', padding: '20px' }}>Sin productos. Agregá al menos uno o cancelá esta edición.</p>
               ) : (
                 editItems.map((item, idx) => {
                   const unitPrice = editItemPrice(item);
@@ -1037,7 +1037,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
               )}
             </div>
 
-            <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '2px solid #0F172A', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '2px solid var(--text-main)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>NUEVO TOTAL:</span>
               <span style={{ fontSize: '1.3rem', fontWeight: 900, color: '#059669' }}>${editTotal.toLocaleString('es-AR')}</span>
             </div>
@@ -1075,7 +1075,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
           padding: '20px'
         }}>
           <div style={{
-            backgroundColor: '#FFFFFF',
+            backgroundColor: 'var(--bg-card)',
             borderRadius: '12px',
             maxWidth: '680px',
             width: '100%',
@@ -1087,16 +1087,16 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
               <div>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
                   Crear Pedido Manual
                 </h3>
-                <p style={{ fontSize: '0.82rem', color: '#64748B', margin: '4px 0 0' }}>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>
                   Para pedidos que llegan por teléfono o WhatsApp, o para sumarle productos a una clienta que ya compró.
                 </p>
               </div>
               <button
                 onClick={closeCreateOrder}
-                style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', flexShrink: 0 }}
+                style={{ background: 'var(--bg-surface-elevated)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', flexShrink: 0 }}
               >
                 <X size={18} />
               </button>
@@ -1104,7 +1104,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
 
             {/* Datos del cliente */}
             <div style={{ marginTop: '16px' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main)', display: 'block', marginBottom: '4px' }}>
                 Buscar cliente ya registrado (nombre o teléfono)
               </label>
               <input
@@ -1121,7 +1121,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                       key={c.phone || c.name}
                       type="button"
                       onClick={() => handleSelectExistingClient(c)}
-                      style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 10px', fontSize: '0.82rem', background: '#FFF', border: 'none', borderBottom: '1px solid #F1F5F9', cursor: 'pointer' }}
+                      style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 10px', fontSize: '0.82rem', background: 'var(--bg-card)', border: 'none', borderBottom: '1px solid var(--border-color)', cursor: 'pointer' }}
                     >
                       <strong>{c.name}</strong> — {c.phone} {c.locality ? `· ${c.locality}` : ''}
                     </button>
@@ -1132,25 +1132,25 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '12px' }}>
               <div>
-                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>Nombre completo</label>
+                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', display: 'block', marginBottom: '4px' }}>Nombre completo</label>
                 <input type="text" value={newOrderClient.name} onChange={(e) => setNewOrderClient((p) => ({ ...p, name: e.target.value }))} style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }} />
               </div>
               <div>
-                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>Teléfono</label>
+                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', display: 'block', marginBottom: '4px' }}>Teléfono</label>
                 <input type="text" value={newOrderClient.phone} onChange={(e) => setNewOrderClient((p) => ({ ...p, phone: e.target.value }))} style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }} />
               </div>
               <div>
-                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>DNI / CUIT</label>
+                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', display: 'block', marginBottom: '4px' }}>DNI / CUIT</label>
                 <input type="text" value={newOrderClient.dni} onChange={(e) => setNewOrderClient((p) => ({ ...p, dni: e.target.value }))} style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }} />
               </div>
               <div>
-                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>Localidad</label>
+                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', display: 'block', marginBottom: '4px' }}>Localidad</label>
                 <input type="text" value={newOrderClient.locality} onChange={(e) => setNewOrderClient((p) => ({ ...p, locality: e.target.value }))} style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }} />
               </div>
             </div>
 
             <div style={{ marginTop: '10px' }}>
-              <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>Método de entrega</label>
+              <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', display: 'block', marginBottom: '4px' }}>Método de entrega</label>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <label style={{ fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
                   <input type="radio" checked={newOrderClient.deliveryMethod === 'envio'} onChange={() => setNewOrderClient((p) => ({ ...p, deliveryMethod: 'envio' }))} />
@@ -1173,8 +1173,8 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
             </div>
 
             {/* Buscador de productos */}
-            <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '1px solid #E2E8F0' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '4px' }}>
+            <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '1px solid var(--border-color)' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main)', display: 'block', marginBottom: '4px' }}>
                 Buscar producto para agregar
               </label>
               <input
@@ -1191,7 +1191,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                       key={p.id}
                       type="button"
                       onClick={() => handleAddProductToOrder(p)}
-                      style={{ display: 'flex', justifyContent: 'space-between', width: '100%', textAlign: 'left', padding: '8px 10px', fontSize: '0.82rem', background: '#FFF', border: 'none', borderBottom: '1px solid #F1F5F9', cursor: 'pointer' }}
+                      style={{ display: 'flex', justifyContent: 'space-between', width: '100%', textAlign: 'left', padding: '8px 10px', fontSize: '0.82rem', background: 'var(--bg-card)', border: 'none', borderBottom: '1px solid var(--border-color)', cursor: 'pointer' }}
                     >
                       <span>{p.name}</span>
                       <strong style={{ color: '#059669' }}>${(p.wholesale_price || p.price)?.toLocaleString('es-AR')}</strong>
@@ -1209,8 +1209,8 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                   + Agregar producto que no está en el sistema
                 </button>
               ) : (
-                <div style={{ marginTop: '8px', padding: '12px', border: '1px dashed #94A3B8', borderRadius: '8px', backgroundColor: '#F8FAFC' }}>
-                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '8px' }}>
+                <div style={{ marginTop: '8px', padding: '12px', border: '1px dashed var(--border-color-strong)', borderRadius: '8px', backgroundColor: 'var(--bg-surface-elevated)' }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
                     Producto fuera de catálogo
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '8px' }}>
@@ -1267,7 +1267,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
             {/* Items agregados */}
             <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {newOrderItems.length === 0 ? (
-                <p style={{ fontSize: '0.85rem', color: '#94A3B8', textAlign: 'center', padding: '16px' }}>Todavía no agregaste productos.</p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', padding: '16px' }}>Todavía no agregaste productos.</p>
               ) : (
                 newOrderItems.map((item, idx) => (
                   <div key={item.variantKey || idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px', border: '1px solid var(--border-color)', borderRadius: '8px', flexWrap: 'wrap' }}>
@@ -1335,7 +1335,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
               )}
             </div>
 
-            <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '2px solid #0F172A', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '2px solid var(--text-main)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>TOTAL:</span>
               <span style={{ fontSize: '1.3rem', fontWeight: 900, color: '#059669' }}>${newOrderTotal.toLocaleString('es-AR')}</span>
             </div>
@@ -1511,7 +1511,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
             padding: '20px'
           }}>
             <div className="print-ticket-modal-card" style={{
-              backgroundColor: '#FFFFFF',
+              backgroundColor: 'var(--bg-card)',
               borderRadius: '12px',
               maxWidth: '680px',
               width: '100%',
@@ -1522,8 +1522,8 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
               position: 'relative'
             }}>
               {/* Modal Controls (Hidden during print) */}
-              <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', paddingBottom: '12px', borderBottom: '1px solid #E2E8F0', flexWrap: 'wrap', gap: '10px' }}>
-                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#64748B' }}>
+              <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)', flexWrap: 'wrap', gap: '10px' }}>
+                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-muted)' }}>
                   {selectedPrintOrder.status === 'aprobado' ? 'Vista Previa de Comanda Universal' : `Qué Pidió — Orden #${selectedPrintOrder.id}`}
                 </span>
                 <div style={{ display: 'flex', gap: '8px' }}>

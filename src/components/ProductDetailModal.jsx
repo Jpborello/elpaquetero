@@ -86,11 +86,11 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
               right: '10px',
               minWidth: '130px',
               textAlign: 'center',
-              backgroundColor: '#FFFFFF',
-              color: '#1E293B',
+              backgroundColor: 'var(--bg-card)',
+              color: 'var(--text-main)',
               padding: '7px 16px',
               borderRadius: '8px',
-              border: '2px solid #CBD5E1',
+              border: '2px solid var(--border-color)',
               boxShadow: '0 4px 14px rgba(0,0,0,0.18)',
               fontWeight: 900,
               fontSize: '0.82rem',
@@ -205,9 +205,9 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
                           fontWeight: 700,
                           cursor: 'pointer',
                           transition: 'all 0.2s ease',
-                          border: isSelected ? '2px solid #0F172A' : '1px solid #CBD5E1',
-                          backgroundColor: isSelected ? '#0F172A' : '#F8FAFC',
-                          color: isSelected ? '#FFFFFF' : '#334155',
+                          border: isSelected ? '2px solid var(--text-main)' : '1px solid var(--border-color)',
+                          backgroundColor: isSelected ? 'var(--text-main)' : 'var(--bg-surface-elevated)',
+                          color: isSelected ? 'var(--bg-page)' : 'var(--text-main)',
                           boxShadow: isSelected ? '0 2px 8px rgba(15,23,42,0.25)' : 'none'
                         }}
                       >

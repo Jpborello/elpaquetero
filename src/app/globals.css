@@ -3,6 +3,7 @@
 :root {
   /* Vibrant Color Palette Tokens */
   --bg-page: #FAF7F2;
+  --bg-main: var(--bg-page);
   --bg-card: #FFFFFF;
   --bg-surface-elevated: #F5EFE6;
   --bg-surface-dark: #201A2E;
@@ -39,6 +40,59 @@
 
   --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark palette: se activa explicitamente via el boton de tema (atributo
+   data-theme en <html>, persistido en localStorage), o por defecto si el
+   sistema operativo del visitante esta en modo oscuro y todavia no eligio
+   nada manualmente. Mantiene los mismos tonos calidos de marca (naranja/oro)
+   en vez de ir a un dark theme frio gris-azulado generico. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg-page: #16130F;
+    --bg-card: #221D17;
+    --bg-surface-elevated: #2C251D;
+    --bg-surface-dark: #14111C;
+
+    --accent-gold: #FF7A45;
+    --accent-gold-light: #4A2A1C;
+    --accent-gold-hover: #FF9466;
+    --accent-secondary: #6C8CFF;
+    --accent-secondary-light: #1E2440;
+    --accent-emerald: #34D399;
+    --accent-crimson: #F87171;
+
+    --text-main: #F3EDE6;
+    --text-muted: #B3A99C;
+    --text-light: #8A8177;
+    --text-on-dark: #FAF7F2;
+
+    --border-color: #3A332A;
+    --border-color-strong: #4A4136;
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg-page: #16130F;
+  --bg-card: #221D17;
+  --bg-surface-elevated: #2C251D;
+  --bg-surface-dark: #14111C;
+
+  --accent-gold: #FF7A45;
+  --accent-gold-light: #4A2A1C;
+  --accent-gold-hover: #FF9466;
+  --accent-secondary: #6C8CFF;
+  --accent-secondary-light: #1E2440;
+  --accent-emerald: #34D399;
+  --accent-crimson: #F87171;
+
+  --text-main: #F3EDE6;
+  --text-muted: #B3A99C;
+  --text-light: #8A8177;
+  --text-on-dark: #FAF7F2;
+
+  --border-color: #3A332A;
+  --border-color-strong: #4A4136;
 }
 
 * {
@@ -81,7 +135,7 @@ button {
   position: sticky;
   top: 0;
   z-index: 100;
-  background-color: rgba(250, 247, 242, 0.92);
+  background-color: color-mix(in srgb, var(--bg-page) 92%, transparent);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-color);
   transition: var(--transition-fast);

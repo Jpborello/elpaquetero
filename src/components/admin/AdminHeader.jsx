@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowLeft, LogOut, ShieldCheck, Eye } from 'lucide-react';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export default function AdminHeader({ onLogout, visitCount }) {
   return (
@@ -17,6 +18,7 @@ export default function AdminHeader({ onLogout, visitCount }) {
       </div>
 
       <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+        <ThemeToggle />
         {visitCount !== undefined && (
           <span style={{ background: '#EFF6FF', color: '#1D4ED8', padding: '6px 14px', borderRadius: 'var(--radius-full)', fontWeight: 700, fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
             <Eye size={15} /> Visitas Web: {visitCount?.toLocaleString('es-AR')}
