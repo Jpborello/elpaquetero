@@ -1,8 +1,11 @@
-// Genera un link directo a un producto puntual (?producto=ID) que la home
-// sabe leer al cargar para abrir el modal de detalle de esa prenda.
+import { getProductUrlPath } from './productSlug';
+
+// Genera el link a la pagina propia del producto (/producto/[slug]), con
+// metadata e imagen especifica de esa prenda para que la vista previa en
+// WhatsApp/redes muestre el producto real y no el logo generico de la home.
 export function getProductShareUrl(product) {
   if (typeof window === 'undefined' || !product) return '';
-  return `${window.location.origin}/?producto=${encodeURIComponent(product.id)}`;
+  return `${window.location.origin}${getProductUrlPath(product)}`;
 }
 
 // Comparte un producto usando el menu nativo del celular (WhatsApp, etc.)
