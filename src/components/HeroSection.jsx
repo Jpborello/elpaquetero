@@ -5,8 +5,17 @@ import { Sparkles, ArrowRight, Store } from 'lucide-react';
 export default function HeroSection({ onExploreCatalog }) {
   return (
     <section className="hero-wrapper">
+      <video
+        className="hero-video-bg"
+        src="/videos/hero-video.mp4"
+        poster="/elpaquetero_imagenes/Local.jpg"
+        autoPlay
+        muted
+        loop
+        playsInline
+      />
       <div className="hero-overlay-backdrop"></div>
-      
+
       <div className="hero-container">
         <div className="hero-badge">
           <Store size={16} /> Distribuidora Directa de Fábrica
