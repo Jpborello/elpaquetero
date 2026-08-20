@@ -218,9 +218,18 @@ export default function Home() {
     return product.is_active !== false && matchesCategory && matchesSubcategory && matchesSearch;
   });
 
-  const featuredOffer = dataStore.getFeaturedOffer();
-  const offers = dataStore.getOffers().filter((p) => p.id !== featuredOffer?.id);
-  const topSeller = dataStore.getTopSellingProduct();
+  // Se derivan del estado local `products` (arranca en [] en server y
+  // cliente por igual) en vez de leer directo del singleton `dataStore`,
+  // que en el cliente ya viene "adelantado" con overrides de localStorage
+  // de una sesion anterior (precios/stock/destacados editados en el admin).
+  // Leerlo directo en el render rompia la hidratacion: el server mostraba
+  // un producto destacado/oferta distinto al que ya tenia cacheado el
+  // navegador, y React tiraba "Hydration failed" en el <h3> del carousel.
+  const featuredOffer = products.find((p) => p.is_featured && p.is_active !== false) || null;
+  const offers = products.filter((p) => p.is_offer && p.is_active !== false && p.id !== featuredOffer?.id);
+  const topSeller = [...products]
+    .filter((p) => p.is_active !== false)
+    .sort((a, b) => (b.sales_count || 0) - (a.sales_count || 0))[0];
 
   // Mismo top 5 que ya usa el admin en Metricas ("Mayor Rotacion"), para que
   // el sello "Mas Vendido" en la grilla coincida con ese ranking.
