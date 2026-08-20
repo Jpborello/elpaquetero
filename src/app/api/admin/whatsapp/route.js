@@ -131,6 +131,28 @@ export async function POST(req) {
       return NextResponse.json({ success: true });
     }
 
+    if (action === 'deleteChat') {
+      const { phone } = body;
+      if (!phone) {
+        return NextResponse.json({ error: 'Falta el parámetro phone' }, { status: 400 });
+      }
+
+      // Borramos primero los mensajes (no hay FK con cascade) y despues el chat.
+      const { error: msgErr } = await supabaseAdmin
+        .from('whatsapp_messages')
+        .delete()
+        .eq('chat_phone', phone);
+      if (msgErr) throw msgErr;
+
+      const { error: chatErr } = await supabaseAdmin
+        .from('whatsapp_chats')
+        .delete()
+        .eq('phone', phone);
+      if (chatErr) throw chatErr;
+
+      return NextResponse.json({ success: true, phone });
+    }
+
     return NextResponse.json({ error: 'Acción no válida' }, { status: 400 });
   } catch (err) {
     console.error('API POST WhatsApp Error:', err);

@@ -18,7 +18,8 @@ import {
   EyeOff,
   Volume2,
   VolumeX,
-  ArrowLeft
+  ArrowLeft,
+  Trash2
 } from 'lucide-react';
 
 export default function WhatsAppTab() {
@@ -89,9 +90,20 @@ export default function WhatsAppTab() {
     return () => clearInterval(interval);
   }, [selectedPhone]);
 
-  // Scroll to bottom when messages update
+  // Scroll al ultimo mensaje solo cuando realmente cambia (mensaje nuevo o
+  // cambio de chat). El polling de fondo cada 10s vuelve a traer los mismos
+  // mensajes (array nuevo, mismo contenido); sin este chequeo, ese refresh
+  // disparaba un scroll-to-bottom cada 10s aunque el admin estuviera mirando
+  // hacia arriba, "arrastrandolo" de vuelta al final y tapando el panel de
+  // arriba en mobile.
+  const lastScrolledIdRef = useRef(null);
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length === 0) return;
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg.id !== lastScrolledIdRef.current) {
+      lastScrolledIdRef.current = lastMsg.id;
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
   }, [messages]);
 
   const fetchChats = async (isBackground = false) => {
@@ -227,6 +239,32 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
     }
   };
 
+  const handleDeleteChat = async (e, chat) => {
+    e.stopPropagation();
+    const label = chat.client_name || chat.phone;
+    if (!window.confirm(`¿Eliminar la conversación con ${label}? Se borran todos los mensajes y no se puede deshacer.`)) {
+      return;
+    }
+    try {
+      const res = await fetch('/api/admin/whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'deleteChat', phone: chat.phone })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'No se pudo borrar el chat');
+
+      setChats(prev => prev.filter(c => c.phone !== chat.phone));
+      if (selectedPhone === chat.phone) {
+        setSelectedPhone(null);
+        setMessages([]);
+      }
+    } catch (err) {
+      console.warn('Error al borrar chat:', err);
+      alert('No se pudo borrar la conversación. Probá de nuevo.');
+    }
+  };
+
   const handleToggleBot = async (phone, currentStatus) => {
     const newStatus = !currentStatus;
     setChats(prev => prev.map(c => c.phone === phone ? { ...c, bot_enabled: newStatus } : c));
@@ -273,7 +311,7 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
   );
 
   return (
-    <div className="whatsapp-tab-root" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 180px)', minHeight: '600px', background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
+    <div className="whatsapp-tab-root" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 180px)', minHeight: '600px', background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
 
       {/* Top Action Bar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', padding: '12px 20px', background: '#0F172A', color: '#FFFFFF', borderBottom: '1px solid #1E293B' }}>
@@ -325,10 +363,10 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
       </div>
 
       {/* Main Split Layout */}
-      <div className="whatsapp-split-layout" data-has-chat={selectedChat ? 'true' : 'false'} style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      <div className="whatsapp-split-layout" data-has-chat={selectedChat ? 'true' : 'false'} style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden' }}>
 
         {/* LEFT SIDEBAR: Chats List */}
-        <div className="whatsapp-sidebar" style={{ width: '320px', background: 'var(--bg-main)', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column' }}>
+        <div className="whatsapp-sidebar" style={{ width: '320px', background: 'var(--bg-main)', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           {/* Search Box */}
           <div style={{ padding: '12px', borderBottom: '1px solid var(--border-color)' }}>
             <div style={{ position: 'relative' }}>
@@ -344,7 +382,7 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
           </div>
 
           {/* Chats List */}
-          <div style={{ flex: 1, overflowY: 'auto' }}>
+          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
             {isLoadingChats ? (
               <div style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>Cargando conversaciones...</div>
             ) : filteredChats.length === 0 ? (
@@ -376,7 +414,20 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
                         </span>
                         {chat.client_name || chat.phone}
                       </span>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{dateStr}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{dateStr}</span>
+                        <button
+                          type="button"
+                          onClick={(e) => handleDeleteChat(e, chat)}
+                          title="Eliminar esta conversación"
+                          aria-label="Eliminar conversación"
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', display: 'flex', color: 'var(--text-muted)', opacity: 0.7 }}
+                          onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = '#EF4444'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.7'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </span>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -410,7 +461,7 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
         </div>
 
         {/* RIGHT PANEL: Active Chat Conversation */}
-        <div className="whatsapp-conversation-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--bg-card)' }}>
+        <div className="whatsapp-conversation-panel" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', background: 'var(--bg-card)' }}>
           {selectedChat ? (
             <>
               {/* Chat Header */}
@@ -464,7 +515,7 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
               </div>
 
               {/* Messages History Bubbles */}
-              <div style={{ flex: 1, padding: '18px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', background: 'var(--bg-card)' }}>
+              <div style={{ flex: 1, minHeight: 0, padding: '18px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', background: 'var(--bg-card)' }}>
                 {isLoadingMessages ? (
                   <div style={{ textAlign: 'center', color: 'var(--text-muted)', margin: 'auto' }}>Cargando conversación...</div>
                 ) : messages.length === 0 ? (
@@ -653,6 +704,7 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
         @media (max-width: 768px) {
           .whatsapp-tab-root {
             height: calc(100vh - 140px) !important;
+            height: calc(100dvh - 140px) !important;
             min-height: 500px !important;
           }
           .whatsapp-subtitle {
