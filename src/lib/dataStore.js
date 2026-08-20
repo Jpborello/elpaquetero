@@ -322,9 +322,11 @@ class DataStore {
     if (!data || typeof data.total !== 'number') return;
     this.visitStats = { today: data.today || 0, week: data.week || 0, month: data.month || 0 };
     this.visitCount = data.total;
+    this.visitsByRegion = Array.isArray(data.byRegion) ? data.byRegion : [];
     if (typeof window !== 'undefined') {
       localStorage.setItem('elpaquetero_visit_count', data.total.toString());
       localStorage.setItem('elpaquetero_visit_stats', JSON.stringify(this.visitStats));
+      localStorage.setItem('elpaquetero_visit_by_region', JSON.stringify(this.visitsByRegion));
     }
     this.notify();
   }
@@ -368,6 +370,15 @@ class DataStore {
       } catch (e) {}
     }
     return this.visitStats || { today: 0, week: 0, month: 0 };
+  }
+
+  getVisitsByRegion() {
+    if (typeof window !== 'undefined' && !this.visitsByRegion) {
+      try {
+        this.visitsByRegion = JSON.parse(localStorage.getItem('elpaquetero_visit_by_region') || 'null');
+      } catch (e) {}
+    }
+    return this.visitsByRegion || [];
   }
 
   getCategories() {
@@ -1188,6 +1199,7 @@ class DataStore {
       topRotationProducts,
       totalStockCount,
       visitCount: this.getVisitCount(),
+      visitsByRegion: this.getVisitsByRegion(),
       visitToday: visitStats.today,
       visitWeek: visitStats.week,
       visitMonth: visitStats.month,

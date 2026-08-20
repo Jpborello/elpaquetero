@@ -38,17 +38,58 @@ async function countVisits(sinceIso) {
   return isNaN(total) ? 0 : total;
 }
 
+// Pais+provincia de cada visita, agrupado por la funcion get_visits_by_region()
+// (agregacion server-side en Postgres via RPC: no depende de traer todas las
+// filas de page_visits al API, escala aunque la tabla crezca mucho).
+// Vercel inyecta la geolocalizacion por IP gratis en los headers
+// x-vercel-ip-*, no depende de ninguna API externa paga.
+async function getVisitsByRegion() {
+  const res = await fetch(`${supabaseUrl}/rest/v1/rpc/get_visits_by_region`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${serviceRoleKey}`,
+      'apikey': serviceRoleKey,
+      'Content-Type': 'application/json'
+    },
+    cache: 'no-store'
+  });
+  if (!res.ok) return [];
+
+  const rows = await res.json();
+  return rows.map((row) => ({
+    country: row.country || null,
+    region: row.region || null,
+    count: typeof row.count === 'string' ? parseInt(row.count, 10) : row.count
+  }));
+}
+
 async function getVisitCounts() {
-  const [total, today, week, month] = await Promise.all([
+  const [total, today, week, month, byRegion] = await Promise.all([
     countVisits(null),
     countVisits(startOfDayIso()),
     countVisits(startOfWeekIso()),
-    countVisits(startOfMonthIso())
+    countVisits(startOfMonthIso()),
+    getVisitsByRegion()
   ]);
-  return { total, today, week, month };
+  return { total, today, week, month, byRegion };
 }
 
-async function insertVisit() {
+function getGeoFromHeaders(request) {
+  const country = request.headers.get('x-vercel-ip-country') || null;
+  const region = request.headers.get('x-vercel-ip-country-region') || null;
+  const cityRaw = request.headers.get('x-vercel-ip-city');
+  let city = null;
+  if (cityRaw) {
+    try {
+      city = decodeURIComponent(cityRaw);
+    } catch {
+      city = cityRaw;
+    }
+  }
+  return { country, region, city };
+}
+
+async function insertVisit(geo) {
   await fetch(`${supabaseUrl}/rest/v1/page_visits`, {
     method: 'POST',
     headers: {
@@ -56,7 +97,7 @@ async function insertVisit() {
       'apikey': serviceRoleKey,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({})
+    body: JSON.stringify(geo)
   });
 }
 
@@ -65,8 +106,8 @@ export async function GET() {
   return NextResponse.json(counts);
 }
 
-export async function POST() {
-  await insertVisit();
+export async function POST(request) {
+  await insertVisit(getGeoFromHeaders(request));
   const counts = await getVisitCounts();
   return NextResponse.json(counts);
 }

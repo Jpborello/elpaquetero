@@ -1,6 +1,6 @@
 'use client';
 
-import { Calendar, TrendingUp, Eye, Percent, Wallet, ListChecks } from 'lucide-react';
+import { Calendar, TrendingUp, Eye, Percent, Wallet, ListChecks, MapPin } from 'lucide-react';
 
 const ORDER_STATUS_META = {
   pendiente: { label: 'Pendiente', bg: '#FEF3C7', color: '#92400E' },
@@ -11,6 +11,24 @@ const ORDER_STATUS_META = {
 };
 
 const formatPercent = (value) => `${(value || 0).toLocaleString('es-AR', { maximumFractionDigits: 1 })}%`;
+
+// Codigos ISO 3166-2:AR que manda Vercel en el header x-vercel-ip-country-region
+// (solo la letra, sin el prefijo "AR-"), para mostrar el nombre de la
+// provincia en vez del codigo crudo.
+const AR_PROVINCES = {
+  C: 'Ciudad de Buenos Aires', B: 'Buenos Aires', K: 'Catamarca', H: 'Chaco',
+  U: 'Chubut', X: 'Córdoba', W: 'Corrientes', E: 'Entre Ríos', P: 'Formosa',
+  Y: 'Jujuy', L: 'La Pampa', F: 'La Rioja', M: 'Mendoza', N: 'Misiones',
+  Q: 'Neuquén', R: 'Río Negro', A: 'Salta', J: 'San Juan', D: 'San Luis',
+  Z: 'Santa Cruz', S: 'Santa Fe', G: 'Santiago del Estero',
+  V: 'Tierra del Fuego', T: 'Tucumán'
+};
+
+function formatRegionLabel({ country, region }) {
+  if (!country && !region) return 'Sin datos (desarrollo o bot)';
+  if (country === 'AR') return AR_PROVINCES[region] || `Argentina (${region || '?'})`;
+  return country || 'Desconocido';
+}
 
 export default function MetricsTab({ metrics }) {
   return (
@@ -102,6 +120,48 @@ export default function MetricsTab({ metrics }) {
           </div>
         </div>
       </div>
+
+      {/* Visitas por Provincia (geolocalizacion por IP, gratis via Vercel) */}
+      <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: '32px 0 16px 0' }}>
+        <MapPin size={20} style={{ display: 'inline', marginRight: '6px', color: '#2563EB' }} />
+        Visitas por Provincia
+      </h2>
+
+      {(!metrics.visitsByRegion || metrics.visitsByRegion.length === 0) ? (
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>
+          Todavía no hay datos de ubicación. Esto se completa solo con las nuevas visitas una vez deployado.
+        </p>
+      ) : (
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Provincia / Ubicación</th>
+              <th>Visitas</th>
+              <th>% del Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {metrics.visitsByRegion.map((row, idx) => {
+              const total = metrics.visitsByRegion.reduce((sum, r) => sum + r.count, 0);
+              const pct = total > 0 ? (row.count / total) * 100 : 0;
+              return (
+                <tr key={`${row.country}-${row.region}-${idx}`}>
+                  <td style={{ fontWeight: 700 }}>{formatRegionLabel(row)}</td>
+                  <td style={{ fontWeight: 800, color: '#2563EB' }}>{row.count}</td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ flex: 1, maxWidth: '140px', height: '6px', borderRadius: '4px', background: 'var(--border-color)', overflow: 'hidden' }}>
+                        <div style={{ width: `${pct}%`, height: '100%', background: '#2563EB' }} />
+                      </div>
+                      <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{formatPercent(pct)}</span>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
 
       {/* Pedidos agrupados por estado, para ver donde se traban */}
       <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: '32px 0 16px 0' }}>
