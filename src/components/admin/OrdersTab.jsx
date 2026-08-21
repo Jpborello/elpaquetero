@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { RefreshCw, Image as ImageIcon, ExternalLink, X, Eye, Download, Trash2, Printer, Bell, BellOff, CheckCircle2, Sparkles, Pencil, Minus, Plus, UserPlus } from 'lucide-react';
+import { RefreshCw, Image as ImageIcon, ExternalLink, X, Eye, Download, Trash2, Printer, Bell, BellOff, CheckCircle2, Sparkles, Pencil, Minus, Plus, UserPlus, Wifi } from 'lucide-react';
 import { dataStore } from '@/lib/dataStore';
 import { getProductColors } from '@/lib/catalogData';
 
@@ -14,6 +14,11 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [selectedPrintOrder, setSelectedPrintOrder] = useState(null);
   const [cleanNotice, setCleanNotice] = useState('');
+  const [remotePrintState, setRemotePrintState] = useState(null); // { status: 'sending'|'queued'|'printing'|'printed'|'error', message }
+
+  useEffect(() => {
+    setRemotePrintState(null);
+  }, [selectedPrintOrder?.id]);
 
   // Edicion de pedido (agregar/sacar/bajar cantidad de productos y recalcular el total)
   const [editingOrder, setEditingOrder] = useState(null);
@@ -465,6 +470,56 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
     window.addEventListener('afterprint', restoreTitle);
 
     window.print();
+  };
+
+  // Manda el pedido a la cola de impresion remota: el agente instalado en
+  // la PC del local (ver /print-agent) lo toma y lo imprime ahi, sin
+  // importar desde donde este conectado el admin.
+  const pollRemoteJobStatus = (jobId) => {
+    let attempts = 0;
+    const interval = setInterval(async () => {
+      attempts += 1;
+      try {
+        const res = await fetch(`/api/admin/print-jobs?id=${jobId}`);
+        const data = await res.json();
+        const job = data.job;
+        if (job) {
+          setRemotePrintState({ status: job.status, message: job.error_message });
+          if (job.status === 'printed' || job.status === 'error') {
+            clearInterval(interval);
+          }
+        }
+      } catch (err) {
+        // Sigue reintentando en el proximo tick
+      }
+      if (attempts >= 24) clearInterval(interval); // ~2 minutos maximo
+    }, 5000);
+  };
+
+  const handleRemotePrint = async () => {
+    if (!selectedPrintOrder) return;
+    setRemotePrintState({ status: 'sending' });
+    try {
+      const res = await fetch('/api/admin/print-jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: selectedPrintOrder.id })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'No se pudo encolar la impresión');
+      setRemotePrintState({ status: 'queued' });
+      pollRemoteJobStatus(data.job.id);
+    } catch (err) {
+      setRemotePrintState({ status: 'error', message: err.message });
+    }
+  };
+
+  const REMOTE_PRINT_LABELS = {
+    sending: 'Enviando…',
+    queued: 'En cola, esperando al local…',
+    printing: 'Imprimiendo en el local…',
+    printed: '✓ Impreso en el local',
+    error: '✗ Error — reintentar'
   };
 
   return (
@@ -1558,6 +1613,22 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                       style={{ fontSize: '0.88rem', padding: '8px 18px', backgroundColor: '#059669', borderColor: '#059669', color: '#FFF' }}
                     >
                       <Printer size={16} /> Imprimir Comanda Ahora
+                    </button>
+                  ) : null}
+                  {selectedPrintOrder.status === 'aprobado' ? (
+                    <button
+                      onClick={handleRemotePrint}
+                      disabled={remotePrintState?.status === 'sending' || remotePrintState?.status === 'queued' || remotePrintState?.status === 'printing'}
+                      title="Imprime en la impresora conectada a la PC del local, sin importar desde donde estes"
+                      className="btn-secondary"
+                      style={{
+                        fontSize: '0.88rem',
+                        padding: '8px 18px',
+                        opacity: remotePrintState?.status === 'sending' || remotePrintState?.status === 'queued' || remotePrintState?.status === 'printing' ? 0.7 : 1,
+                        color: remotePrintState?.status === 'printed' ? '#059669' : remotePrintState?.status === 'error' ? '#DC2626' : undefined
+                      }}
+                    >
+                      <Wifi size={16} /> {REMOTE_PRINT_LABELS[remotePrintState?.status] || 'Enviar a Impresora del Local'}
                     </button>
                   ) : (
                     <button
