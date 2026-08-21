@@ -45,6 +45,7 @@ function buildTicketData(order) {
       };
     }),
     total: order.total_amount || 0,
+    discount_applied: order.discount_applied || 0,
     is_wholesale: !!order.is_wholesale,
     footer_checks: ['Control de Talles y Prendas', 'Bolsa / Embalaje', 'Despachado']
   };

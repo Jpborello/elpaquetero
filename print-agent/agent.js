@@ -104,6 +104,10 @@ function buildTicketPdf(ticket, outPath) {
     doc.y = y + 10;
     doc.x = tableX;
 
+    if (ticket.discount_applied > 0) {
+      doc.font('Helvetica-Bold').fontSize(8).fillColor('#92400E').text(`Baucher aplicado: -${money(ticket.discount_applied)}`, { align: 'right' });
+      doc.fillColor('#000000');
+    }
     doc.font('Helvetica-Bold').fontSize(11).text(`TOTAL: ${money(ticket.total)}`, { align: 'right' });
     if (ticket.is_wholesale) {
       doc.font('Helvetica').fontSize(8).text('Venta Mayorista', { align: 'right' });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Trash2, Plus, Minus, ShoppingBag, Truck, Store, Upload, CheckCircle2, UserCheck, Sparkles, Tag, Copy, Check, CreditCard, Clock, Edit3, RotateCcw } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { dataStore } from '@/lib/dataStore';
@@ -34,6 +34,34 @@ export default function CartDrawer({
   const [isFinishedSuccess, setIsFinishedSuccess] = useState(false);
   const [completedOrderId, setCompletedOrderId] = useState('');
 
+  // Baucher/credito disponible para el telefono que se esta cargando (ya
+  // sea de una cuenta registrada o tipeado a mano) — se detecta solo, sin
+  // que el cliente tenga que hacer nada mas que cargar su numero.
+  const [voucher, setVoucher] = useState(null); // { id, amount, reason }
+  const phoneForVoucher = currentUser?.phone || clientPhone;
+
+  useEffect(() => {
+    const digits = String(phoneForVoucher || '').replace(/\D/g, '');
+    if (digits.length < 8) {
+      setVoucher(null);
+      return;
+    }
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/vouchers?phone=${encodeURIComponent(phoneForVoucher)}`);
+        const data = await res.json();
+        if (!cancelled) setVoucher(data.voucher || null);
+      } catch {
+        if (!cancelled) setVoucher(null);
+      }
+    }, 500);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [phoneForVoucher]);
+
   const activeOrderFromStore = dataStore.getActiveOrder();
   const displayOrder = createdOrder || activeOrderFromStore;
 
@@ -64,7 +92,8 @@ export default function CartDrawer({
   }, 0);
   const MIN_PURCHASE_THRESHOLD = 50000;
   const isMinPurchaseReached = cartSubtotal >= MIN_PURCHASE_THRESHOLD;
-  const finalTotal = cartSubtotal;
+  const voucherDiscount = Math.min(cartSubtotal, voucher?.amount || 0);
+  const finalTotal = cartSubtotal - voucherDiscount;
   const amountNeeded = Math.max(0, MIN_PURCHASE_THRESHOLD - cartSubtotal);
   const progressPercent = Math.min(100, Math.round((cartSubtotal / MIN_PURCHASE_THRESHOLD) * 100));
 
@@ -95,8 +124,23 @@ export default function CartDrawer({
       locality,
       address,
       isRegistered: Boolean(currentUser),
-      deliveryMethod: deliveryMethod === 'envio' ? 'Envío a Domicilio / Transporte' : 'Retiro por Sucursal (Camilo Aldao 2715)'
+      deliveryMethod: deliveryMethod === 'envio' ? 'Envío a Domicilio / Transporte' : 'Retiro por Sucursal (Camilo Aldao 2715)',
+      voucherId: voucher?.id || null,
+      voucherAmount: voucherDiscount
     });
+
+    // Si se uso un baucher, lo marcamos como canjeado para que no se pueda
+    // volver a aplicar. Si falla (ej: dos pedidos casi al mismo tiempo con
+    // el mismo telefono), no rompemos el pedido — ya se cobro el monto
+    // correcto igual, solo quedaria el baucher sin marcar y habria que
+    // revisarlo a mano.
+    if (voucher?.id && orderData?.id) {
+      fetch('/api/vouchers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ voucher_id: voucher.id, order_id: orderData.id })
+      }).catch(() => {});
+    }
 
     const fullOrderObj = {
       ...orderData,
@@ -824,10 +868,25 @@ export default function CartDrawer({
         {cartItems.length > 0 && !createdOrder && (
           <div className="drawer-footer">
             <div style={{ marginBottom: '10px' }}>
+              {voucher && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '8px',
+                  padding: '8px 12px', marginBottom: '8px', fontSize: '0.82rem', fontWeight: 700, color: '#92400E'
+                }}>
+                  <span>🎁 Tenés ${voucher.amount.toLocaleString('es-AR')} de crédito disponible</span>
+                  <span>−${voucherDiscount.toLocaleString('es-AR')}</span>
+                </div>
+              )}
               <div className="total-summary-row" style={{ marginTop: '4px', paddingTop: '4px' }}>
                 <span style={{ fontSize: '1.05rem', fontWeight: 800 }}>Total Mayorista:</span>
                 <span style={{ fontSize: '1.25rem', fontWeight: 900, color: isMinPurchaseReached ? '#059669' : '#D97706' }}>
-                  ${cartSubtotal.toLocaleString('es-AR')}
+                  {voucher && (
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', textDecoration: 'line-through', marginRight: '6px' }}>
+                      ${cartSubtotal.toLocaleString('es-AR')}
+                    </span>
+                  )}
+                  ${finalTotal.toLocaleString('es-AR')}
                 </span>
               </div>
               {!isMinPurchaseReached && (

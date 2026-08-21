@@ -799,10 +799,15 @@ class DataStore {
   // setActiveOrder=false para pedidos armados por el admin (no es la sesion
   // del cliente, no tiene que pisarle el "pedido activo" del carrito propio).
   createOrder(cartItems, clientDetails, { setActiveOrder = true } = {}) {
-    const total = cartItems.reduce((sum, item) => {
+    const cartTotal = cartItems.reduce((sum, item) => {
       const itemPrice = item.product.wholesale_price || item.product.price || 0;
       return sum + (itemPrice * item.quantity);
     }, 0);
+    // Baucher/credito otorgado por el admin (ej: producto faltante en un
+    // pedido anterior), atado al telefono del cliente. Se descuenta del
+    // total sin bajar de $0.
+    const discountApplied = Math.min(cartTotal, Math.max(0, clientDetails.voucherAmount || 0));
+    const total = cartTotal - discountApplied;
     const isWholesaleQualified = total >= 50000;
     
     // Raffle Tickets are strictly assigned ONLY to REGISTERED users
@@ -829,7 +834,8 @@ class DataStore {
       items: cartItems,
       total_amount: total,
       is_wholesale: true,
-      discount_applied: 0,
+      discount_applied: discountApplied,
+      voucher_id: clientDetails.voucherId || null,
       raffle_tickets: generatedTickets,
       is_registered: isRegisteredUser,
       created_at: new Date().toISOString(),
@@ -907,7 +913,9 @@ class DataStore {
         items: order.items,
         status: order.status,
         created_at: order.created_at,
-        is_wholesale: order.is_wholesale
+        is_wholesale: order.is_wholesale,
+        discount_applied: order.discount_applied,
+        voucher_id: order.voucher_id
       }).then(() => {}).catch((err) => console.warn('Order insert warning:', err));
     }
 

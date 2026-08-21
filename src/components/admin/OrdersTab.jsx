@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { RefreshCw, Image as ImageIcon, ExternalLink, X, Eye, Download, Trash2, Printer, Bell, BellOff, CheckCircle2, Sparkles, Pencil, Minus, Plus, UserPlus, Wifi } from 'lucide-react';
+import { RefreshCw, Image as ImageIcon, ExternalLink, X, Eye, Download, Trash2, Printer, Bell, BellOff, CheckCircle2, Sparkles, Pencil, Minus, Plus, UserPlus, Wifi, Gift } from 'lucide-react';
 import { dataStore } from '@/lib/dataStore';
 import { getProductColors } from '@/lib/catalogData';
 
@@ -19,6 +19,54 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
   useEffect(() => {
     setRemotePrintState(null);
   }, [selectedPrintOrder?.id]);
+
+  // Baucher / credito para clientes (ej: producto faltante en un pedido).
+  // Se ata al telefono, no a una cuenta registrada, para que le sirva a la
+  // clienta la proxima vez que compre este o no logueada.
+  const [voucherOrder, setVoucherOrder] = useState(null);
+  const [voucherAmount, setVoucherAmount] = useState('');
+  const [voucherReason, setVoucherReason] = useState('Producto faltante en el pedido');
+  const [voucherSubmitting, setVoucherSubmitting] = useState(false);
+  const [voucherError, setVoucherError] = useState('');
+  const [voucherSuccess, setVoucherSuccess] = useState('');
+
+  const openVoucherModal = (ord) => {
+    setVoucherOrder(ord);
+    setVoucherAmount('');
+    setVoucherReason('Producto faltante en el pedido');
+    setVoucherError('');
+    setVoucherSuccess('');
+  };
+
+  const handleGrantVoucher = async () => {
+    if (!voucherOrder) return;
+    setVoucherError('');
+    const amountNum = Number(voucherAmount);
+    if (!amountNum || amountNum <= 0) {
+      setVoucherError('Cargá un monto válido.');
+      return;
+    }
+    setVoucherSubmitting(true);
+    try {
+      const res = await fetch('/api/admin/vouchers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: voucherOrder.client_phone,
+          amount: amountNum,
+          reason: voucherReason,
+          source_order_id: voucherOrder.id
+        })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'No se pudo otorgar el baucher');
+      setVoucherSuccess(`✓ Baucher de $${amountNum.toLocaleString('es-AR')} otorgado a ${voucherOrder.client_name} (tel. ${voucherOrder.client_phone}). Se va a aplicar solo la próxima vez que compre con ese número.`);
+    } catch (err) {
+      setVoucherError(err.message);
+    } finally {
+      setVoucherSubmitting(false);
+    }
+  };
 
   // Edicion de pedido (agregar/sacar/bajar cantidad de productos y recalcular el total)
   const [editingOrder, setEditingOrder] = useState(null);
@@ -204,10 +252,46 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
     setProductSearchQuery('');
     setShowCustomProductForm(false);
     setCustomProduct({ name: '', price: '', size: '', color: '', quantity: 1 });
+    setManualOrderVoucher(null);
+    setApplyManualVoucher(true);
     setShowCreateOrder(true);
   };
 
   const closeCreateOrder = () => setShowCreateOrder(false);
+
+  // Baucher/credito para el pedido manual: se busca solo por telefono
+  // (mismo criterio que el checkout de la web), y el admin decide con el
+  // checkbox si lo aplica o no en este pedido puntual.
+  const [manualOrderVoucher, setManualOrderVoucher] = useState(null); // { id, amount, reason }
+  const [applyManualVoucher, setApplyManualVoucher] = useState(true);
+
+  useEffect(() => {
+    if (!showCreateOrder) return undefined;
+    const digits = String(newOrderClient.phone || '').replace(/\D/g, '');
+    if (digits.length < 8) {
+      setManualOrderVoucher(null);
+      return undefined;
+    }
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/vouchers?phone=${encodeURIComponent(newOrderClient.phone)}`);
+        const data = await res.json();
+        if (!cancelled) {
+          setManualOrderVoucher(data.voucher || null);
+          setApplyManualVoucher(true);
+        }
+      } catch {
+        if (!cancelled) setManualOrderVoucher(null);
+      }
+    }, 500);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [newOrderClient.phone, showCreateOrder]);
+
+  const manualVoucherDiscount = (manualOrderVoucher && applyManualVoucher) ? manualOrderVoucher.amount : 0;
 
   const normalizeSearch = (str) => (str || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 
@@ -390,8 +474,18 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
       locality: locality.trim(),
       address: address.trim(),
       isRegistered,
-      deliveryMethod: deliveryMethod === 'envio' ? 'Envío a Domicilio / Transporte' : 'Retiro por Sucursal (Camilo Aldao 2715)'
+      deliveryMethod: deliveryMethod === 'envio' ? 'Envío a Domicilio / Transporte' : 'Retiro por Sucursal (Camilo Aldao 2715)',
+      voucherId: manualVoucherDiscount > 0 ? manualOrderVoucher.id : null,
+      voucherAmount: manualVoucherDiscount
     }, { setActiveOrder: false });
+
+    if (manualVoucherDiscount > 0) {
+      fetch('/api/vouchers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ voucher_id: manualOrderVoucher.id, order_id: order.id })
+      }).catch(() => {});
+    }
 
     setCleanNotice(`✓ Pedido ${order.id} creado para ${name.trim()}. Total: $${order.total_amount.toLocaleString('es-AR')}.`);
     setTimeout(() => setCleanNotice(''), 5000);
@@ -796,6 +890,13 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                         <Pencil size={14} /> Editar
                       </button>
                       <button
+                        onClick={() => openVoucherModal(ord)}
+                        title="Otorgar baucher / crédito a este cliente (ej: producto faltante)"
+                        style={{ padding: '6px 10px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '8px', color: '#92400E', cursor: 'pointer' }}
+                      >
+                        <Gift size={14} /> Baucher
+                      </button>
+                      <button
                         onClick={() => handleDeleteOrder(ord)}
                         title="Eliminar pedido definitivamente"
                         style={{ padding: '6px 10px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', color: '#DC2626', cursor: 'pointer' }}
@@ -809,6 +910,68 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
             })}
           </tbody>
         </table>
+      )}
+
+      {/* VOUCHER / BAUCHER MODAL */}
+      {voucherOrder && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+          onClick={() => setVoucherOrder(null)}
+        >
+          <div
+            style={{ background: 'var(--bg-card)', borderRadius: '12px', maxWidth: '420px', width: '100%', padding: '24px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.4)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Gift size={18} style={{ color: '#D97706' }} /> Otorgar Baucher
+              </h3>
+              <button onClick={() => setVoucherOrder(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+                <X size={18} />
+              </button>
+            </div>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
+              Cliente: <strong>{voucherOrder.client_name}</strong> — Tel: <strong>{voucherOrder.client_phone}</strong>
+              <br />Se descuenta solo la próxima vez que compre con ese número, esté registrada o no.
+            </p>
+
+            {voucherSuccess ? (
+              <p style={{ fontSize: '0.85rem', color: '#059669', fontWeight: 700, marginBottom: '12px' }}>{voucherSuccess}</p>
+            ) : (
+              <>
+                <div className="form-group" style={{ marginBottom: '12px' }}>
+                  <label className="form-label">Monto del baucher ($)</label>
+                  <input
+                    type="number"
+                    value={voucherAmount}
+                    onChange={(e) => setVoucherAmount(e.target.value)}
+                    placeholder="Ej: 10500"
+                    className="form-input"
+                    autoFocus
+                  />
+                </div>
+                <div className="form-group" style={{ marginBottom: '16px' }}>
+                  <label className="form-label">Motivo</label>
+                  <textarea
+                    value={voucherReason}
+                    onChange={(e) => setVoucherReason(e.target.value)}
+                    className="form-input"
+                    rows={2}
+                  />
+                </div>
+                {voucherError && <p style={{ fontSize: '0.8rem', color: '#DC2626', fontWeight: 700, marginBottom: '10px' }}>{voucherError}</p>}
+                <button
+                  onClick={handleGrantVoucher}
+                  disabled={voucherSubmitting}
+                  className="btn-primary"
+                  style={{ width: '100%', justifyContent: 'center', backgroundColor: '#D97706', borderColor: '#D97706' }}
+                >
+                  {voucherSubmitting ? 'Otorgando…' : 'Otorgar Baucher'}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
       )}
 
       {/* RECEIPT MODAL VIEWER */}
@@ -1215,6 +1378,16 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
               <div>
                 <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', display: 'block', marginBottom: '4px' }}>Teléfono</label>
                 <input type="text" value={newOrderClient.phone} onChange={(e) => setNewOrderClient((p) => ({ ...p, phone: e.target.value }))} style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }} />
+                {manualOrderVoucher && (
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', padding: '6px 8px', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '6px', fontSize: '0.76rem', fontWeight: 700, color: '#92400E', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={applyManualVoucher}
+                      onChange={(e) => setApplyManualVoucher(e.target.checked)}
+                    />
+                    🎁 Tiene baucher de ${manualOrderVoucher.amount.toLocaleString('es-AR')} ({manualOrderVoucher.reason || 'sin motivo'}) — aplicar
+                  </label>
+                )}
               </div>
               <div>
                 <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', display: 'block', marginBottom: '4px' }}>DNI / CUIT</label>
@@ -1412,9 +1585,22 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
               )}
             </div>
 
+            {manualVoucherDiscount > 0 && (
+              <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', fontWeight: 700, color: '#92400E' }}>
+                <span>🎁 Baucher aplicado</span>
+                <span>−${manualVoucherDiscount.toLocaleString('es-AR')}</span>
+              </div>
+            )}
             <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '2px solid var(--text-main)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>TOTAL:</span>
-              <span style={{ fontSize: '1.3rem', fontWeight: 900, color: '#059669' }}>${newOrderTotal.toLocaleString('es-AR')}</span>
+              <span style={{ fontSize: '1.3rem', fontWeight: 900, color: '#059669' }}>
+                {manualVoucherDiscount > 0 && (
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', textDecoration: 'line-through', marginRight: '6px' }}>
+                    ${newOrderTotal.toLocaleString('es-AR')}
+                  </span>
+                )}
+                ${(newOrderTotal - manualVoucherDiscount).toLocaleString('es-AR')}
+              </span>
             </div>
 
             <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
@@ -1551,6 +1737,11 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
               </div>
 
               <div style={{ textAlign: 'right' }}>
+                {selectedPrintOrder.discount_applied > 0 && (
+                  <span style={{ fontSize: '0.78rem', display: 'block', fontWeight: 800, color: '#92400E' }}>
+                    🎁 Baucher aplicado: −${selectedPrintOrder.discount_applied.toLocaleString('es-AR')}
+                  </span>
+                )}
                 <span style={{ fontSize: '0.8rem', display: 'block' }}>TOTAL FINAL COMANDA:</span>
                 <span className="grand-total">${selectedPrintOrder.total_amount?.toLocaleString('es-AR')}</span>
               </div>

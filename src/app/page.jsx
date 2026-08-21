@@ -156,7 +156,9 @@ export default function Home() {
       address: clientDetails?.address || currentUser?.address || '',
       isRegistered: Boolean(clientDetails?.isRegistered || currentUser),
       deliveryMethod: clientDetails?.deliveryMethod || 'Envío a Domicilio',
-      receiptUrl: clientDetails?.receiptUrl || null
+      receiptUrl: clientDetails?.receiptUrl || null,
+      voucherId: clientDetails?.voucherId || null,
+      voucherAmount: clientDetails?.voucherAmount || 0
     });
     setCartItems([]);
     return order;
