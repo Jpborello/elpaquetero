@@ -13,7 +13,7 @@ export default function AdminTabsNav({ activeTab, onTabChange }) {
     { id: 'categories', label: 'Categorías & Subcategorías', icon: FolderPlus },
     { id: 'images', label: 'Gestión de Imágenes', icon: ImageIcon },
     { id: 'orders', label: 'Órdenes & Comprobantes', icon: Layers },
-    { id: 'clients', label: 'Clientes & VIP', icon: Users },
+    { id: 'clients', label: 'Ranking de Clientes', icon: Users },
     { id: 'raffle', label: '🎰 Sorteo en Vivo', icon: Sparkles }
   ];
 
