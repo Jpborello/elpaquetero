@@ -442,6 +442,28 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
   };
 
   const triggerPrintWindow = () => {
+    if (!selectedPrintOrder) {
+      window.print();
+      return;
+    }
+
+    // Chrome usa document.title como nombre sugerido al "Guardar como PDF",
+    // asi que lo cambiamos justo antes de imprimir (con fecha y nombre
+    // completo del cliente) y lo restauramos al cerrar el dialogo de
+    // impresion, para no dejar pisado el titulo de la pestana del admin.
+    const originalTitle = document.title;
+    const clientName = (selectedPrintOrder.client_name || 'Cliente').trim();
+    const dateStr = new Date(selectedPrintOrder.created_at || Date.now())
+      .toLocaleDateString('es-AR')
+      .replaceAll('/', '-');
+    document.title = `Comanda ${clientName} ${dateStr}`;
+
+    const restoreTitle = () => {
+      document.title = originalTitle;
+      window.removeEventListener('afterprint', restoreTitle);
+    };
+    window.addEventListener('afterprint', restoreTitle);
+
     window.print();
   };
 
@@ -1401,7 +1423,8 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
               <table className="ticket-table">
                 <thead>
                   <tr>
-                    <th style={{ width: '24px' }}>✓</th>
+                    <th style={{ width: '22px' }}>Arm.</th>
+                    <th style={{ width: '22px' }}>Ctrl.</th>
                     <th>Prenda / Producto</th>
                     <th style={{ textAlign: 'center' }}>Talle</th>
                     <th style={{ textAlign: 'center' }}>Color</th>
@@ -1424,6 +1447,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
 
                       return (
                         <tr key={idx}>
+                          <td style={{ textAlign: 'center' }}>☐</td>
                           <td style={{ textAlign: 'center' }}>☐</td>
                           <td>
                             <strong>{item.product?.name}</strong>
@@ -1449,7 +1473,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                     })
                   ) : (
                     <tr>
-                      <td colSpan="7" style={{ textAlign: 'center', fontStyle: 'italic' }}>
+                      <td colSpan="8" style={{ textAlign: 'center', fontStyle: 'italic' }}>
                         Sin detalle de prendas individuales.
                       </td>
                     </tr>
