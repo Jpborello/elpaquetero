@@ -83,7 +83,17 @@ export async function processIncomingChatMessage(supabaseAdmin, { chatId, client
     `- ${p.name} | Cat: ${p.category} (${p.subcategory || ''}) | Precio Mayorista: $${p.wholesale_price} | Stock: ${p.stock} | Desc: ${p.description || ''}`
   ).join('\n');
 
+  const nowInArgentina = new Date().toLocaleString('sv-SE', { timeZone: 'America/Argentina/Buenos_Aires', hour12: false });
+  const [argDate, argTime] = nowInArgentina.split(' ');
+  const argWeekday = new Date(nowInArgentina.replace(' ', 'T')).getDay(); // 0=domingo..6=sabado
+  const [argHour, argMinute] = argTime.split(':').map(Number);
+  const minutesNow = argHour * 60 + argMinute;
+  const isWithinBusinessDays = argWeekday >= 1 && argWeekday <= 6; // lunes a sabado
+  const isWithinBusinessHours = isWithinBusinessDays && minutesNow >= 8 * 60 && minutesNow <= 16 * 60 + 30;
+
   const systemPrompt = (settings?.system_prompt || DEFAULT_SYSTEM_PROMPT) + `
+
+FECHA Y HORA ACTUAL EN ARGENTINA: ${argDate} ${argTime} hs — Local ${isWithinBusinessHours ? 'ABIERTO en este momento' : 'CERRADO en este momento (fuera del horario Lunes a Sábado 8:00 a 16:30hs)'}.
 
 CATÁLOGO DE PRODUCTOS ACTUALIZADO EN STOCK:
 ${catalogSummary}
