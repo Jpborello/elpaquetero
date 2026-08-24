@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendWhatsAppMessage } from '@/lib/whatsappSend';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://pgipeujafjwhqjobcjzw.supabase.co';
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -106,7 +107,19 @@ export async function POST(req) {
         updated_at: new Date().toISOString()
       }], { onConflict: 'phone' });
 
-      return NextResponse.json({ success: true, message: msgObj });
+      // El chat web (sessionId "web-...") no es un número real de WhatsApp,
+      // solo el canal de WhatsApp de verdad manda el mensaje por la Cloud API.
+      let whatsappError = null;
+      if (!phone.startsWith('web-')) {
+        try {
+          await sendWhatsAppMessage(phone, content);
+        } catch (sendErr) {
+          console.error('Error enviando mensaje por WhatsApp Cloud API:', sendErr);
+          whatsappError = sendErr.message;
+        }
+      }
+
+      return NextResponse.json({ success: true, message: msgObj, whatsapp_error: whatsappError });
     }
 
     if (action === 'toggleBot') {

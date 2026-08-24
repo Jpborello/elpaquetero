@@ -228,11 +228,15 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
     setMessages(prev => [...prev, tempMsg]);
 
     try {
-      await fetch('/api/admin/whatsapp', {
+      const res = await fetch('/api/admin/whatsapp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'sendMessage', phone: selectedPhone, content: textToSend })
       });
+      const data = await res.json();
+      if (data.whatsapp_error) {
+        alert(`El mensaje se guardó pero no se pudo entregar por WhatsApp: ${data.whatsapp_error}`);
+      }
       fetchMessages(selectedPhone, true);
       fetchChats(true);
     } catch (e) {
