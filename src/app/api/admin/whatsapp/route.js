@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { sendWhatsAppMessage } from '@/lib/whatsappSend';
+import { sendWhatsAppMessage, sendWhatsAppTemplate } from '@/lib/whatsappSend';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://pgipeujafjwhqjobcjzw.supabase.co';
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -120,6 +120,38 @@ export async function POST(req) {
       }
 
       return NextResponse.json({ success: true, message: msgObj, whatsapp_error: whatsappError });
+    }
+
+    if (action === 'startWhatsAppContact') {
+      const { phone, clientName } = body;
+      if (!phone) {
+        return NextResponse.json({ error: 'Falta el parámetro phone' }, { status: 400 });
+      }
+
+      const displayName = clientName || 'Cliente';
+      const templateText = `Hola ${displayName}, te contactamos de El Paquetero por tu consulta en la página web. ¿En qué te podemos ayudar?`;
+
+      await sendWhatsAppTemplate(phone, 'seguimiento_consulta_web', 'es_AR', [displayName]);
+
+      const msgObj = {
+        id: crypto.randomUUID(),
+        chat_phone: phone,
+        sender: 'admin',
+        content: templateText,
+        created_at: new Date().toISOString()
+      };
+      await supabaseAdmin.from('whatsapp_messages').insert([msgObj]);
+
+      await supabaseAdmin.from('whatsapp_chats').upsert([{
+        phone,
+        client_name: displayName,
+        channel: 'whatsapp',
+        last_message: templateText,
+        unread_count: 0,
+        updated_at: new Date().toISOString()
+      }], { onConflict: 'phone' });
+
+      return NextResponse.json({ success: true, message: msgObj });
     }
 
     if (action === 'toggleBot') {
