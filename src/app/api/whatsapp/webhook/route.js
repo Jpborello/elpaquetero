@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { processIncomingChatMessage } from '@/lib/whatsappBot';
+import { sendWhatsAppMessage } from '@/lib/whatsappSend';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://pgipeujafjwhqjobcjzw.supabase.co';
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -62,6 +63,12 @@ export async function POST(req) {
         bot_status: status,
         message: 'Mensaje guardado para respuesta manual del administrador'
       });
+    }
+
+    try {
+      await sendWhatsAppMessage(phone, botReply);
+    } catch (sendErr) {
+      console.error('Error enviando respuesta del bot por WhatsApp Cloud API:', sendErr);
     }
 
     return NextResponse.json({
