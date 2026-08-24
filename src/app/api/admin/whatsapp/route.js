@@ -182,7 +182,31 @@ export async function POST(req) {
         return NextResponse.json({ error: 'Falta el parámetro phone' }, { status: 400 });
       }
 
-      // Borramos primero los mensajes (no hay FK con cascade) y despues el chat.
+      // Antes de borrar los mensajes, borramos del storage los archivos
+      // adjuntos (imagenes/audios/etc) de esta conversacion, si tiene.
+      // Solo se tocan archivos dentro de whatsapp_media/ — nunca las
+      // imagenes de productos ni comprobantes, que viven en otras carpetas
+      // del mismo bucket.
+      const { data: mediaRows } = await supabaseAdmin
+        .from('whatsapp_messages')
+        .select('media_url')
+        .eq('chat_phone', phone)
+        .not('media_url', 'is', null);
+
+      const marker = '/Productos/';
+      const filePaths = (mediaRows || [])
+        .map((m) => {
+          const idx = m.media_url?.indexOf(marker);
+          return idx > -1 ? m.media_url.slice(idx + marker.length) : null;
+        })
+        .filter((p) => p && p.startsWith('whatsapp_media/'));
+
+      if (filePaths.length > 0) {
+        const { error: storageErr } = await supabaseAdmin.storage.from('Productos').remove(filePaths);
+        if (storageErr) console.error('Error borrando archivos de WhatsApp del storage:', storageErr);
+      }
+
+      // Borramos los mensajes (no hay FK con cascade) y despues el chat.
       const { error: msgErr } = await supabaseAdmin
         .from('whatsapp_messages')
         .delete()
