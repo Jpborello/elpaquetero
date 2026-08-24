@@ -1,6 +1,6 @@
 'use client';
 
-import { Factory, Truck, Store, MessagesSquare } from 'lucide-react';
+import { Factory, Truck, Store, MessageCircle } from 'lucide-react';
 
 const ITEMS = [
   {
@@ -19,8 +19,8 @@ const ITEMS = [
     subtitle: 'Camilo Aldao 2715, Rosario — con este frío, te recibimos con un café calentito ☕'
   },
   {
-    icon: MessagesSquare,
-    title: 'Atención por Chat Online',
+    icon: MessageCircle,
+    title: 'Atención Directa por WhatsApp',
     subtitle: 'Lunes a Sábado de 8 a 16:30 hs'
   }
 ];

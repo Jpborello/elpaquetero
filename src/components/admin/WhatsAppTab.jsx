@@ -173,7 +173,7 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
 2. DIRECCIÓN, HORARIOS Y CONTACTO:
    - Dirección del local: Camilo Aldao 2715 esquina ex Godoy (Rosario, Santa Fe).
    - Horario de Atención: De Lunes a Sábados de 8:00 AM a 4:30 PM (16:30 hs).
-   - Número de WhatsApp / celular de contacto: si te piden un número de celular, WhatsApp o teléfono, respondé SIEMPRE exactamente con este, sin inventar otro ni cambiarle el formato: 341 609-5021
+   - Número de WhatsApp / celular de contacto: si te piden un número de celular, WhatsApp o teléfono, respondé SIEMPRE exactamente con este, sin inventar otro ni cambiarle el formato: 341 328-6628
 
 3. MODALIDAD DE VENTA, MÍNIMO DE COMPRA & ENVÍOS:
    - ¿Venden por unidad? Sí, vendemos por unidad, por talle completo o también podés armar surtido/variedad de productos según necesites.
