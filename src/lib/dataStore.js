@@ -202,7 +202,7 @@ class DataStore {
     try {
       const { data, error } = await supabase.from('categories').select('*');
       if (data && data.length > 0 && !error) {
-        const alias1Row = data.find(item => item.id === '_config_alias1' || item.id === '_config_alias');
+        const alias1Row = data.find(item => item.id === '_config_alias1') || data.find(item => item.id === '_config_alias');
         const alias2Row = data.find(item => item.id === '_config_alias2');
         const holderRow = data.find(item => item.id === '_config_holder');
         const cuitRow = data.find(item => item.id === '_config_cuit');
