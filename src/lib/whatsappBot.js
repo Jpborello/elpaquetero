@@ -85,9 +85,15 @@ export async function processIncomingChatMessage(supabaseAdmin, { chatId, client
   const isWithinBusinessDays = argWeekday >= 1 && argWeekday <= 6; // lunes a sabado
   const isWithinBusinessHours = isWithinBusinessDays && minutesNow >= 8 * 60 && minutesNow <= 16 * 60 + 30;
 
+  const channelNotice = channel === 'web'
+    ? `\n\nCANAL ACTUAL: Chat web del sitio.
+   - Si el cliente pide hablar con una persona, un asesor o un humano, invitalo amablemente a escribir por el botón/logo de WhatsApp del sitio (no le des el número, solo mencioná "el botón de WhatsApp de la página") — así lo atiende un asesor directamente y su consulta queda registrada ahí. Solo ofrecé esto si el cliente lo pide específicamente, no lo repitas de más.`
+    : `\n\nCANAL ACTUAL: WhatsApp.`;
+
   const systemPrompt = (settings?.system_prompt || DEFAULT_SYSTEM_PROMPT) + `
 
 FECHA Y HORA ACTUAL EN ARGENTINA: ${argDate} ${argTime} hs — Local ${isWithinBusinessHours ? 'ABIERTO en este momento' : 'CERRADO en este momento (fuera del horario Lunes a Sábado 8:00 a 16:30hs)'}.
+${channelNotice}
 
 CATÁLOGO DE PRODUCTOS ACTUALIZADO EN STOCK:
 ${catalogSummary}
