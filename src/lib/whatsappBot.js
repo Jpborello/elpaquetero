@@ -1,3 +1,7 @@
+import { getProductUrlPath } from './productSlug';
+
+const SITE_URL = 'https://www.elpaquetero.com.ar';
+
 const DEFAULT_SYSTEM_PROMPT = `Sos el asistente virtual de ventas oficial de 'El Paquetero', tienda mayorista de indumentaria en Rosario.
 Tu función es responder a los clientes de forma clara, directa, amable y SIN DIVAGAR, basándote exclusivamente en la información oficial de la tienda.
 
@@ -74,7 +78,7 @@ export async function processIncomingChatMessage(supabaseAdmin, { chatId, client
 
   const { data: products } = await supabaseAdmin.from('products').select('*').gt('stock', 0);
   const catalogSummary = (products || []).map(p =>
-    `- ${p.name} | Cat: ${p.category} (${p.subcategory || ''}) | Precio Mayorista: $${p.wholesale_price} | Stock: ${p.stock} | Desc: ${p.description || ''}`
+    `- ${p.name} | Cat: ${p.category} (${p.subcategory || ''}) | Precio Mayorista: $${p.wholesale_price} | Stock: ${p.stock} | Desc: ${p.description || ''} | Link: ${SITE_URL}${getProductUrlPath(p)}`
   ).join('\n');
 
   const nowInArgentina = new Date().toLocaleString('sv-SE', { timeZone: 'America/Argentina/Buenos_Aires', hour12: false });
@@ -94,6 +98,11 @@ export async function processIncomingChatMessage(supabaseAdmin, { chatId, client
 
 FECHA Y HORA ACTUAL EN ARGENTINA: ${argDate} ${argTime} hs — Local ${isWithinBusinessHours ? 'ABIERTO en este momento' : 'CERRADO en este momento (fuera del horario Lunes a Sábado 8:00 a 16:30hs)'}.
 ${channelNotice}
+
+REGLAS SOBRE EL CATÁLOGO (muy importante):
+- Cuando menciones un producto, usá SIEMPRE el nombre EXACTO tal como figura en el catálogo de abajo — nunca lo generalices ni lo cambies por el nombre de otra categoría similar (ej: si el producto se llama "Calza Oxford", no digas "pantalón").
+- Si no estás seguro de qué producto corresponde a lo que pide el cliente, buscá en el catálogo el que más se ajuste y nombralo tal cual está escrito, no inventes uno genérico.
+- Cuando el cliente pregunte por un producto específico o vos le sugieras uno puntual, pasale el "Link" de ese producto tal cual aparece en el catálogo (no lo modifiques ni armes uno nuevo).
 
 CATÁLOGO DE PRODUCTOS ACTUALIZADO EN STOCK:
 ${catalogSummary}
