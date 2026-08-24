@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { processIncomingChatMessage } from '@/lib/whatsappBot';
-import { sendWhatsAppMessage } from '@/lib/whatsappSend';
+import { sendWhatsAppMessage, downloadWhatsAppMedia } from '@/lib/whatsappSend';
+
+const MEDIA_TYPES = ['image', 'video', 'audio', 'document', 'sticker'];
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://pgipeujafjwhqjobcjzw.supabase.co';
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -35,6 +37,8 @@ export async function POST(req) {
     let phone = body.phone || body.from;
     let clientName = body.client_name || body.name || 'Cliente WhatsApp';
     let messageText = body.content || body.message || body.text;
+    let mediaId = null;
+    let messageType = 'text';
 
     // Parse Meta WhatsApp Webhook payload format
     if (!phone && body.entry && body.entry[0]?.changes[0]?.value?.messages[0]) {
@@ -43,17 +47,36 @@ export async function POST(req) {
       const contact = value.contacts[0];
       phone = msg.from;
       clientName = contact?.profile?.name || 'Cliente WhatsApp';
-      messageText = msg.text?.body || '';
+
+      if (MEDIA_TYPES.includes(msg.type)) {
+        messageType = msg.type;
+        mediaId = msg[msg.type]?.id || null;
+        messageText = msg[msg.type]?.caption || '';
+      } else {
+        messageText = msg.text?.body || '';
+      }
     }
 
-    if (!phone || !messageText) {
-      return NextResponse.json({ status: 'ignored', reason: 'Payload sin teléfono o texto' });
+    if (!phone || (!messageText && !mediaId)) {
+      return NextResponse.json({ status: 'ignored', reason: 'Payload sin teléfono, texto o archivo' });
+    }
+
+    let mediaUrl = null;
+    if (mediaId) {
+      try {
+        const media = await downloadWhatsAppMedia(supabaseAdmin, mediaId);
+        mediaUrl = media.url;
+      } catch (mediaErr) {
+        console.error('Error descargando archivo de WhatsApp:', mediaErr);
+      }
     }
 
     const { botReply, status, model } = await processIncomingChatMessage(supabaseAdmin, {
       chatId: phone,
       clientName,
       messageText,
+      mediaUrl,
+      messageType,
       channel: 'whatsapp'
     });
 

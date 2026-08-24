@@ -33,7 +33,7 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
 // Procesa un mensaje entrante de CUALQUIER canal (WhatsApp o Chat Web) contra
 // las mismas tablas whatsapp_chats/whatsapp_messages, para que el admin vea
 // y responda todo desde un unico inbox sin importar de donde vino.
-export async function processIncomingChatMessage(supabaseAdmin, { chatId, clientName, messageText, channel }) {
+export async function processIncomingChatMessage(supabaseAdmin, { chatId, clientName, messageText, channel, mediaUrl, messageType }) {
   const timestamp = new Date().toISOString();
 
   const { data: existingChat } = await supabaseAdmin
@@ -44,12 +44,16 @@ export async function processIncomingChatMessage(supabaseAdmin, { chatId, client
 
   const isBotEnabledForChat = existingChat ? existingChat.bot_enabled !== false : true;
   const currentUnread = (existingChat?.unread_count || 0) + 1;
+  const mediaLabels = { image: '📷 Imagen', video: '🎥 Video', audio: '🎤 Audio', document: '📎 Documento', sticker: '💬 Sticker' };
+  const previewMessage = messageText || (mediaUrl ? mediaLabels[messageType] || '📎 Archivo' : messageText);
 
   await supabaseAdmin.from('whatsapp_messages').insert([{
     id: crypto.randomUUID(),
     chat_phone: chatId,
     sender: 'client',
-    content: messageText,
+    content: messageText || '',
+    media_url: mediaUrl || null,
+    message_type: messageType || 'text',
     created_at: timestamp
   }]);
 
@@ -57,11 +61,18 @@ export async function processIncomingChatMessage(supabaseAdmin, { chatId, client
     phone: chatId,
     client_name: clientName,
     channel: existingChat?.channel || channel,
-    last_message: messageText,
+    last_message: previewMessage,
     unread_count: currentUnread,
     bot_enabled: isBotEnabledForChat,
     updated_at: timestamp
   }], { onConflict: 'phone' });
+
+  // El bot es de solo texto: si llega un archivo sin texto que lo acompañe,
+  // no tiene nada para interpretar, así que lo dejamos para que lo vea un
+  // humano en vez de generar una respuesta inventada.
+  if (mediaUrl && !messageText) {
+    return { botReply: null, status: 'media_manual' };
+  }
 
   const { data: settings } = await supabaseAdmin
     .from('whatsapp_bot_settings')

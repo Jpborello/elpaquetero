@@ -645,9 +645,25 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
                           </span>
                         </div>
 
-                        <div style={{ fontSize: '0.88rem', lineHeight: '1.4', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                          {msg.content}
-                        </div>
+                        {msg.media_url && (msg.message_type === 'image' || msg.message_type === 'sticker') ? (
+                          <a href={msg.media_url} target="_blank" rel="noreferrer">
+                            <img
+                              src={msg.media_url}
+                              alt="Imagen enviada por WhatsApp"
+                              style={{ maxWidth: '220px', maxHeight: '260px', borderRadius: '10px', display: 'block', marginBottom: msg.content ? '6px' : 0 }}
+                            />
+                          </a>
+                        ) : msg.media_url ? (
+                          <a href={msg.media_url} target="_blank" rel="noreferrer" style={{ display: 'block', marginBottom: msg.content ? '6px' : 0, color: 'inherit', textDecoration: 'underline', fontSize: '0.85rem' }}>
+                            📎 Ver {msg.message_type === 'video' ? 'video' : msg.message_type === 'audio' ? 'audio' : 'archivo'} adjunto
+                          </a>
+                        ) : null}
+
+                        {msg.content && (
+                          <div style={{ fontSize: '0.88rem', lineHeight: '1.4', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                            {msg.content}
+                          </div>
+                        )}
 
                         <div style={{ textAlign: 'right', fontSize: '0.65rem', opacity: 0.7, marginTop: '4px' }}>
                           {timeStr}
@@ -660,24 +676,30 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
               </div>
 
               {/* Message Input Box */}
-              <form onSubmit={handleSendMessage} style={{ padding: '12px 18px', borderTop: '1px solid var(--border-color)', display: 'flex', gap: '10px', background: 'var(--bg-main)' }}>
-                <input
-                  type="text"
-                  placeholder={selectedChat.channel === 'web' ? 'Escribí una respuesta para el chat web del cliente...' : 'Escribí un mensaje directo al WhatsApp del cliente...'}
+              <form onSubmit={handleSendMessage} style={{ padding: '12px 18px', borderTop: '1px solid var(--border-color)', display: 'flex', gap: '10px', background: 'var(--bg-main)', alignItems: 'flex-end' }}>
+                <textarea
+                  placeholder={selectedChat.channel === 'web' ? 'Escribí una respuesta para el chat web del cliente... (Enter para renglón nuevo, Ctrl+Enter para enviar)' : 'Escribí un mensaje directo al WhatsApp del cliente... (Enter para renglón nuevo, Ctrl+Enter para enviar)'}
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
-                  style={{ flex: 1, padding: '10px 14px', fontSize: '0.88rem', borderRadius: '10px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-main)' }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                      e.preventDefault();
+                      handleSendMessage(e);
+                    }
+                  }}
+                  rows={2}
+                  style={{ flex: 1, padding: '10px 14px', fontSize: '0.88rem', borderRadius: '10px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-main)', resize: 'vertical', fontFamily: 'inherit' }}
                 />
-                <button 
+                <button
                   type="submit"
                   disabled={!inputText.trim()}
-                  style={{ 
-                    padding: '10px 18px', 
-                    borderRadius: '10px', 
-                    background: 'var(--accent-gold)', 
-                    color: '#FFFFFF', 
-                    border: 'none', 
-                    fontWeight: 800, 
+                  style={{
+                    padding: '10px 18px',
+                    borderRadius: '10px',
+                    background: 'var(--accent-gold)',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    fontWeight: 800,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',

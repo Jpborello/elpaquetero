@@ -30,6 +30,41 @@ export async function sendWhatsAppMessage(to, text) {
   return data;
 }
 
+// Baja un archivo multimedia que un cliente mando por WhatsApp (imagen,
+// audio, video, documento) y lo re-hospeda en Supabase Storage, porque
+// las URLs que da Meta expiran a los pocos minutos.
+export async function downloadWhatsAppMedia(supabaseAdmin, mediaId) {
+  const token = process.env.WHATSAPP_ACCESS_TOKEN;
+  if (!token) {
+    throw new Error('Falta la variable de entorno WHATSAPP_ACCESS_TOKEN');
+  }
+
+  const metaRes = await fetch(`https://graph.facebook.com/v21.0/${mediaId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const meta = await metaRes.json();
+  if (!metaRes.ok || !meta.url) {
+    throw new Error(meta?.error?.message || 'No se pudo obtener la URL del archivo de WhatsApp');
+  }
+
+  const fileRes = await fetch(meta.url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!fileRes.ok) {
+    throw new Error('No se pudo descargar el archivo de WhatsApp');
+  }
+  const arrayBuffer = await fileRes.arrayBuffer();
+  const mimeType = meta.mime_type || fileRes.headers.get('content-type') || 'application/octet-stream';
+  const ext = mimeType.split('/')[1]?.split(';')[0] || 'bin';
+  const filePath = `whatsapp_media/${mediaId}_${Date.now()}.${ext}`;
+
+  const { error: uploadErr } = await supabaseAdmin.storage
+    .from('Productos')
+    .upload(filePath, Buffer.from(arrayBuffer), { contentType: mimeType, upsert: true });
+  if (uploadErr) throw uploadErr;
+
+  const { data: urlData } = supabaseAdmin.storage.from('Productos').getPublicUrl(filePath);
+  return { url: urlData.publicUrl, mimeType };
+}
+
 // Inicia una conversación con alguien que todavía no le escribió a la
 // empresa por WhatsApp (por ej. dejó el número en el chat web). Requiere
 // una plantilla aprobada por Meta, ya que WhatsApp no permite mensajes de
