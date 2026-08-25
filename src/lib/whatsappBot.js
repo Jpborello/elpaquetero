@@ -99,16 +99,24 @@ export async function processIncomingChatMessage(supabaseAdmin, { chatId, client
   const minutesNow = argHour * 60 + argMinute;
   const isWithinBusinessDays = argWeekday >= 1 && argWeekday <= 6; // lunes a sabado
   const isWithinBusinessHours = isWithinBusinessDays && minutesNow >= 8 * 60 && minutesNow <= 16 * 60 + 30;
+  const saludoSegunHora = argHour < 12 ? 'Buen día' : argHour < 20 ? 'Buenas tardes' : 'Buenas noches';
 
   const channelNotice = channel === 'web'
     ? `\n\nCANAL ACTUAL: Chat web del sitio.
    - Si el cliente pide hablar con una persona, un asesor o un humano, invitalo amablemente a escribir por el botón/logo de WhatsApp del sitio (no le des el número, solo mencioná "el botón de WhatsApp de la página") — así lo atiende un asesor directamente y su consulta queda registrada ahí. Solo ofrecé esto si el cliente lo pide específicamente, no lo repitas de más.`
     : `\n\nCANAL ACTUAL: WhatsApp.`;
 
+  const genericNames = ['visitante web', 'cliente whatsapp', 'cliente'];
+  const hasRealName = clientName && !genericNames.includes(clientName.trim().toLowerCase());
+  const nameNotice = hasRealName
+    ? `\n\nNOMBRE DEL CLIENTE: ${clientName}. Usalo en el saludo inicial (ej: "¡Hola ${clientName}, ${saludoSegunHora.toLowerCase()}! ¿Cómo estás?").`
+    : `\n\nNOMBRE DEL CLIENTE: no disponible todavía — saludalo sin nombre (ej: "¡Hola, ${saludoSegunHora.toLowerCase()}!") y si en algún momento se presenta, usalo de ahí en adelante.`;
+
   const systemPrompt = (settings?.system_prompt || DEFAULT_SYSTEM_PROMPT) + `
 
-FECHA Y HORA ACTUAL EN ARGENTINA: ${argDate} ${argTime} hs — Local ${isWithinBusinessHours ? 'ABIERTO en este momento' : 'CERRADO en este momento (fuera del horario Lunes a Sábado 8:00 a 16:30hs)'}.
+FECHA Y HORA ACTUAL EN ARGENTINA: ${argDate} ${argTime} hs — Local ${isWithinBusinessHours ? 'ABIERTO en este momento' : 'CERRADO en este momento (fuera del horario Lunes a Sábado 8:00 a 16:30hs)'}. Saludo que corresponde según la hora: "${saludoSegunHora}".
 ${channelNotice}
+${nameNotice}
 
 REGLAS SOBRE EL CATÁLOGO (muy importante):
 - Cuando menciones un producto, usá SIEMPRE el nombre EXACTO tal como figura en el catálogo de abajo — nunca lo generalices ni lo cambies por el nombre de otra categoría similar (ej: si el producto se llama "Calza Oxford", no digas "pantalón").
