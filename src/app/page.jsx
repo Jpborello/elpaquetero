@@ -64,6 +64,41 @@ export default function Home() {
     deepLinkHandledRef.current = true;
   }, [products]);
 
+  // Links compartidos (?categoria=Mujeres&sub=Camperas) preseleccionan esa
+  // categoria/subcategoria al cargar la pagina.
+  const categoryDeepLinkHandledRef = useRef(false);
+  useEffect(() => {
+    if (categoryDeepLinkHandledRef.current || categories.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const catParam = params.get('categoria');
+    const subParam = params.get('sub');
+    if (catParam && categories.some((c) => c.id === catParam)) {
+      setSelectedCategory(catParam);
+      if (subParam) setSelectedSubcategory(subParam);
+    }
+    categoryDeepLinkHandledRef.current = true;
+  }, [categories]);
+
+  // Refleja la categoria/subcategoria elegida en la URL (sin recargar la
+  // pagina) para poder copiar/compartir el link de ese filtro puntual.
+  useEffect(() => {
+    if (!categoryDeepLinkHandledRef.current) return;
+    const params = new URLSearchParams(window.location.search);
+    if (selectedCategory && selectedCategory !== 'all') {
+      params.set('categoria', selectedCategory);
+    } else {
+      params.delete('categoria');
+    }
+    if (selectedSubcategory) {
+      params.set('sub', selectedSubcategory);
+    } else {
+      params.delete('sub');
+    }
+    const queryString = params.toString();
+    const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname;
+    window.history.replaceState(null, '', newUrl);
+  }, [selectedCategory, selectedSubcategory]);
+
   // Cada combinacion de producto + talle + color es una linea de carrito
   // distinta, para no perder el talle/color elegido cuando el cliente agrega
   // varias variantes del mismo producto.

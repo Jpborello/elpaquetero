@@ -1,6 +1,7 @@
 'use client';
 
 import { Search } from 'lucide-react';
+import ShareCategoryButton from './ShareCategoryButton';
 
 export default function CategoryNav({
   categories,
@@ -12,11 +13,19 @@ export default function CategoryNav({
   setSearchQuery
 }) {
   const activeCategoryObj = categories.find(c => c.id === selectedCategory);
+  const isFiltered = selectedCategory && selectedCategory !== 'all';
 
   return (
     <div id="catalogo" style={{ marginBottom: '24px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
-        <h2 style={{ fontSize: '1.6rem', fontWeight: 800 }}>Nuestras Categorías Mayoristas</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <h2 style={{ fontSize: '1.6rem', fontWeight: 800 }}>Nuestras Categorías Mayoristas</h2>
+          {isFiltered && (
+            <ShareCategoryButton
+              label={selectedSubcategory ? `${selectedSubcategory} de ${activeCategoryObj?.name || selectedCategory}` : (activeCategoryObj?.name || selectedCategory)}
+            />
+          )}
+        </div>
         <div style={{ position: 'relative', width: '100%', maxWidth: '360px' }}>
           <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
           <input
