@@ -5,6 +5,7 @@ import { MapPin, Phone, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { slugify } from '@/lib/slugify';
 import { buildProductSlug } from '@/lib/productSlug';
+import ShareCategoryButton from '@/components/ShareCategoryButton';
 
 const SITE_URL = 'https://www.elpaquetero.com.ar';
 
@@ -137,9 +138,15 @@ export default async function CategoryPage({ params }) {
           ) : categoryName}
         </nav>
 
-        <h1 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)' }}>
-          {subcategory ? `${subcategory} de ${categoryName}` : categoryName}
-        </h1>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+          <h1 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '6px', color: 'var(--text-main)' }}>
+            {subcategory ? `${subcategory} de ${categoryName}` : categoryName}
+          </h1>
+          <ShareCategoryButton
+            label={subcategory ? `${subcategory} de ${categoryName}` : categoryName}
+            productCount={products.length}
+          />
+        </div>
         <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '24px' }}>
           {products.length} producto{products.length !== 1 ? 's' : ''} disponible{products.length !== 1 ? 's' : ''} — precio mayorista, mínimo de compra $50.000 en pedidos por la web.
         </p>
@@ -189,7 +196,7 @@ export default async function CategoryPage({ params }) {
             <MapPin size={15} /> Camilo Aldao 2715 esq. ex Godoy, Rosario, Santa Fe
           </span>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-            <Phone size={15} /> 341 532-6592
+            <Phone size={15} /> 341 328-6628
           </span>
         </div>
       </footer>
