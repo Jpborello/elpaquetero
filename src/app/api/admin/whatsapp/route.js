@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { sendWhatsAppMessage, sendWhatsAppTemplate } from '@/lib/whatsappSend';
+import { sendWhatsAppMessage, sendWhatsAppTemplate, sendWhatsAppImage } from '@/lib/whatsappSend';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://pgipeujafjwhqjobcjzw.supabase.co';
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -115,6 +115,44 @@ export async function POST(req) {
           await sendWhatsAppMessage(phone, content);
         } catch (sendErr) {
           console.error('Error enviando mensaje por WhatsApp Cloud API:', sendErr);
+          whatsappError = sendErr.message;
+        }
+      }
+
+      return NextResponse.json({ success: true, message: msgObj, whatsapp_error: whatsappError });
+    }
+
+    if (action === 'sendImage') {
+      const { phone, imageUrl, caption } = body;
+      if (!phone || !imageUrl) {
+        return NextResponse.json({ error: 'Faltan parámetros phone o imageUrl' }, { status: 400 });
+      }
+
+      const msgObj = {
+        id: crypto.randomUUID(),
+        chat_phone: phone,
+        sender: 'admin',
+        content: caption || '',
+        media_url: imageUrl,
+        message_type: 'image',
+        created_at: new Date().toISOString()
+      };
+      const { error: msgErr } = await supabaseAdmin.from('whatsapp_messages').insert([msgObj]);
+      if (msgErr) throw msgErr;
+
+      await supabaseAdmin.from('whatsapp_chats').upsert([{
+        phone,
+        last_message: caption || '📷 Imagen',
+        unread_count: 0,
+        updated_at: new Date().toISOString()
+      }], { onConflict: 'phone' });
+
+      let whatsappError = null;
+      if (!phone.startsWith('web-')) {
+        try {
+          await sendWhatsAppImage(phone, imageUrl, caption);
+        } catch (sendErr) {
+          console.error('Error enviando imagen por WhatsApp Cloud API:', sendErr);
           whatsappError = sendErr.message;
         }
       }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 import {
   MessageSquare,
   Send,
@@ -19,7 +20,8 @@ import {
   Volume2,
   VolumeX,
   ArrowLeft,
-  Trash2
+  Trash2,
+  Paperclip
 } from 'lucide-react';
 
 export default function WhatsAppTab() {
@@ -241,6 +243,45 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
       fetchChats(true);
     } catch (e) {
       console.warn('Error al enviar mensaje:', e);
+    }
+  };
+
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleAttachImage = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !selectedPhone) return;
+
+    setIsUploadingImage(true);
+    try {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const filePath = `whatsapp_media/admin_${selectedPhone}_${Date.now()}.${ext}`;
+      const { error: uploadErr } = await supabase.storage.from('Productos').upload(filePath, file, { contentType: file.type, upsert: true });
+      if (uploadErr) throw uploadErr;
+
+      const { data: urlData } = supabase.storage.from('Productos').getPublicUrl(filePath);
+      const imageUrl = urlData.publicUrl;
+
+      const res = await fetch('/api/admin/whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'sendImage', phone: selectedPhone, imageUrl, caption: inputText.trim() })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'No se pudo enviar la imagen');
+      if (data.whatsapp_error) {
+        alert(`La imagen se guardó pero no se pudo entregar por WhatsApp: ${data.whatsapp_error}`);
+      }
+      setInputText('');
+      fetchMessages(selectedPhone, true);
+      fetchChats(true);
+    } catch (err) {
+      console.warn('Error al adjuntar imagen:', err);
+      alert(`No se pudo enviar la imagen: ${err.message}`);
+    } finally {
+      setIsUploadingImage(false);
     }
   };
 
@@ -677,6 +718,30 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
 
               {/* Message Input Box */}
               <form onSubmit={handleSendMessage} style={{ padding: '12px 18px', borderTop: '1px solid var(--border-color)', display: 'flex', gap: '10px', background: 'var(--bg-main)', alignItems: 'flex-end' }}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  onChange={handleAttachImage}
+                  style={{ display: 'none' }}
+                />
+                <button
+                  type="button"
+                  title={selectedChat.channel === 'web' ? 'Adjuntar imagen (queda en el chat, no se manda por WhatsApp)' : 'Adjuntar imagen para enviar por WhatsApp'}
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingImage}
+                  style={{
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    background: 'var(--bg-card)',
+                    color: 'var(--text-muted)',
+                    border: '1px solid var(--border-color)',
+                    cursor: isUploadingImage ? 'default' : 'pointer',
+                    opacity: isUploadingImage ? 0.6 : 1
+                  }}
+                >
+                  <Paperclip size={16} />
+                </button>
                 <textarea
                   placeholder={selectedChat.channel === 'web' ? 'Escribí una respuesta para el chat web del cliente... (Enter para renglón nuevo, Ctrl+Enter para enviar)' : 'Escribí un mensaje directo al WhatsApp del cliente... (Enter para renglón nuevo, Ctrl+Enter para enviar)'}
                   value={inputText}

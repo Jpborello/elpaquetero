@@ -30,6 +30,37 @@ export async function sendWhatsAppMessage(to, text) {
   return data;
 }
 
+// Manda una imagen ya alojada en una URL publica (ej: Supabase Storage)
+// como mensaje de WhatsApp, con un texto opcional de acompañamiento.
+export async function sendWhatsAppImage(to, imageUrl, caption) {
+  const token = process.env.WHATSAPP_ACCESS_TOKEN;
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+
+  if (!token || !phoneNumberId) {
+    throw new Error('Faltan las variables de entorno WHATSAPP_ACCESS_TOKEN o WHATSAPP_PHONE_NUMBER_ID');
+  }
+
+  const res = await fetch(`https://graph.facebook.com/v21.0/${phoneNumberId}/messages`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      messaging_product: 'whatsapp',
+      to,
+      type: 'image',
+      image: caption ? { link: imageUrl, caption } : { link: imageUrl }
+    })
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data?.error?.message || 'Error enviando la imagen por WhatsApp');
+  }
+  return data;
+}
+
 // Baja un archivo multimedia que un cliente mando por WhatsApp (imagen,
 // audio, video, documento) y lo re-hospeda en Supabase Storage, porque
 // las URLs que da Meta expiran a los pocos minutos.
