@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { COMPANY_INFO } from '@/lib/companyInfo';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://pgipeujafjwhqjobcjzw.supabase.co';
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -20,17 +21,27 @@ function isAgentAuthorized(request) {
 function buildTicketData(order) {
   const items = Array.isArray(order.items) ? order.items : [];
   return {
-    company: 'EL PAQUETERO',
+    company: COMPANY_INFO.name.toUpperCase(),
     subtitle: 'COMANDA DE ARMADO Y DESPACHO',
     order_id: order.id,
     date: new Date(order.created_at || Date.now()).toLocaleString('es-AR'),
+    sender: {
+      name: COMPANY_INFO.name,
+      address: COMPANY_INFO.address,
+      locality: COMPANY_INFO.locality,
+      province: COMPANY_INFO.province,
+      postal_code: COMPANY_INFO.postalCode,
+      phone: COMPANY_INFO.phone
+    },
     client: {
       name: order.client_name || 'Sin nombre',
       dni: order.client_dni || 'Sin DNI',
       phone: order.client_phone || '',
       delivery_method: order.delivery_method || '',
       address: order.client_address || '',
-      locality: order.client_locality || ''
+      floor_apt: order.client_floor_apt || '',
+      locality: order.client_locality || '',
+      postal_code: order.client_postal_code || ''
     },
     items: items.map((item) => {
       const unitPrice = item.product?.wholesale_price || item.product?.price || 0;

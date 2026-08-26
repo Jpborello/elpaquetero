@@ -48,23 +48,49 @@ function buildTicketPdf(ticket, outPath) {
     doc.text(`FECHA Y HORA: ${ticket.date || '-'}`);
     doc.moveDown(0.5);
 
-    // Caja de datos del cliente
     const client = ticket.client || {};
-    doc.rect(doc.x, doc.y, doc.page.width - doc.page.margins.left - doc.page.margins.right, 78).stroke();
-    doc.moveDown(0.3);
-    const boxX = doc.x + 6;
-    let boxY = doc.y;
-    doc.font('Helvetica-Bold').fontSize(8.5);
-    doc.text(`Nombre Completo: ${client.name || '-'}`, boxX, boxY, { width: 300 });
-    doc.text(`DNI / CUIT: ${client.dni || '-'}`);
-    doc.text(`Telefono: ${client.phone || '-'}`);
+    const sender = ticket.sender || {};
     const isRetiro = (client.delivery_method || '').toLowerCase().includes('retiro');
-    doc.text(`Entrega: ${isRetiro ? 'RETIRO POR SUCURSAL' : 'ENVIO A DOMICILIO / TRANSPORTE'}`);
-    if (!isRetiro) {
-      doc.text(`Direccion: ${client.address || 'No especificada'}`);
-      doc.text(`Localidad: ${client.locality || '-'}`);
+
+    const boxWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    const lineHeight = 11;
+    const boxPad = 14;
+
+    // Caja de datos del remitente (solo aplica si es envio por transporte)
+    if (!isRetiro && (sender.name || sender.address)) {
+      const senderTop = doc.y;
+      const senderLines = 5;
+      const senderBoxHeight = boxPad + senderLines * lineHeight;
+      doc.rect(doc.x, senderTop, boxWidth, senderBoxHeight).stroke();
+      doc.font('Helvetica-Bold').fontSize(8.5);
+      doc.text('REMITENTE', doc.x + 6, senderTop + 6, { width: 300, lineGap: 1.5 });
+      doc.text(`${sender.name || '-'}`, doc.x + 6, doc.y, { lineGap: 1.5 });
+      doc.text(`Direccion: ${sender.address || '-'}`, doc.x + 6, doc.y, { lineGap: 1.5 });
+      doc.text(`Localidad / Provincia: ${sender.locality || '-'} / ${sender.province || '-'}`, doc.x + 6, doc.y, { lineGap: 1.5 });
+      doc.text(`CP: ${sender.postal_code || '-'}  |  Tel: ${sender.phone || '-'}`, doc.x + 6, doc.y, { lineGap: 1.5 });
+      doc.y = senderTop + senderBoxHeight + 8;
+      doc.x = doc.page.margins.left;
     }
-    doc.moveDown(1);
+
+    // Caja de datos del cliente
+    const clientTop = doc.y;
+    const clientLines = isRetiro ? 5 : 8;
+    const clientBoxHeight = boxPad + clientLines * lineHeight;
+    doc.rect(doc.x, clientTop, boxWidth, clientBoxHeight).stroke();
+    const boxX = doc.x + 6;
+    doc.font('Helvetica-Bold').fontSize(8.5);
+    doc.text('DESTINATARIO', boxX, clientTop + 6, { lineGap: 1.5 });
+    doc.text(`Nombre Completo: ${client.name || '-'}`, boxX, doc.y, { lineGap: 1.5 });
+    doc.text(`DNI / CUIT: ${client.dni || '-'}`, boxX, doc.y, { lineGap: 1.5 });
+    doc.text(`Telefono: ${client.phone || '-'}`, boxX, doc.y, { lineGap: 1.5 });
+    doc.text(`Entrega: ${isRetiro ? 'RETIRO POR SUCURSAL' : 'ENVIO A DOMICILIO / TRANSPORTE'}`, boxX, doc.y, { lineGap: 1.5 });
+    if (!isRetiro) {
+      doc.text(`Direccion: ${client.address || 'No especificada'}${client.floor_apt ? ` (${client.floor_apt})` : ''}`, boxX, doc.y, { lineGap: 1.5 });
+      doc.text(`Localidad: ${client.locality || '-'}`, boxX, doc.y, { lineGap: 1.5 });
+      doc.text(`CP: ${client.postal_code || '-'}`, boxX, doc.y, { lineGap: 1.5 });
+    }
+    doc.y = clientTop + clientBoxHeight + 10;
+    doc.x = doc.page.margins.left;
 
     // Tabla de items
     doc.font('Helvetica-Bold').fontSize(9).text('DETALLE DEL PEDIDO A PREPARAR:');

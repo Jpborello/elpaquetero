@@ -45,11 +45,17 @@ CREATE TABLE IF NOT EXISTS public.orders (
     client_phone TEXT NOT NULL,
     client_dni TEXT,
     client_locality TEXT,
+    client_address TEXT,
+    client_postal_code TEXT,
+    client_floor_apt TEXT,
     delivery_method TEXT,
     receipt_url TEXT,
     items JSONB NOT NULL,
     total_amount NUMERIC NOT NULL,
     status TEXT DEFAULT 'completado',
+    is_wholesale BOOLEAN DEFAULT true,
+    discount_applied NUMERIC DEFAULT 0,
+    voucher_id UUID,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 

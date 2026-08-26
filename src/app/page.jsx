@@ -190,6 +190,8 @@ export default function Home() {
       dni: clientDetails?.dni || currentUser?.dni || 'Sin especificar',
       locality: clientDetails?.locality || currentUser?.locality || 'Sin especificar',
       address: clientDetails?.address || currentUser?.address || '',
+      postalCode: clientDetails?.postalCode || '',
+      floorApt: clientDetails?.floorApt || '',
       isRegistered: Boolean(clientDetails?.isRegistered || currentUser),
       deliveryMethod: clientDetails?.deliveryMethod || 'Envío a Domicilio',
       receiptUrl: clientDetails?.receiptUrl || null,

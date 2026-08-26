@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { RefreshCw, Image as ImageIcon, ExternalLink, X, Eye, Download, Trash2, Printer, Bell, BellOff, CheckCircle2, Sparkles, Pencil, Minus, Plus, UserPlus, Wifi, Gift } from 'lucide-react';
 import { dataStore } from '@/lib/dataStore';
 import { getProductColors } from '@/lib/catalogData';
+import { COMPANY_INFO } from '@/lib/companyInfo';
 
 // Techo de repeticiones del timbre para que no suene para siempre si
 // el pedido se queda sin atender (10 veces cada 6s = 1 minuto de aviso).
@@ -78,7 +79,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
   // Crear pedido manual (ej. cliente que ya compro y ahora pide mas por
   // telefono/WhatsApp, sin pasar por el checkout de la web)
   const [showCreateOrder, setShowCreateOrder] = useState(false);
-  const [newOrderClient, setNewOrderClient] = useState({ name: '', phone: '', dni: '', locality: '', address: '', deliveryMethod: 'envio', isRegistered: false });
+  const [newOrderClient, setNewOrderClient] = useState({ name: '', phone: '', dni: '', locality: '', address: '', postalCode: '', floorApt: '', deliveryMethod: 'envio', isRegistered: false });
   const [clientSearchQuery, setClientSearchQuery] = useState('');
   const [productSearchQuery, setProductSearchQuery] = useState('');
   const [newOrderItems, setNewOrderItems] = useState([]);
@@ -456,9 +457,13 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
   const newOrderTotal = newOrderItems.reduce((sum, it) => sum + newOrderItemPrice(it) * (it.quantity || 0), 0);
 
   const handleSubmitCreateOrder = () => {
-    const { name, phone, dni, locality, address, deliveryMethod, isRegistered } = newOrderClient;
+    const { name, phone, dni, locality, address, postalCode, floorApt, deliveryMethod, isRegistered } = newOrderClient;
     if (!name.trim() || !phone.trim() || !dni.trim() || !locality.trim()) {
       alert('Completá nombre, teléfono, DNI/CUIT y localidad del cliente.');
+      return;
+    }
+    if (deliveryMethod === 'envio' && (!address.trim() || !postalCode.trim())) {
+      alert('Para envío a domicilio completá Dirección y Código Postal.');
       return;
     }
     const cleanedItems = newOrderItems.filter((it) => (it.quantity || 0) > 0);
@@ -473,6 +478,8 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
       dni: dni.trim(),
       locality: locality.trim(),
       address: address.trim(),
+      postalCode: postalCode.trim(),
+      floorApt: floorApt.trim(),
       isRegistered,
       deliveryMethod: deliveryMethod === 'envio' ? 'Envío a Domicilio / Transporte' : 'Retiro por Sucursal (Camilo Aldao 2715)',
       voucherId: manualVoucherDiscount > 0 ? manualOrderVoucher.id : null,
@@ -1412,13 +1419,31 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                 </label>
               </div>
               {newOrderClient.deliveryMethod === 'envio' && (
-                <input
-                  type="text"
-                  value={newOrderClient.address}
-                  onChange={(e) => setNewOrderClient((p) => ({ ...p, address: e.target.value }))}
-                  placeholder="Dirección de envío"
-                  style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box', marginTop: '6px' }}
-                />
+                <>
+                  <input
+                    type="text"
+                    value={newOrderClient.address}
+                    onChange={(e) => setNewOrderClient((p) => ({ ...p, address: e.target.value }))}
+                    placeholder="Dirección de envío"
+                    style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box', marginTop: '6px' }}
+                  />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '6px' }}>
+                    <input
+                      type="text"
+                      value={newOrderClient.postalCode}
+                      onChange={(e) => setNewOrderClient((p) => ({ ...p, postalCode: e.target.value }))}
+                      placeholder="Código Postal"
+                      style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }}
+                    />
+                    <input
+                      type="text"
+                      value={newOrderClient.floorApt}
+                      onChange={(e) => setNewOrderClient((p) => ({ ...p, floorApt: e.target.value }))}
+                      placeholder="Piso / Depto (si aplica)"
+                      style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid var(--border-color)', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                </>
               )}
             </div>
 
@@ -1625,7 +1650,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
           <>
             {/* Header */}
             <div className="ticket-header">
-              <h1 className="company-title">EL PAQUETERO</h1>
+              <h1 className="company-title">{COMPANY_INFO.name.toUpperCase()}</h1>
               <p className="ticket-subtitle">COMANDA DE ARMADO Y DESPACHO</p>
               <div className="ticket-order-meta">
                 <div>ORDEN N°: <strong>{selectedPrintOrder.id}</strong></div>
@@ -1633,8 +1658,22 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
               </div>
             </div>
 
+            {/* Sender / Remitente Block — datos fijos de la empresa para las
+                empresas de transporte, que siempre piden remitente y destinatario */}
+            {(!selectedPrintOrder.delivery_method || !selectedPrintOrder.delivery_method.toLowerCase().includes('retiro')) && (
+              <div className="client-info-box" style={{ marginBottom: '8px' }}>
+                <div className="info-row" style={{ fontWeight: 800, textTransform: 'uppercase', marginBottom: '2px' }}>REMITENTE</div>
+                <div className="info-row"><strong>Empresa:</strong> <span>{COMPANY_INFO.name}</span></div>
+                <div className="info-row"><strong>Dirección:</strong> <span>{COMPANY_INFO.address}</span></div>
+                <div className="info-row"><strong>Localidad / Provincia:</strong> <span>{COMPANY_INFO.locality} / {COMPANY_INFO.province}</span></div>
+                <div className="info-row"><strong>Código Postal:</strong> <span>{COMPANY_INFO.postalCode}</span></div>
+                <div className="info-row"><strong>Teléfono:</strong> <span>{COMPANY_INFO.phone}</span></div>
+              </div>
+            )}
+
             {/* Client Info Block */}
             <div className="client-info-box">
+              <div className="info-row" style={{ fontWeight: 800, textTransform: 'uppercase', marginBottom: '2px' }}>DESTINATARIO</div>
               <div className="info-row"><strong>Nombre Completo:</strong> <span>{selectedPrintOrder.client_name}</span></div>
               <div className="info-row"><strong>DNI / CUIT:</strong> <span>{selectedPrintOrder.client_dni || 'Sin DNI'}</span></div>
               <div className="info-row"><strong>Teléfono de Contacto:</strong> <span>{selectedPrintOrder.client_phone}</span></div>
@@ -1649,10 +1688,13 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
               {(!selectedPrintOrder.delivery_method || !selectedPrintOrder.delivery_method.toLowerCase().includes('retiro')) && (
                 <>
                   <div className="info-row" style={{ marginTop: '4px', paddingTop: '4px', borderTop: '1px dashed #000' }}>
-                    <strong>Dirección de Envío:</strong> <span>{selectedPrintOrder.client_address || 'No especificada'}</span>
+                    <strong>Dirección de Envío:</strong> <span>{selectedPrintOrder.client_address || 'No especificada'}{selectedPrintOrder.client_floor_apt ? ` (${selectedPrintOrder.client_floor_apt})` : ''}</span>
                   </div>
                   <div className="info-row">
                     <strong>Localidad / Ciudad:</strong> <span>{selectedPrintOrder.client_locality || 'Rosario'}</span>
+                  </div>
+                  <div className="info-row">
+                    <strong>Código Postal:</strong> <span>{selectedPrintOrder.client_postal_code || 'No especificado'}</span>
                   </div>
                 </>
               )}

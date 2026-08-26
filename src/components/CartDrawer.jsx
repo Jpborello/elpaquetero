@@ -23,8 +23,10 @@ export default function CartDrawer({
   const [clientPhone, setClientPhone] = useState('');
   const [clientName, setClientName] = useState('');
   const [clientLocality, setClientLocality] = useState('');
-  
+
   const [clientAddress, setClientAddress] = useState('');
+  const [clientPostalCode, setClientPostalCode] = useState('');
+  const [clientFloorApt, setClientFloorApt] = useState('');
   
   // Checkout & Receipt state
   const [createdOrder, setCreatedOrder] = useState(null);
@@ -111,9 +113,16 @@ export default function CartDrawer({
     const dni = currentUser?.dni || clientDni;
     const locality = currentUser?.locality || clientLocality;
     const address = clientAddress || currentUser?.address || '';
+    const postalCode = clientPostalCode;
+    const floorApt = clientFloorApt;
 
     if (!name || !phone || !dni || !locality) {
       alert('Por favor completá todos los datos personales requeridos (DNI, Teléfono, Nombre y Localidad).');
+      return;
+    }
+
+    if (deliveryMethod === 'envio' && (!address || !postalCode)) {
+      alert('Para envío a domicilio necesitamos la Dirección y el Código Postal completos.');
       return;
     }
 
@@ -123,6 +132,8 @@ export default function CartDrawer({
       dni,
       locality,
       address,
+      postalCode,
+      floorApt,
       isRegistered: Boolean(currentUser),
       deliveryMethod: deliveryMethod === 'envio' ? 'Envío a Domicilio / Transporte' : 'Retiro por Sucursal (Camilo Aldao 2715)',
       voucherId: voucher?.id || null,
@@ -149,6 +160,8 @@ export default function CartDrawer({
       client_dni: dni,
       client_locality: locality,
       client_address: address,
+      client_postal_code: postalCode,
+      client_floor_apt: floorApt,
       delivery_method: deliveryMethod
     };
 
@@ -841,23 +854,44 @@ export default function CartDrawer({
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                      <input 
-                        type="text" 
-                        placeholder="Localidad / Ciudad *" 
+                      <input
+                        type="text"
+                        placeholder="Localidad / Ciudad *"
                         value={clientLocality}
                         onChange={(e) => setClientLocality(e.target.value)}
-                        className="form-input" 
+                        className="form-input"
                         style={{ fontSize: '0.85rem', padding: '8px 10px' }}
                       />
-                      <input 
-                        type="text" 
-                        placeholder="Dirección / Calle *" 
+                      <input
+                        type="text"
+                        placeholder={deliveryMethod === 'envio' ? 'Dirección / Calle *' : 'Dirección / Calle'}
                         value={clientAddress}
                         onChange={(e) => setClientAddress(e.target.value)}
-                        className="form-input" 
+                        className="form-input"
                         style={{ fontSize: '0.85rem', padding: '8px 10px' }}
                       />
                     </div>
+
+                    {deliveryMethod === 'envio' && (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '10px' }}>
+                        <input
+                          type="text"
+                          placeholder="Código Postal *"
+                          value={clientPostalCode}
+                          onChange={(e) => setClientPostalCode(e.target.value)}
+                          className="form-input"
+                          style={{ fontSize: '0.85rem', padding: '8px 10px' }}
+                        />
+                        <input
+                          type="text"
+                          placeholder="Piso / Depto (si aplica)"
+                          value={clientFloorApt}
+                          onChange={(e) => setClientFloorApt(e.target.value)}
+                          className="form-input"
+                          style={{ fontSize: '0.85rem', padding: '8px 10px' }}
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
