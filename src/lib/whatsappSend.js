@@ -1,3 +1,19 @@
+// Normaliza un numero argentino al formato que pide la API de WhatsApp:
+// 54 + 9 + codigo de area + numero local, sin 0 ni 15 ni signos. Asi el
+// admin puede tipear nomas "341 7981212" (o pegarlo con +54, con 9, con
+// espacios, como sea) y siempre termina mandandose bien. Si el numero no
+// es argentino (no hay forma de saberlo con certeza), lo dejamos tal cual
+// vino una vez limpiado de simbolos, para no romper numeros de otros paises.
+function normalizeArgWhatsAppPhone(raw) {
+  let digits = String(raw || '').replace(/\D/g, '');
+  // Sacamos cualquier prefijo que ya haya (54, 549, o el 0 nacional) para
+  // no duplicarlo, y siempre le ponemos nosotros el 549 correcto adelante.
+  if (digits.startsWith('549')) digits = digits.slice(3);
+  else if (digits.startsWith('54')) digits = digits.slice(2);
+  else if (digits.startsWith('0')) digits = digits.slice(1);
+  return `549${digits}`;
+}
+
 // Envío saliente real por la WhatsApp Cloud API (Graph API de Meta).
 // Requiere WHATSAPP_ACCESS_TOKEN (token de Usuario del Sistema, permiso
 // whatsapp_business_management) y WHATSAPP_PHONE_NUMBER_ID en las env vars.
@@ -17,7 +33,7 @@ export async function sendWhatsAppMessage(to, text) {
     },
     body: JSON.stringify({
       messaging_product: 'whatsapp',
-      to,
+      to: normalizeArgWhatsAppPhone(to),
       type: 'text',
       text: { body: text }
     })
@@ -48,7 +64,7 @@ export async function sendWhatsAppImage(to, imageUrl, caption) {
     },
     body: JSON.stringify({
       messaging_product: 'whatsapp',
-      to,
+      to: normalizeArgWhatsAppPhone(to),
       type: 'image',
       image: caption ? { link: imageUrl, caption } : { link: imageUrl }
     })

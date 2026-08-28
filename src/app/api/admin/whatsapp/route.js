@@ -112,7 +112,15 @@ export async function POST(req) {
       let whatsappError = null;
       if (!phone.startsWith('web-')) {
         try {
-          await sendWhatsAppMessage(phone, content);
+          const sendResult = await sendWhatsAppMessage(phone, content);
+          // Guardamos el wamid (id del mensaje segun Meta) para poder
+          // relacionarlo despues con el aviso de "entregado"/"fallido" que
+          // llega por webhook a value.statuses, y mostrar el motivo real
+          // si Meta lo termina rechazando aunque haya aceptado el envio.
+          const wamid = sendResult?.messages?.[0]?.id || null;
+          if (wamid) {
+            await supabaseAdmin.from('whatsapp_messages').update({ wamid }).eq('id', msgObj.id);
+          }
         } catch (sendErr) {
           console.error('Error enviando mensaje por WhatsApp Cloud API:', sendErr);
           whatsappError = sendErr.message;
@@ -169,14 +177,16 @@ export async function POST(req) {
       const displayName = clientName || 'Cliente';
       const templateText = `Hola ${displayName}, te contactamos de El Paquetero por tu consulta en la página web. ¿En qué te podemos ayudar?`;
 
-      await sendWhatsAppTemplate(phone, 'seguimiento_consulta_web', 'es_AR', [displayName]);
+      const sendResult = await sendWhatsAppTemplate(phone, 'seguimiento_consulta_web', 'es_AR', [displayName]);
+      const wamid = sendResult?.messages?.[0]?.id || null;
 
       const msgObj = {
         id: crypto.randomUUID(),
         chat_phone: phone,
         sender: 'admin',
         content: templateText,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        wamid
       };
       await supabaseAdmin.from('whatsapp_messages').insert([msgObj]);
 

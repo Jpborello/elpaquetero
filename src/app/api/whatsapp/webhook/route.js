@@ -40,6 +40,41 @@ export async function POST(req) {
     let mediaId = null;
     let messageType = 'text';
 
+    // Avisos de ESTADO de un mensaje que nosotros mandamos (enviado /
+    // entregado / leido / fallido) llegan por este mismo webhook, en
+    // value.statuses en vez de value.messages. Antes se ignoraban del
+    // todo, asi que si Meta aceptaba el envio pero despues no lo podia
+    // entregar, nunca nos enterabamos del motivo. Si es un "failed" lo
+    // dejamos como un mensaje mas en el chat correspondiente (buscando por
+    // wamid) para que se vea directo en el panel, sin bucear logs.
+    const statusUpdate = body.entry?.[0]?.changes?.[0]?.value?.statuses?.[0];
+    if (statusUpdate) {
+      console.log('📶 Estado de mensaje WhatsApp:', JSON.stringify(statusUpdate, null, 2));
+      if (statusUpdate.status === 'failed') {
+        const errorDetail = statusUpdate.errors?.[0];
+        const errorText = errorDetail
+          ? `${errorDetail.title || 'Error'}${errorDetail.message ? ` — ${errorDetail.message}` : ''} (código ${errorDetail.code})`
+          : 'Meta no informó el motivo exacto.';
+
+        const { data: originalMsg } = await supabaseAdmin
+          .from('whatsapp_messages')
+          .select('chat_phone')
+          .eq('wamid', statusUpdate.id)
+          .maybeSingle();
+
+        if (originalMsg?.chat_phone) {
+          await supabaseAdmin.from('whatsapp_messages').insert([{
+            id: crypto.randomUUID(),
+            chat_phone: originalMsg.chat_phone,
+            sender: 'admin',
+            content: `⚠️ WhatsApp no pudo entregar el mensaje anterior: ${errorText}`,
+            created_at: new Date().toISOString()
+          }]);
+        }
+      }
+      return NextResponse.json({ success: true, status_processed: statusUpdate.status });
+    }
+
     // Parse Meta WhatsApp Webhook payload format
     if (!phone && body.entry && body.entry[0]?.changes[0]?.value?.messages[0]) {
       const value = body.entry[0].changes[0].value;
