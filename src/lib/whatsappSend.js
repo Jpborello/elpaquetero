@@ -132,7 +132,7 @@ export async function sendWhatsAppTemplate(to, templateName, languageCode, bodyP
     },
     body: JSON.stringify({
       messaging_product: 'whatsapp',
-      to,
+      to: normalizeArgWhatsAppPhone(to),
       type: 'template',
       template: {
         name: templateName,
