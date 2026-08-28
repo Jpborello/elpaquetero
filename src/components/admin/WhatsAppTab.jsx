@@ -99,12 +99,21 @@ export default function WhatsAppTab() {
   // hacia arriba, "arrastrandolo" de vuelta al final y tapando el panel de
   // arriba en mobile.
   const lastScrolledIdRef = useRef(null);
+  // Se pone en true en handleSelectChat para forzar el salto al fondo (sin
+  // animar) al entrar a una conversacion. Sin esto, lastScrolledIdRef seguia
+  // apuntando al ultimo mensaje de esa misma conversacion (ya visto en una
+  // visita anterior), asi que al volver a ella el efecto de abajo nunca
+  // disparaba el scroll y la vista quedaba con el scrollTop heredado del
+  // chat anterior, arrancando cerca del principio en conversaciones largas.
+  const justSwitchedChatRef = useRef(false);
   useEffect(() => {
     if (messages.length === 0) return;
     const lastMsg = messages[messages.length - 1];
     if (lastMsg.id !== lastScrolledIdRef.current) {
       lastScrolledIdRef.current = lastMsg.id;
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      const behavior = justSwitchedChatRef.current ? 'auto' : 'smooth';
+      justSwitchedChatRef.current = false;
+      messagesEndRef.current?.scrollIntoView({ behavior, block: 'end' });
     }
   }, [messages]);
 
@@ -173,9 +182,11 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
    - Datos de Transferencia: Alias 'el.paquetero.godoy' (Titular: María Leandra Bernardi, CUIT: 27-30938323-6).
 
 2. DIRECCIÓN, HORARIOS Y CONTACTO:
-   - Dirección del local: Camilo Aldao 2715 esquina ex Godoy (Rosario, Santa Fe).
-   - Horario de Atención: De Lunes a Sábados de 8:00 AM a 4:30 PM (16:30 hs).
-   - Número de WhatsApp / celular de contacto: si te piden un número de celular, WhatsApp o teléfono, respondé SIEMPRE exactamente con este, sin inventar otro ni cambiarle el formato: 341 328-6628
+   Contamos con 3 locales en Rosario, Santa Fe:
+   - El Paquetero (Camilo Aldao): Camilo Aldao 2715 esquina ex Godoy. Horario: Lunes a Sábados de 8:00 a 16:30 hs.
+   - El Paquetero (Paso): Juan José Paso 5815. Horario: de 9:00 a 18:00 hs. Teléfono: 341 383-5589.
+   - El Paquetero Chic: 27 de Febrero 3999 esquina Lavalle. Horario: de 8:00 a 16:00 hs. Teléfono: 341 260-0155.
+   - Número de WhatsApp / celular de contacto general (pedidos por este chat): si te piden un número de celular, WhatsApp o teléfono de contacto general, respondé SIEMPRE exactamente con este, sin inventar otro ni cambiarle el formato: 341 328-6628. Si preguntan puntualmente por el teléfono de la sucursal Paso o Chic, usá el número de esa sucursal.
 
 3. MODALIDAD DE VENTA, MÍNIMO DE COMPRA & ENVÍOS:
    - ¿Venden por unidad? Sí, vendemos por unidad, por talle completo o también podés armar surtido/variedad de productos según necesites.
@@ -209,6 +220,8 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
 
   const handleSelectChat = (phone) => {
     setSelectedPhone(phone);
+    lastScrolledIdRef.current = null;
+    justSwitchedChatRef.current = true;
     fetchMessages(phone);
   };
 

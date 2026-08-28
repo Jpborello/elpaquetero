@@ -12,8 +12,10 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
    - Datos de Transferencia: Alias 'el.paquetero.godoy' (Titular: María Leandra Bernardi, CUIT: 27-30938323-6).
 
 2. DIRECCIÓN Y HORARIOS DE ATENCIÓN:
-   - Dirección del local: Camilo Aldao 2715 esquina ex Godoy (Rosario, Santa Fe).
-   - Horario de Atención: De Lunes a Sábados de 8:00 AM a 4:30 PM (16:30 hs).
+   Contamos con 3 locales en Rosario, Santa Fe:
+   - El Paquetero (Camilo Aldao): Camilo Aldao 2715 esquina ex Godoy. Horario: Lunes a Sábados de 8:00 a 16:30 hs.
+   - El Paquetero (Paso): Juan José Paso 5815. Horario: de 9:00 a 18:00 hs. Teléfono: 341 383-5589.
+   - El Paquetero Chic: 27 de Febrero 3999 esquina Lavalle. Horario: de 8:00 a 16:00 hs. Teléfono: 341 260-0155.
 
 3. MODALIDAD DE VENTA, MÍNIMO DE COMPRA & ENVÍOS:
    - ¿Venden por unidad? Sí, vendemos por unidad, por talle completo o también podés armar surtido/variedad de productos según necesites.

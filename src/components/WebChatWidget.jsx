@@ -66,11 +66,25 @@ export default function WebChatWidget() {
     return () => clearInterval(pollRef.current);
   }, [sessionId, isOpen, fetchMessages]);
 
+  // Al abrir el panel, saltamos al fondo sin animar: con 'smooth' el scroll
+  // arrancaba visualmente desde arriba del todo y recorria toda la
+  // conversacion hasta el final, que en charlas largas se sentia como que
+  // "empieza desde el principio" en vez de abrir directo en el ultimo
+  // mensaje. Mientras el panel ya esta abierto, un mensaje nuevo sigue
+  // animando con 'smooth' porque ahi si se nota poco y queda mas prolijo.
+  const justOpenedRef = useRef(false);
   useEffect(() => {
     if (isOpen) {
+      justOpenedRef.current = true;
       setUnseenCount(0);
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const behavior = justOpenedRef.current ? 'auto' : 'smooth';
+    justOpenedRef.current = false;
+    messagesEndRef.current?.scrollIntoView({ behavior });
   }, [isOpen, messages]);
 
   const handleSaveName = (e) => {
