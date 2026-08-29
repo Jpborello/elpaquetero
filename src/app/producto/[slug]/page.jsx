@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { MapPin, Phone, ArrowLeft, ShoppingCart } from 'lucide-react';
+import { MapPin, ArrowLeft, ShoppingCart } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { getProductColors } from '@/lib/catalogData';
 import { buildProductSlug } from '@/lib/productSlug';
@@ -220,7 +220,7 @@ export default async function ProductPage({ params }) {
             <MapPin size={15} /> Camilo Aldao 2715 esq. ex Godoy, Rosario, Santa Fe
           </span>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-            <Phone size={15} /> 341 532-6592
+            ⚠️ Problemas con WhatsApp: escribinos por el Chat de la web
           </span>
         </div>
       </footer>

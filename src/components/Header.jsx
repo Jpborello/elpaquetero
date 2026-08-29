@@ -18,7 +18,7 @@ export default function Header({
     <header className="header-container">
       {/* Top Notification Bar */}
       <div className="header-top">
-        📍 ROSARIO (SANTA FE) — CAMILO ALDAO 2715 ESQ. EX GODOY — WHATSAPP: 341 328-6628
+        📍 ROSARIO (SANTA FE) — CAMILO ALDAO 2715 ESQ. EX GODOY — ⚠️ Problemas con WhatsApp: escribinos por el Chat de la web
       </div>
 
       <div className="header-content">

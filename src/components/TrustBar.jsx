@@ -20,8 +20,8 @@ const ITEMS = [
   },
   {
     icon: MessageCircle,
-    title: 'Atención Directa por WhatsApp',
-    subtitle: 'Lunes a Sábado de 8 a 16:30 hs'
+    title: 'Problemas con WhatsApp',
+    subtitle: 'Escribinos por el Chat de la web y te contactamos'
   }
 ];
 

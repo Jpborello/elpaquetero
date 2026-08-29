@@ -186,7 +186,7 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
    - El Paquetero (Camilo Aldao): Camilo Aldao 2715 esquina ex Godoy. Horario: Lunes a Sábados de 8:00 a 16:30 hs.
    - El Paquetero (Paso): Juan José Paso 5815. Horario: de 9:00 a 18:00 hs. Teléfono: 341 383-5589.
    - El Paquetero Chic: 27 de Febrero 3999 esquina Lavalle. Horario: de 8:00 a 16:00 hs. Teléfono: 341 260-0155.
-   - Número de WhatsApp / celular de contacto general (pedidos por este chat): si te piden un número de celular, WhatsApp o teléfono de contacto general, respondé SIEMPRE exactamente con este, sin inventar otro ni cambiarle el formato: 341 328-6628. Si preguntan puntualmente por el teléfono de la sucursal Paso o Chic, usá el número de esa sucursal.
+   - WhatsApp: en este momento estamos teniendo inconvenientes técnicos con nuestro WhatsApp y NO está funcionando. Si te piden el número de WhatsApp o un contacto directo, NO des el número 341 328-6628 como si funcionara — explicá que WhatsApp está con problemas por ahora y pedile su número de teléfono para que un asesor se comunique apenas se pueda. Si preguntan puntualmente por el teléfono de la sucursal Paso o Chic, esos sí funcionan normalmente, usá el número de esa sucursal.
 
 3. MODALIDAD DE VENTA, MÍNIMO DE COMPRA & ENVÍOS:
    - ¿Venden por unidad? Sí, vendemos por unidad, por talle completo o también podés armar surtido/variedad de productos según necesites.
