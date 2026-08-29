@@ -674,7 +674,7 @@ export const CATALOG_PRODUCTS = [
     is_top_seller: false
   },
   {
-    id: 'p-0109',
+    id: 'p-0109-imper',
     code: '0109',
     name: 'Campera Impermeable Unisex',
     category: 'Hombres',

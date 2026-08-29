@@ -365,16 +365,35 @@ export default function AdminPage() {
   const normalizeSearch = (str) =>
     (str || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 
-  const filteredProducts = products.filter(p => {
-    if (searchFilter === '') return true;
-    const needle = normalizeSearch(searchFilter);
-    return (
-      normalizeSearch(p.name).includes(needle) ||
-      normalizeSearch(p.category).includes(needle) ||
-      normalizeSearch(p.subcategory).includes(needle) ||
-      (p.code && normalizeSearch(p.code).includes(needle))
-    );
-  });
+  // Prioridad de cada match: coincidencia exacta de codigo primero, despues
+  // que el codigo empiece con lo buscado, despues cualquier otro match
+  // (nombre/categoria/codigo en cualquier posicion). Sin esto, cuando hay
+  // varios productos que matchean, el que el admin realmente busca por
+  // codigo puede terminar mezclado en cualquier posicion de la lista.
+  const searchRank = (p, needle) => {
+    const code = p.code ? normalizeSearch(p.code) : '';
+    if (code === needle) return 0;
+    if (code && code.startsWith(needle)) return 1;
+    if (code && code.includes(needle)) return 2;
+    return 3;
+  };
+
+  const filteredProducts = products
+    .filter(p => {
+      if (searchFilter === '') return true;
+      const needle = normalizeSearch(searchFilter);
+      return (
+        normalizeSearch(p.name).includes(needle) ||
+        normalizeSearch(p.category).includes(needle) ||
+        normalizeSearch(p.subcategory).includes(needle) ||
+        (p.code && normalizeSearch(p.code).includes(needle))
+      );
+    })
+    .sort((a, b) => {
+      if (searchFilter === '') return 0;
+      const needle = normalizeSearch(searchFilter);
+      return searchRank(a, needle) - searchRank(b, needle);
+    });
 
   if (checkingSession) {
     return (

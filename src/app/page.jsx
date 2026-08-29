@@ -8,7 +8,6 @@ import CategoryNav from '@/components/CategoryNav';
 import ProductGrid from '@/components/ProductGrid';
 import CartDrawer from '@/components/CartDrawer';
 import AuthModal from '@/components/AuthModal';
-import WhatsAppButton from '@/components/WhatsAppButton';
 import WebChatWidget from '@/components/WebChatWidget';
 import WholesaleBanner from '@/components/WholesaleBanner';
 import TrustBar from '@/components/TrustBar';
@@ -448,8 +447,9 @@ export default function Home() {
         </div>
       )}
 
-      {/* Floating WhatsApp Contact Button */}
-      <WhatsAppButton />
+      {/* Floating WhatsApp Contact Button — oculto temporalmente mientras
+          se re-registra el numero en la app de WhatsApp Business, para que
+          la gente no le escriba a un canal que nadie esta monitoreando */}
       <WebChatWidget />
 
       {/* Shopping Cart Drawer */}
