@@ -39,11 +39,13 @@ async function resolveParams(segments) {
 async function getProducts(categoryId, subcategory) {
   let query = supabase
     .from('products')
-    .select('id, name, image_url, price, wholesale_price, stock')
+    .select('id, name, image_url, price, wholesale_price, stock, is_new')
     .eq('category', categoryId)
     .eq('is_active', true);
   if (subcategory) query = query.eq('subcategory', subcategory);
-  const { data } = await query.order('name');
+  // Los marcados "Nuevo Ingreso" (is_new) van primero, y adentro de cada
+  // grupo se mantiene el orden alfabetico de siempre.
+  const { data } = await query.order('is_new', { ascending: false }).order('name');
   return data || [];
 }
 
@@ -167,6 +169,11 @@ export default async function CategoryPage({ params }) {
                 style={{ textDecoration: 'none' }}
               >
                 <div className="product-img-wrapper" style={{ position: 'relative' }}>
+                  {product.is_new && (
+                    <div className="card-badges-topleft">
+                      <span className="card-badge-new">🆕 Nuevo</span>
+                    </div>
+                  )}
                   {product.image_url && (
                     <Image
                       src={product.image_url}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Save, Percent, TrendingUp, RefreshCw, Tag, Star } from 'lucide-react';
+import { Save, Percent, TrendingUp, RefreshCw, Tag, Star, Sparkles } from 'lucide-react';
 
 export default function PricesTab({
   products,
@@ -11,6 +11,7 @@ export default function PricesTab({
   onUpdatePrice,
   onUpdatePricePercentage,
   onToggleOffer,
+  onToggleNew,
   onSetFeatured,
   onUnsetFeatured
 }) {
@@ -242,7 +243,7 @@ export default function PricesTab({
             <th>Precio de Lista ($)</th>
             <th>Precio Mayorista ($)</th>
             <th>Calculadora de Aumento %</th>
-            <th>Oferta</th>
+            <th>Oferta / Nuevo</th>
             <th>Acción</th>
           </tr>
         </thead>
@@ -365,6 +366,22 @@ export default function PricesTab({
                       }}
                     >
                       <Tag size={12} /> {p.is_offer ? 'En oferta' : 'Marcar oferta'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onToggleNew(p.id, !p.is_new)}
+                      title="Aparece primero en su categoría con un sello de Nuevo"
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '4px',
+                        padding: '4px 8px', fontSize: '0.74rem', fontWeight: 700,
+                        borderRadius: '6px',
+                        border: p.is_new ? '1px solid #2563EB' : '1px solid var(--border-color)',
+                        backgroundColor: p.is_new ? '#EFF6FF' : 'var(--bg-card)',
+                        color: p.is_new ? '#1D4ED8' : 'var(--text-muted)',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <Sparkles size={12} /> {p.is_new ? '🆕 Nuevo Ingreso' : 'Marcar Nuevo'}
                     </button>
                     <button
                       type="button"

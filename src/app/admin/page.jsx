@@ -322,6 +322,11 @@ export default function AdminPage() {
     showSuccessNotice(isOffer ? 'Producto marcado en oferta.' : 'Producto sacado de oferta.');
   };
 
+  const handleToggleNew = (id, isNew) => {
+    dataStore.updateProduct(id, { is_new: isNew });
+    showSuccessNotice(isNew ? 'Producto marcado como Nuevo Ingreso: aparece primero en su categoría.' : 'Producto sacado de Nuevo Ingreso.');
+  };
+
   const handleSetFeatured = (id) => {
     dataStore.setFeaturedProduct(id);
     showSuccessNotice('✓ Oferta Destacada actualizada. Ya se ve en el banner principal de la web.');
@@ -771,6 +776,7 @@ export default function AdminPage() {
           onUpdatePrice={handlePriceUpdate}
           onUpdatePricePercentage={handlePricePercentageUpdate}
           onToggleOffer={handleToggleOffer}
+          onToggleNew={handleToggleNew}
           onSetFeatured={handleSetFeatured}
           onUnsetFeatured={handleUnsetFeatured}
         />

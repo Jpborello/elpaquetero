@@ -940,6 +940,17 @@ button {
   white-space: nowrap;
 }
 
+.card-badge-new {
+  background-color: #2563EB;
+  color: #FFF;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .card-badge-wholesale {
   position: absolute;
   top: 10px;

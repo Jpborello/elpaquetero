@@ -91,6 +91,7 @@ export default function ProductGrid({ products, onAddToCart, isWholesaleQualifie
               </div>
 
               <div className="card-badges-topleft">
+                {product.is_new && <span className="card-badge-new">🆕 Nuevo</span>}
                 {product.is_offer && <span className="card-badge-offer">Oferta</span>}
                 {topSellingIds?.has(product.id) && <span className="card-badge-bestseller">🔥 Más Vendido</span>}
               </div>

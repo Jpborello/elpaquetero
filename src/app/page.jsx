@@ -256,7 +256,10 @@ export default function Home() {
       .toLowerCase()
       .trim();
 
-  // Filter products by category, subcategory and search query
+  // Filter products by category, subcategory and search query. Los marcados
+  // "Nuevo Ingreso" (is_new, admin lo tilda desde PricesTab) se muestran
+  // primero dentro del listado resultante, sin alterar el orden relativo
+  // del resto (sort estable).
   const filteredProducts = products.filter((product) => {
     let matchesCategory = selectedCategory === 'all';
     
@@ -297,7 +300,7 @@ export default function Home() {
         ));
 
     return product.is_active !== false && matchesCategory && matchesSubcategory && matchesSearch;
-  });
+  }).sort((a, b) => Number(!!b.is_new) - Number(!!a.is_new));
 
   // Se derivan del estado local `products` (arranca en [] en server y
   // cliente por igual) en vez de leer directo del singleton `dataStore`,
