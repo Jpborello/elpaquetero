@@ -159,7 +159,12 @@ class DataStore {
 
       const dbById = new Map(data.map(p => [p.id, p]));
 
-      // La base de datos de Supabase es la fuente de verdad definitiva
+      // La base de datos de Supabase es la fuente de verdad definitiva.
+      // Hasta 29/8 esto todavia tenia un fallback a catalogData.js para
+      // sizes/stock_per_size/colors, porque parte del catalogo viejo no
+      // tenia esos campos cargados en la base. Ya se completaron los 14
+      // productos que faltaban (ver memoria de unificacion de catalogo),
+      // asi que ahora se confia directo en lo que trae la base sin excepcion.
       const merged = this.products.map(localP => {
         const dbP = dbById.get(localP.id);
         if (!dbP) return localP;
@@ -169,14 +174,7 @@ class DataStore {
           price: Number(dbP.price),
           wholesale_price: Number(dbP.wholesale_price),
           stock: Number(dbP.stock),
-          sales_count: dbP.sales_count ?? 0,
-          // Estas 3 columnas empiezan vacias (null) para todo el catalogo
-          // viejo que vive en catalogData.js: si el admin nunca las edito
-          // desde el panel, hay que seguir usando lo que trae el codigo en
-          // vez de pisarlo con el null de la base.
-          sizes: (Array.isArray(dbP.sizes) && dbP.sizes.length > 0) ? dbP.sizes : localP.sizes,
-          stock_per_size: (dbP.stock_per_size && Object.keys(dbP.stock_per_size).length > 0) ? dbP.stock_per_size : localP.stock_per_size,
-          colors: (Array.isArray(dbP.colors) && dbP.colors.length > 0) ? dbP.colors : localP.colors
+          sales_count: dbP.sales_count ?? 0
         };
       });
 
