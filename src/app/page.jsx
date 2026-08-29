@@ -13,6 +13,7 @@ import WholesaleBanner from '@/components/WholesaleBanner';
 import TrustBar from '@/components/TrustBar';
 import ProductDetailModal from '@/components/ProductDetailModal';
 import { dataStore, CATEGORIES } from '@/lib/dataStore';
+import { supabase } from '@/lib/supabaseClient';
 import { Store, Phone, MapPin, Instagram, PackageSearch } from 'lucide-react';
 import Link from 'next/link';
 
@@ -26,6 +27,11 @@ export default function Home() {
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(PRODUCTS_PER_PAGE);
+  // Busqueda "inteligente" (tolera errores de tipeo) via Postgres en
+  // Supabase. Arranca en null: mientras no haya respuesta del servidor
+  // para la busqueda actual, se usa el filtro por substring de mas abajo
+  // como base instantanea, asi no hay ningun parpadeo/demora al tipear.
+  const [smartSearchIds, setSmartSearchIds] = useState(null);
 
   // Cart & Auth state
   const [cartItems, setCartItems] = useState([]);
@@ -132,6 +138,35 @@ export default function Home() {
   useEffect(() => {
     setVisibleCount(PRODUCTS_PER_PAGE);
   }, [selectedCategory, selectedSubcategory, searchQuery]);
+
+  // Busqueda tolerante a errores de tipeo: 300ms despues de que el
+  // usuario deja de tipear, le pregunta a Postgres (full-text search +
+  // similitud por trigrams) que productos matchean de verdad, y ese
+  // resultado reemplaza al filtro por substring simple de mas abajo.
+  useEffect(() => {
+    const query = searchQuery.trim();
+    if (!query || !supabase) {
+      setSmartSearchIds(null);
+      return;
+    }
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.rpc('search_products', { search_term: query });
+        if (!cancelled && !error && Array.isArray(data)) {
+          setSmartSearchIds(new Set(data.map((p) => p.id)));
+        }
+      } catch (e) {
+        // Si falla la busqueda inteligente (sin conexion, etc.), nos
+        // quedamos con el filtro por substring de siempre, sin romper nada.
+        if (!cancelled) setSmartSearchIds(null);
+      }
+    }, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [searchQuery]);
 
   // Persistir el carrito en cada cambio (recien despues de hidratar, para
   // no pisar lo guardado con el estado inicial vacio)
@@ -248,11 +283,18 @@ export default function Home() {
     }
 
     const normSearch = normalizeStr(searchQuery);
-    const matchesSearch = normSearch === '' || 
-      normalizeStr(product.name).includes(normSearch) ||
-      normalizeStr(product.category).includes(normSearch) ||
-      normalizeStr(product.subcategory).includes(normSearch) ||
-      normalizeStr(product.description).includes(normSearch);
+    // Si ya tenemos respuesta de la busqueda inteligente (tolerante a
+    // errores de tipeo) para lo que esta tipeado ahora, se usa esa — sino,
+    // el match instantaneo por substring de siempre como base.
+    const matchesSearch = normSearch === '' ||
+      (smartSearchIds
+        ? smartSearchIds.has(product.id)
+        : (
+          normalizeStr(product.name).includes(normSearch) ||
+          normalizeStr(product.category).includes(normSearch) ||
+          normalizeStr(product.subcategory).includes(normSearch) ||
+          normalizeStr(product.description).includes(normSearch)
+        ));
 
     return product.is_active !== false && matchesCategory && matchesSubcategory && matchesSearch;
   });
