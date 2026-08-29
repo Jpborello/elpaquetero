@@ -139,7 +139,9 @@ class DataStore {
 
       await supabase.from('categories').upsert(categoriesToSeed, { onConflict: 'id', ignoreDuplicates: true });
 
-      const productsToSeed = CATALOG_PRODUCTS.map(({ sizes, stock_per_size, code, ...dbFields }) => dbFields);
+      // `code` ya es una columna real en Supabase (antes se excluia a
+      // proposito porque no existia); ahora se manda igual que el resto.
+      const productsToSeed = CATALOG_PRODUCTS.map(({ sizes, stock_per_size, ...dbFields }) => dbFields);
       await supabase.from('products').upsert(productsToSeed, { onConflict: 'id', ignoreDuplicates: true });
     } catch (err) {
       console.warn('Supabase catalog seed warning:', err);
@@ -758,6 +760,28 @@ class DataStore {
   bulkInsertProducts(productsList) {
     if (!Array.isArray(productsList) || productsList.length === 0) return 0;
 
+    // Codigo correlativo automatico para lo que se importe sin traer uno
+    // propio (ej: un CSV sin columna de codigo) — asi ningun producto
+    // nuevo queda sin codigo para buscar/imprimir en etiquetas, como pasaba
+    // antes de agregar la columna `code` a la base.
+    const usedCodes = new Set(
+      this.products.map((p) => p.code).filter(Boolean)
+    );
+    let nextNumericCode = this.products.reduce((max, p) => {
+      const n = parseInt(p.code, 10);
+      return Number.isFinite(n) && n > max ? n : max;
+    }, 0) + 1;
+    const generateCode = () => {
+      let code = String(nextNumericCode).padStart(4, '0');
+      while (usedCodes.has(code)) {
+        nextNumericCode += 1;
+        code = String(nextNumericCode).padStart(4, '0');
+      }
+      nextNumericCode += 1;
+      usedCodes.add(code);
+      return code;
+    };
+
     const newFormattedProducts = productsList.map((item, idx) => {
       const wholesale_price = parseFloat(item.wholesale_price || item.precio_mayorista || item.price || item.precio || item.precio_lista) || 0;
       const price = wholesale_price;
@@ -769,8 +793,13 @@ class DataStore {
         this.addCategory(categoryName, subcategoryName ? [subcategoryName] : []);
       }
 
+      const providedCode = (item.code || item.codigo || '').toString().trim();
+      const code = providedCode || generateCode();
+      if (providedCode) usedCodes.add(providedCode);
+
       return {
         id: item.id || `p-${Date.now()}-${idx}-${Math.floor(Math.random()*1000)}`,
+        code,
         name: (item.name || item.nombre || 'Producto Importado').trim(),
         category: categoryName,
         subcategory: subcategoryName,
