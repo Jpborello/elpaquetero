@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { sendWhatsAppMessage, sendWhatsAppTemplate, sendWhatsAppImage } from '@/lib/whatsappSend';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://pgipeujafjwhqjobcjzw.supabase.co';
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -107,27 +106,11 @@ export async function POST(req) {
         updated_at: new Date().toISOString()
       }], { onConflict: 'phone' });
 
-      // El chat web (sessionId "web-...") no es un número real de WhatsApp,
-      // solo el canal de WhatsApp de verdad manda el mensaje por la Cloud API.
-      let whatsappError = null;
-      if (!phone.startsWith('web-')) {
-        try {
-          const sendResult = await sendWhatsAppMessage(phone, content);
-          // Guardamos el wamid (id del mensaje segun Meta) para poder
-          // relacionarlo despues con el aviso de "entregado"/"fallido" que
-          // llega por webhook a value.statuses, y mostrar el motivo real
-          // si Meta lo termina rechazando aunque haya aceptado el envio.
-          const wamid = sendResult?.messages?.[0]?.id || null;
-          if (wamid) {
-            await supabaseAdmin.from('whatsapp_messages').update({ wamid }).eq('id', msgObj.id);
-          }
-        } catch (sendErr) {
-          console.error('Error enviando mensaje por WhatsApp Cloud API:', sendErr);
-          whatsappError = sendErr.message;
-        }
-      }
-
-      return NextResponse.json({ success: true, message: msgObj, whatsapp_error: whatsappError });
+      // Se dio de baja la Cloud API de WhatsApp (Meta Business Platform):
+      // esto ya no manda nada por afuera, solo queda guardado en el panel.
+      // Los mensajes de WhatsApp real ahora se responden a mano desde la
+      // app comun de WhatsApp Business en el celular, fuera de este sistema.
+      return NextResponse.json({ success: true, message: msgObj });
     }
 
     if (action === 'sendImage') {
@@ -151,50 +134,6 @@ export async function POST(req) {
       await supabaseAdmin.from('whatsapp_chats').upsert([{
         phone,
         last_message: caption || '📷 Imagen',
-        unread_count: 0,
-        updated_at: new Date().toISOString()
-      }], { onConflict: 'phone' });
-
-      let whatsappError = null;
-      if (!phone.startsWith('web-')) {
-        try {
-          await sendWhatsAppImage(phone, imageUrl, caption);
-        } catch (sendErr) {
-          console.error('Error enviando imagen por WhatsApp Cloud API:', sendErr);
-          whatsappError = sendErr.message;
-        }
-      }
-
-      return NextResponse.json({ success: true, message: msgObj, whatsapp_error: whatsappError });
-    }
-
-    if (action === 'startWhatsAppContact') {
-      const { phone, clientName } = body;
-      if (!phone) {
-        return NextResponse.json({ error: 'Falta el parámetro phone' }, { status: 400 });
-      }
-
-      const displayName = clientName || 'Cliente';
-      const templateText = `Hola ${displayName}, te contactamos de El Paquetero por tu consulta en la página web. ¿En qué te podemos ayudar?`;
-
-      const sendResult = await sendWhatsAppTemplate(phone, 'seguimiento_consulta_web', 'es_AR', [displayName]);
-      const wamid = sendResult?.messages?.[0]?.id || null;
-
-      const msgObj = {
-        id: crypto.randomUUID(),
-        chat_phone: phone,
-        sender: 'admin',
-        content: templateText,
-        created_at: new Date().toISOString(),
-        wamid
-      };
-      await supabaseAdmin.from('whatsapp_messages').insert([msgObj]);
-
-      await supabaseAdmin.from('whatsapp_chats').upsert([{
-        phone,
-        client_name: displayName,
-        channel: 'whatsapp',
-        last_message: templateText,
         unread_count: 0,
         updated_at: new Date().toISOString()
       }], { onConflict: 'phone' });

@@ -248,10 +248,6 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'sendMessage', phone: selectedPhone, content: textToSend })
       });
-      const data = await res.json();
-      if (data.whatsapp_error) {
-        alert(`El mensaje se guardó pero no se pudo entregar por WhatsApp: ${data.whatsapp_error}`);
-      }
       fetchMessages(selectedPhone, true);
       fetchChats(true);
     } catch (e) {
@@ -284,9 +280,6 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.error || 'No se pudo enviar la imagen');
-      if (data.whatsapp_error) {
-        alert(`La imagen se guardó pero no se pudo entregar por WhatsApp: ${data.whatsapp_error}`);
-      }
       setInputText('');
       fetchMessages(selectedPhone, true);
       fetchChats(true);
@@ -321,39 +314,6 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
     } catch (err) {
       console.warn('Error al borrar chat:', err);
       alert('No se pudo borrar la conversación. Probá de nuevo.');
-    }
-  };
-
-  const [isNewContactOpen, setIsNewContactOpen] = useState(false);
-  const [newContactPhone, setNewContactPhone] = useState('');
-  const [newContactName, setNewContactName] = useState('');
-  const [isStartingContact, setIsStartingContact] = useState(false);
-
-  const handleStartWhatsAppContact = async (e) => {
-    e.preventDefault();
-    const phone = newContactPhone.trim().replace(/\D/g, '');
-    if (!phone) return;
-
-    setIsStartingContact(true);
-    try {
-      const res = await fetch('/api/admin/whatsapp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'startWhatsAppContact', phone, clientName: newContactName.trim() })
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error || 'No se pudo iniciar el contacto');
-
-      setNewContactPhone('');
-      setNewContactName('');
-      setIsNewContactOpen(false);
-      fetchChats(true);
-      setSelectedPhone(phone);
-    } catch (err) {
-      console.warn('Error al iniciar contacto por WhatsApp:', err);
-      alert(`No se pudo enviar el mensaje de WhatsApp: ${err.message}`);
-    } finally {
-      setIsStartingContact(false);
     }
   };
 
@@ -471,63 +431,6 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
                 style={{ width: '100%', padding: '7px 10px 7px 32px', fontSize: '0.82rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-main)' }}
               />
             </div>
-
-            <button
-              onClick={() => setIsNewContactOpen(v => !v)}
-              style={{
-                marginTop: '8px',
-                width: '100%',
-                padding: '7px 10px',
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                borderRadius: '8px',
-                border: '1px dashed var(--border-color)',
-                background: 'transparent',
-                color: 'var(--text-muted)',
-                cursor: 'pointer'
-              }}
-            >
-              + Contactar por WhatsApp a un número nuevo
-            </button>
-
-            {isNewContactOpen && (
-              <form onSubmit={handleStartWhatsAppContact} style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <input
-                  type="text"
-                  placeholder="Nombre del cliente"
-                  value={newContactName}
-                  onChange={(e) => setNewContactName(e.target.value)}
-                  style={{ padding: '7px 10px', fontSize: '0.82rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-main)' }}
-                />
-                <input
-                  type="text"
-                  placeholder="Teléfono con código de país (ej: 5493411234567)"
-                  value={newContactPhone}
-                  onChange={(e) => setNewContactPhone(e.target.value)}
-                  style={{ padding: '7px 10px', fontSize: '0.82rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-main)' }}
-                />
-                <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                  Le va a llegar la plantilla aprobada: "Hola [nombre], te contactamos de El Paquetero por tu consulta en la página web. ¿En qué te podemos ayudar?"
-                </p>
-                <button
-                  type="submit"
-                  disabled={!newContactPhone.trim() || isStartingContact}
-                  style={{
-                    padding: '7px 10px',
-                    fontSize: '0.82rem',
-                    fontWeight: 800,
-                    borderRadius: '8px',
-                    border: 'none',
-                    background: '#D97706',
-                    color: '#FFFFFF',
-                    cursor: 'pointer',
-                    opacity: (!newContactPhone.trim() || isStartingContact) ? 0.6 : 1
-                  }}
-                >
-                  {isStartingContact ? 'Enviando...' : 'Enviar mensaje de WhatsApp'}
-                </button>
-              </form>
-            )}
           </div>
 
           {/* Chats List */}
