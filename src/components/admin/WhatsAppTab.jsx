@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { renderMessageWithLinks } from '@/lib/chatLinks';
 import {
   MessageSquare,
   Send,
@@ -618,7 +619,7 @@ DATOS OFICIALES Y PREGUNTAS FRECUENTES:
 
                         {msg.content && (
                           <div style={{ fontSize: '0.88rem', lineHeight: '1.4', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                            {msg.content}
+                            {renderMessageWithLinks(msg.content)}
                           </div>
                         )}
 

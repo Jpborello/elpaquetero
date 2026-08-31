@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MessageCircle, X, Send } from 'lucide-react';
+import { renderMessageWithLinks } from '@/lib/chatLinks';
 
 const SESSION_KEY = 'elpaquetero_webchat_session';
 const NAME_KEY = 'elpaquetero_webchat_name';
@@ -248,7 +249,7 @@ export default function WebChatWidget() {
                             {isBot ? '🤖 Asistente' : '👤 El Paquetero'}
                           </div>
                         )}
-                        {msg.content}
+                        {renderMessageWithLinks(msg.content)}
                       </div>
                     );
                   })
