@@ -832,6 +832,11 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                     <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'block' }}>
                       {isDelivery ? `🚚 Envío: ${ord.client_address || ''} (${ord.client_locality || 'Rosario'})` : `🏬 Retiro por Sucursal`}
                     </span>
+                    {isDelivery && !ord.client_postal_code && (
+                      <span style={{ fontSize: '0.72rem', color: '#B45309', fontWeight: 700, display: 'block', marginTop: '2px' }}>
+                        ⚠️ Falta código postal — pedirlo antes de despachar
+                      </span>
+                    )}
                   </td>
                   <td style={{ fontWeight: 800, color: '#059669', fontSize: '0.95rem' }}>
                     ${ord.total_amount?.toLocaleString('es-AR')}
@@ -1694,7 +1699,7 @@ export default function OrdersTab({ orders, mpTransfers, mpConfigured, mpLoading
                     <strong>Localidad / Ciudad:</strong> <span>{selectedPrintOrder.client_locality || 'Rosario'}</span>
                   </div>
                   <div className="info-row">
-                    <strong>Código Postal:</strong> <span>{selectedPrintOrder.client_postal_code || 'No especificado'}</span>
+                    <strong>Código Postal:</strong> <span>{selectedPrintOrder.client_postal_code || '⚠️ FALTA — CONSULTAR AL CLIENTE ANTES DE DESPACHAR'}</span>
                   </div>
                 </>
               )}

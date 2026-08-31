@@ -121,9 +121,22 @@ export default function CartDrawer({
       return;
     }
 
-    if (deliveryMethod === 'envio' && (!address || !postalCode)) {
-      alert('Para envío a domicilio necesitamos la Dirección y el Código Postal completos.');
+    if (deliveryMethod === 'envio' && !address) {
+      alert('Para envío a domicilio necesitamos al menos la Dirección completa.');
       return;
+    }
+
+    // El Codigo Postal ya NO bloquea el pedido si falta: es importante para
+    // el transporte pero preferimos perder ese dato a perder la venta entera
+    // (paso esto por lo que le paso a una clienta que quedo trabada sin
+    // poder finalizar). Si falta, se avisa y se deja seguir -- el pedido
+    // queda marcado para que el admin lo pida antes de despachar (ver
+    // OrdersTab.jsx).
+    if (deliveryMethod === 'envio' && !postalCode) {
+      const seguir = window.confirm(
+        'No cargaste el Código Postal. Podés continuar igual y te lo vamos a pedir antes de despachar el pedido, o cancelar para completarlo ahora. ¿Continuar sin Código Postal?'
+      );
+      if (!seguir) return;
     }
 
     const orderData = onCheckout(cartItems, {
