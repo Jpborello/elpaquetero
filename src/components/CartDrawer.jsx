@@ -824,76 +824,82 @@ export default function CartDrawer({
                 ) : (
                   <div>
                     <div className="form-group" style={{ marginBottom: '10px' }}>
-                      <input 
-                        type="text" 
-                        placeholder="Nombre Completo / Razón Social *" 
+                      <input
+                        type="text"
+                        placeholder="Nombre Completo / Razón Social *"
                         value={clientName}
                         onChange={(e) => setClientName(e.target.value)}
-                        className="form-input" 
+                        className="form-input"
                         style={{ fontSize: '0.85rem', padding: '8px 10px' }}
                       />
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
-                      <input 
-                        type="text" 
-                        placeholder="DNI / CUIT *" 
+                      <input
+                        type="text"
+                        placeholder="DNI / CUIT *"
                         value={clientDni}
                         onChange={(e) => setClientDni(e.target.value)}
-                        className="form-input" 
+                        className="form-input"
                         style={{ fontSize: '0.85rem', padding: '8px 10px' }}
                       />
-                      <input 
-                        type="text" 
-                        placeholder="Teléfono *" 
+                      <input
+                        type="text"
+                        placeholder="Teléfono *"
                         value={clientPhone}
                         onChange={(e) => setClientPhone(e.target.value)}
-                        className="form-input" 
-                        style={{ fontSize: '0.85rem', padding: '8px 10px' }}
-                      />
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                      <input
-                        type="text"
-                        placeholder="Localidad / Ciudad *"
-                        value={clientLocality}
-                        onChange={(e) => setClientLocality(e.target.value)}
-                        className="form-input"
-                        style={{ fontSize: '0.85rem', padding: '8px 10px' }}
-                      />
-                      <input
-                        type="text"
-                        placeholder={deliveryMethod === 'envio' ? 'Dirección / Calle *' : 'Dirección / Calle'}
-                        value={clientAddress}
-                        onChange={(e) => setClientAddress(e.target.value)}
                         className="form-input"
                         style={{ fontSize: '0.85rem', padding: '8px 10px' }}
                       />
                     </div>
 
-                    {deliveryMethod === 'envio' && (
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '10px' }}>
-                        <input
-                          type="text"
-                          placeholder="Código Postal *"
-                          value={clientPostalCode}
-                          onChange={(e) => setClientPostalCode(e.target.value)}
-                          className="form-input"
-                          style={{ fontSize: '0.85rem', padding: '8px 10px' }}
-                        />
-                        <input
-                          type="text"
-                          placeholder="Piso / Depto (si aplica)"
-                          value={clientFloorApt}
-                          onChange={(e) => setClientFloorApt(e.target.value)}
-                          className="form-input"
-                          style={{ fontSize: '0.85rem', padding: '8px 10px' }}
-                        />
-                      </div>
-                    )}
+                    <input
+                      type="text"
+                      placeholder="Localidad / Ciudad *"
+                      value={clientLocality}
+                      onChange={(e) => setClientLocality(e.target.value)}
+                      className="form-input"
+                      style={{ fontSize: '0.85rem', padding: '8px 10px' }}
+                    />
                   </div>
                 )}
+
+                {/* Direccion / Codigo Postal / Piso: nunca se guardan en la
+                    cuenta (son datos por pedido, no por cliente), asi que se
+                    muestran siempre, este o no logueado el cliente -- antes
+                    solo aparecian para invitados y un cliente registrado no
+                    tenia forma de cargarlos al pedir envio a domicilio. */}
+                <div style={{ marginTop: '10px' }}>
+                  <input
+                    type="text"
+                    placeholder={deliveryMethod === 'envio' ? 'Dirección / Calle *' : 'Dirección / Calle'}
+                    value={clientAddress}
+                    onChange={(e) => setClientAddress(e.target.value)}
+                    className="form-input"
+                    style={{ fontSize: '0.85rem', padding: '8px 10px', width: '100%' }}
+                  />
+
+                  {deliveryMethod === 'envio' && (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '10px' }}>
+                      <input
+                        type="text"
+                        placeholder="Código Postal *"
+                        value={clientPostalCode}
+                        onChange={(e) => setClientPostalCode(e.target.value)}
+                        className="form-input"
+                        style={{ fontSize: '0.85rem', padding: '8px 10px' }}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Piso / Depto (si aplica)"
+                        value={clientFloorApt}
+                        onChange={(e) => setClientFloorApt(e.target.value)}
+                        className="form-input"
+                        style={{ fontSize: '0.85rem', padding: '8px 10px' }}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             </>
           )}
