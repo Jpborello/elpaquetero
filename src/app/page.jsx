@@ -9,12 +9,13 @@ import ProductGrid from '@/components/ProductGrid';
 import CartDrawer from '@/components/CartDrawer';
 import AuthModal from '@/components/AuthModal';
 import WebChatWidget from '@/components/WebChatWidget';
+import WhatsAppButton from '@/components/WhatsAppButton';
 import WholesaleBanner from '@/components/WholesaleBanner';
 import TrustBar from '@/components/TrustBar';
 import ProductDetailModal from '@/components/ProductDetailModal';
 import { dataStore, CATEGORIES } from '@/lib/dataStore';
 import { supabase } from '@/lib/supabaseClient';
-import { Store, MapPin, Instagram, PackageSearch } from 'lucide-react';
+import { Store, Phone, MapPin, Instagram, PackageSearch } from 'lucide-react';
 import Link from 'next/link';
 
 const CART_STORAGE_KEY = 'elpaquetero_cart';
@@ -492,9 +493,9 @@ export default function Home() {
         </div>
       )}
 
-      {/* Floating WhatsApp Contact Button — oculto temporalmente mientras
-          se re-registra el numero en la app de WhatsApp Business, para que
-          la gente no le escriba a un canal que nadie esta monitoreando */}
+      {/* WhatsApp reactivado (numero 341 328-6628 ya funciona de nuevo en
+          la app de WhatsApp Business) */}
+      <WhatsAppButton />
       <WebChatWidget />
 
       {/* Shopping Cart Drawer */}
@@ -533,7 +534,7 @@ export default function Home() {
           <div>
             <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px', color: 'var(--accent-gold-light)' }}>Contacto Directo</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.9rem', color: '#D6C8B5' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>⚠️ Problemas con WhatsApp: escribinos por el Chat de la web</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Phone size={16} /> 341 328-6628</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><MapPin size={16} /> Camilo Aldao 2715 esq. ex Godoy (Rosario - Santa Fe)</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Store size={16} /> Atención Lunes a Sábado de 8:00 a 16:30 hs</div>
               <Link href="/pedido" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-gold-light)', fontWeight: 700, textDecoration: 'none' }}>
