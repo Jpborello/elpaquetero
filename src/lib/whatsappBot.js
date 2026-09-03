@@ -111,8 +111,8 @@ export async function processIncomingChatMessage(supabaseAdmin, { chatId, client
   const genericNames = ['visitante web', 'cliente whatsapp', 'cliente'];
   const hasRealName = clientName && !genericNames.includes(clientName.trim().toLowerCase());
   const nameNotice = hasRealName
-    ? `\n\nNOMBRE DEL CLIENTE: ${clientName}. Usalo en el saludo inicial (ej: "¡Hola ${clientName}, ${saludoSegunHora.toLowerCase()}! ¿Cómo estás?").`
-    : `\n\nNOMBRE DEL CLIENTE: no disponible todavía — saludalo sin nombre (ej: "¡Hola, ${saludoSegunHora.toLowerCase()}!") y si en algún momento se presenta, usalo de ahí en adelante.`;
+    ? `\n\nNOMBRE DEL CLIENTE: ${clientName}. Usalo en el saludo inicial (ej: "¡Hola ${clientName}, ${saludoSegunHora.toLowerCase()}! ¿Cómo estás? ¿En qué te puedo asistir hoy?").`
+    : `\n\nNOMBRE DEL CLIENTE: no disponible todavía — saludalo sin nombre (ej: "¡Hola, ${saludoSegunHora.toLowerCase()}! ¿En qué te puedo asistir hoy?") y si en algún momento se presenta, usalo de ahí en adelante.`;
 
   const systemPrompt = (settings?.system_prompt || DEFAULT_SYSTEM_PROMPT) + `
 
