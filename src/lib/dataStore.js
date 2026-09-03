@@ -24,7 +24,22 @@ class DataStore {
     this.transferCuit = '27-30938323-6';
     this.transferAlias = 'el.paquetero.godoy';
     this.listeners = [];
-    
+
+    // Productos borrados a mano desde el admin. Se guardan como "tumba" para
+    // que el re-seed del catálogo de código (seedMissingCatalogInSupabase) no
+    // los vuelva a crear en cada carga de página.
+    this.deletedProductIds = new Set();
+    if (typeof window !== 'undefined') {
+      try {
+        const storedDeleted = JSON.parse(localStorage.getItem('elpaquetero_deleted_products') || '[]');
+        if (Array.isArray(storedDeleted)) this.deletedProductIds = new Set(storedDeleted);
+      } catch (e) {}
+    }
+
+    if (this.deletedProductIds.size > 0) {
+      this.products = this.products.filter(p => !this.deletedProductIds.has(p.id));
+    }
+
     this.loadProductsFromLocalStorage();
     if (typeof window !== 'undefined') {
       window.addEventListener('storage', (e) => {
@@ -82,6 +97,7 @@ class DataStore {
   // then pull the real, current state from Supabase so admin edits
   // (precio, stock, categorías nuevas, etc.) siempre prevalecen.
   async initFromSupabase() {
+    await this.loadDeletedProductIds();
     await this.seedMissingCatalogInSupabase();
     await Promise.all([
       this.fetchProductsFromSupabase(),
@@ -125,6 +141,53 @@ class DataStore {
     }
   }
 
+  // Trae la lista de ids de productos borrados a mano (fila _config de la
+  // tabla categories, mismo patrón que los alias de transferencia).
+  async loadDeletedProductIds() {
+    if (!supabase) return;
+    try {
+      const { data } = await supabase.from('categories').select('subcategories').eq('id', '_config_deleted_products').maybeSingle();
+      const arr = Array.isArray(data?.subcategories)
+        ? data.subcategories
+        : (typeof data?.subcategories === 'string' ? JSON.parse(data.subcategories) : []);
+      arr.forEach((id) => this.deletedProductIds.add(id));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('elpaquetero_deleted_products', JSON.stringify(Array.from(this.deletedProductIds)));
+      }
+    } catch (err) {
+      console.warn('Supabase deleted-products fetch warning:', err);
+    }
+  }
+
+  // Guarda el estado actual de la lista de tumbas (localStorage + Supabase).
+  async writeDeletedProductIds() {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('elpaquetero_deleted_products', JSON.stringify(Array.from(this.deletedProductIds)));
+    }
+    if (supabase) {
+      try {
+        await supabase.from('categories').upsert({
+          id: '_config_deleted_products',
+          name: 'deleted_products',
+          subcategories: Array.from(this.deletedProductIds)
+        });
+      } catch (err) {
+        console.warn('Supabase deleted-products persist warning:', err);
+      }
+    }
+  }
+
+  async persistDeletedProductId(id) {
+    this.deletedProductIds.add(id);
+    await this.writeDeletedProductIds();
+  }
+
+  async reviveProductId(id) {
+    if (!this.deletedProductIds.has(id)) return;
+    this.deletedProductIds.delete(id);
+    await this.writeDeletedProductIds();
+  }
+
   // Inserta en Supabase los productos/categorías del catálogo de código que
   // todavía no existan en la base. Usa ignoreDuplicates para que NUNCA
   // pise precios, stock o categorías que ya haya editado el admin.
@@ -141,7 +204,9 @@ class DataStore {
 
       // `code` ya es una columna real en Supabase (antes se excluia a
       // proposito porque no existia); ahora se manda igual que el resto.
-      const productsToSeed = CATALOG_PRODUCTS.map(({ sizes, stock_per_size, ...dbFields }) => dbFields);
+      const productsToSeed = CATALOG_PRODUCTS
+        .filter(p => !this.deletedProductIds.has(p.id))
+        .map(({ sizes, stock_per_size, ...dbFields }) => dbFields);
       await supabase.from('products').upsert(productsToSeed, { onConflict: 'id', ignoreDuplicates: true });
     } catch (err) {
       console.warn('Supabase catalog seed warning:', err);
@@ -189,7 +254,7 @@ class DataStore {
           sales_count: p.sales_count ?? 0 
         }));
 
-      this.products = [...merged, ...extraFromDb];
+      this.products = [...merged, ...extraFromDb].filter(p => !this.deletedProductIds.has(p.id));
       this.saveProductsToLocalStorage();
       this.notify();
     } catch (err) {
@@ -598,6 +663,143 @@ class DataStore {
 
   updateStock(id, newStock) {
     this.updateProduct(id, { stock: parseInt(newStock, 10) || 0 });
+  }
+
+  // Borra un producto definitivamente (ej: se subió algo mal). Lo saca de la
+  // UI al toque y lo elimina de la base via la API con service role. Si algo
+  // falla, lo vuelve a poner para no perderlo silenciosamente.
+  async deleteProduct(id) {
+    const removed = this.products.find((p) => p.id === id);
+    if (!removed) return;
+
+    this.products = this.products.filter((p) => p.id !== id);
+    this.saveProductsToLocalStorage();
+    this.notify();
+
+    if (typeof window === 'undefined') return;
+
+    try {
+      const res = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'deleteProduct', id })
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || 'No se pudo borrar el producto');
+      }
+      // Tumba: evita que el re-seed del catálogo lo vuelva a crear.
+      await this.persistDeletedProductId(id);
+    } catch (err) {
+      // Rollback: lo devolvemos a la lista.
+      this.products = [removed, ...this.products.filter((p) => p.id !== id)];
+      this.saveProductsToLocalStorage();
+      this.notify();
+      throw err;
+    }
+  }
+
+  // Alta de un producto nuevo desde el panel admin. El código correlativo y
+  // el id definitivos los asigna el backend (service role) para evitar
+  // choques con lo que ya hay en la base; acá solo mostramos algo al toque
+  // en la UI y después reemplazamos con la fila real que devuelve la API.
+  async createProduct(product) {
+    // Si la categoría/subcategoría son nuevas, las registramos también.
+    if (product.category) {
+      this.addCategory(product.category, product.subcategory ? [product.subcategory] : []);
+    }
+
+    const sizes = Array.isArray(product.sizes) ? product.sizes.filter(Boolean) : [];
+    const cleanStockPerSize = {};
+    sizes.forEach((s) => {
+      cleanStockPerSize[s] = Number((product.stock_per_size || {})[s]) || 0;
+    });
+    const stock = sizes.length > 0
+      ? Object.values(cleanStockPerSize).reduce((sum, n) => sum + (Number(n) || 0), 0)
+      : (Number(product.stock) || 0);
+
+    const wholesale_price = Number(product.wholesale_price) || 0;
+    const price = Number(product.price) || wholesale_price;
+
+    const tempId = `p-temp-${Date.now()}`;
+    const optimistic = {
+      id: tempId,
+      code: '…',
+      name: (product.name || '').trim(),
+      category: (product.category || 'General').trim(),
+      subcategory: (product.subcategory || '').trim(),
+      price,
+      wholesale_price,
+      stock,
+      sales_count: 0,
+      image_url: (product.image_url || '').trim() || '/elpaquetero_imagenes/Logo 2.jpeg',
+      description: (product.description || '').trim(),
+      colors: Array.isArray(product.colors) && product.colors.length > 0 ? product.colors : null,
+      sizes: sizes.length > 0 ? sizes : null,
+      stock_per_size: sizes.length > 0 ? cleanStockPerSize : null,
+      is_offer: Boolean(product.is_offer),
+      is_new: Boolean(product.is_new),
+      is_top_seller: false,
+      is_featured: false,
+      is_active: true
+    };
+
+    this.products = [optimistic, ...this.products];
+    this.notify();
+
+    if (typeof window === 'undefined') return optimistic;
+
+    try {
+      const res = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'createProduct',
+          product: {
+            name: optimistic.name,
+            category: optimistic.category,
+            subcategory: optimistic.subcategory,
+            price,
+            wholesale_price,
+            stock,
+            image_url: optimistic.image_url,
+            description: optimistic.description,
+            colors: optimistic.colors,
+            sizes: optimistic.sizes,
+            stock_per_size: optimistic.stock_per_size,
+            is_offer: optimistic.is_offer,
+            is_new: optimistic.is_new
+          }
+        })
+      });
+      const result = await res.json();
+
+      if (!res.ok || !result.success || !Array.isArray(result.data) || result.data.length === 0) {
+        // Falló: sacamos la fila optimista para no dejar un fantasma.
+        this.products = this.products.filter((p) => p.id !== tempId);
+        this.notify();
+        throw new Error(result.error || 'No se pudo crear el producto');
+      }
+
+      const created = result.data[0];
+      // Por las dudas: si este id estuvo tumbado antes, lo revivimos.
+      if (created?.id) this.reviveProductId(created.id).catch(() => {});
+      const normalized = {
+        ...created,
+        price: Number(created.price),
+        wholesale_price: Number(created.wholesale_price),
+        stock: Number(created.stock),
+        sales_count: created.sales_count ?? 0
+      };
+      this.products = this.products.map((p) => (p.id === tempId ? normalized : p));
+      this.saveProductsToLocalStorage();
+      this.notify();
+      return normalized;
+    } catch (err) {
+      this.products = this.products.filter((p) => p.id !== tempId);
+      this.notify();
+      throw err;
+    }
   }
 
   // Usado en el checkout (cliente anonimo). Actualiza el estado local al

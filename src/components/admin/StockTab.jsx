@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Save, Layers, Settings2, X, Plus } from 'lucide-react';
+import { Save, Layers, Settings2, X, Plus, Trash2 } from 'lucide-react';
 import { getProductColors } from '@/lib/catalogData';
 
-export default function StockTab({ products, searchFilter, setSearchFilter, onUpdateStock, onUpdateSizesColors, onToggleActive }) {
+export default function StockTab({ products, searchFilter, setSearchFilter, onUpdateStock, onUpdateSizesColors, onToggleActive, onDeleteProduct }) {
   // Local state for stock per size per product
   const [sizeStockState, setSizeStockState] = useState({});
   const [managingProduct, setManagingProduct] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   const handleSizeStockChange = (productId, size, val) => {
     const num = parseInt(val, 10) || 0;
@@ -50,6 +51,7 @@ export default function StockTab({ products, searchFilter, setSearchFilter, onUp
             <th>Stock Total</th>
             <th>Modificar Stock</th>
             <th>Talles y Colores</th>
+            <th>Eliminar</th>
           </tr>
         </thead>
         <tbody>
@@ -161,6 +163,38 @@ export default function StockTab({ products, searchFilter, setSearchFilter, onUp
                   >
                     <Settings2 size={14} /> Gestionar
                   </button>
+                </td>
+
+                {/* Eliminar producto */}
+                <td>
+                  {deletingId === p.id ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
+                      <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#DC2626' }}>¿Borrar definitivamente?</span>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button
+                          onClick={() => { onDeleteProduct(p.id); setDeletingId(null); }}
+                          style={{ backgroundColor: '#DC2626', color: '#FFF', border: 'none', borderRadius: '4px', padding: '4px 10px', fontSize: '0.74rem', fontWeight: 800, cursor: 'pointer' }}
+                        >
+                          Sí, borrar
+                        </button>
+                        <button
+                          onClick={() => setDeletingId(null)}
+                          style={{ backgroundColor: 'var(--bg-surface-elevated)', color: 'var(--text-main)', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '4px 10px', fontSize: '0.74rem', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          No
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setDeletingId(p.id)}
+                      title="Borrar este producto definitivamente"
+                      className="btn-secondary"
+                      style={{ padding: '6px 10px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#DC2626', borderColor: '#FECACA' }}
+                    >
+                      <Trash2 size={14} /> Borrar
+                    </button>
+                  )}
                 </td>
               </tr>
             );

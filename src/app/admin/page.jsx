@@ -9,6 +9,7 @@ import AdminHeader from '@/components/admin/AdminHeader';
 import AdminTabsNav from '@/components/admin/AdminTabsNav';
 import MetricsTab from '@/components/admin/MetricsTab';
 import StockTab from '@/components/admin/StockTab';
+import NewProductTab from '@/components/admin/NewProductTab';
 import PricesTab from '@/components/admin/PricesTab';
 import CategoriesTab from '@/components/admin/CategoriesTab';
 import BulkImportTab from '@/components/admin/BulkImportTab';
@@ -355,6 +356,22 @@ export default function AdminPage() {
   const handleDeleteSubcategory = (categoryId, subcategoryName) => {
     dataStore.deleteSubcategory(categoryId, subcategoryName);
     showSuccessNotice('Subcategoría eliminada.');
+  };
+
+  const handleCreateProduct = async (productData) => {
+    const created = await dataStore.createProduct(productData);
+    showSuccessNotice(`Producto "${created?.name || productData.name}" creado con el código ${created?.code || '(auto)'}.`);
+    return created;
+  };
+
+  const handleDeleteProduct = async (id) => {
+    const target = products.find((p) => p.id === id);
+    try {
+      await dataStore.deleteProduct(id);
+      showSuccessNotice(`Producto "${target?.name || id}" eliminado definitivamente.`);
+    } catch (err) {
+      showSuccessNotice('No se pudo borrar el producto: ' + (err.message || 'error desconocido'));
+    }
   };
 
   const handleBulkImport = (newProducts) => {
@@ -756,14 +773,23 @@ export default function AdminPage() {
         </div>
       )}
 
+      {activeTab === 'new' && (
+        <NewProductTab
+          categories={categories}
+          products={products}
+          onCreateProduct={handleCreateProduct}
+        />
+      )}
+
       {activeTab === 'stock' && (
-        <StockTab 
+        <StockTab
           products={filteredProducts}
           searchFilter={searchFilter}
           setSearchFilter={setSearchFilter}
           onUpdateStock={handleStockUpdate}
           onUpdateSizesColors={handleUpdateSizesColors}
           onToggleActive={handleToggleActive}
+          onDeleteProduct={handleDeleteProduct}
         />
       )}
 
