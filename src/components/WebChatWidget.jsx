@@ -7,6 +7,7 @@ import { renderMessageWithLinks } from '@/lib/chatLinks';
 const SESSION_KEY = 'elpaquetero_webchat_session';
 const NAME_KEY = 'elpaquetero_webchat_name';
 const POLL_MS = 5000;
+const MAX_POLL_MS = 60000;
 
 function getOrCreateSessionId() {
   if (typeof window === 'undefined') return null;
@@ -28,7 +29,8 @@ export default function WebChatWidget() {
   const [nameSaved, setNameSaved] = useState(false);
   const [unseenCount, setUnseenCount] = useState(0);
   const messagesEndRef = useRef(null);
-  const pollRef = useRef(null);
+  const pollTimeoutRef = useRef(null);
+  const failCountRef = useRef(0);
 
   useEffect(() => {
     const id = getOrCreateSessionId();
@@ -40,8 +42,10 @@ export default function WebChatWidget() {
     }
   }, []);
 
+  // Devuelve true si el pedido salio bien, false si fallo (asi el poller de
+  // abajo sabe cuando ir espaciando los reintentos).
   const fetchMessages = useCallback(async (id, markSeen) => {
-    if (!id) return;
+    if (!id) return true;
     try {
       const res = await fetch(`/api/webchat/message?sessionId=${encodeURIComponent(id)}`);
       const data = await res.json();
@@ -52,19 +56,48 @@ export default function WebChatWidget() {
           }
           return data.messages;
         });
+        return true;
       }
+      return false;
     } catch (e) {
       console.warn('Error cargando chat web:', e);
+      return false;
     }
   }, []);
 
-  // Poll for admin/bot replies while the panel is open, and lightly while closed
-  // too (so the badge can show unread replies without needing to reopen).
+  // Poll de respuestas del bot/admin: solo mientras el panel esta abierto,
+  // asi no queda pegando pedidos de fondo por cada visitante que entra a la
+  // web (eso fue lo que generó el incidente de miles de requests fallidos).
+  // Si un pedido falla, en vez de insistir cada 5s para siempre, vamos
+  // espaciando el proximo intento (5s, 10s, 20s, 40s... hasta un tope de
+  // 60s) y volvemos a 5s apenas uno sale bien.
   useEffect(() => {
-    if (!sessionId) return;
-    fetchMessages(sessionId, isOpen);
-    pollRef.current = setInterval(() => fetchMessages(sessionId, isOpen), POLL_MS);
-    return () => clearInterval(pollRef.current);
+    failCountRef.current = 0;
+    if (!sessionId || !isOpen) return;
+
+    let cancelled = false;
+
+    const runPoll = async () => {
+      if (cancelled) return;
+      const ok = await fetchMessages(sessionId, true);
+      if (cancelled) return;
+      if (ok) {
+        failCountRef.current = 0;
+        pollTimeoutRef.current = setTimeout(runPoll, POLL_MS);
+      } else {
+        failCountRef.current += 1;
+        const backoff = Math.min(POLL_MS * 2 ** failCountRef.current, MAX_POLL_MS);
+        pollTimeoutRef.current = setTimeout(runPoll, backoff);
+      }
+    };
+
+    fetchMessages(sessionId, true);
+    pollTimeoutRef.current = setTimeout(runPoll, POLL_MS);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(pollTimeoutRef.current);
+    };
   }, [sessionId, isOpen, fetchMessages]);
 
   // Al abrir el panel, saltamos al fondo sin animar: con 'smooth' el scroll
